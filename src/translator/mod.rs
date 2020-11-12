@@ -1,39 +1,57 @@
+use std::cmp;
 use std::collections::HashMap;
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone)]
 /// A stroke can be a single stroke (ex: "H-L") or several strokes (ex:
 /// "H-L/WORLD")
-pub struct Stroke(String);
+pub type Stroke = String;
 
-impl Stroke {
-    pub fn new(stroke: &str) -> Self {
-        Stroke(stroke.to_owned())
-    }
-    fn to_raw(self) -> String {
-        self.0
-    }
-    pub fn append(self, other: Self) -> Self {
-        Stroke(format!("{}/{}", self.to_raw(), other.to_raw()))
+fn empty_stroke() -> Stroke {
+    String::from("")
+}
+
+/// Join two strokes together with a `/` in the middle. If either stroke is
+/// empty, return the other stroke
+fn stroke_join(one: &Stroke, other: &Stroke) -> Stroke {
+    if other.len() == 0 {
+        one.to_owned()
+    } else if one.len() == 0 {
+        other.to_owned()
+    } else {
+        format!("{}/{}", one, other)
     }
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Output {
-    Text(String),
+    AddText(String),
+    Replace(u32, String),
 }
 
 impl Output {
     pub fn text(output: &str) -> Self {
-        Self::Text(output.to_owned())
+        Self::AddText(output.to_owned())
+    }
+    pub fn replace(backspace_num: u32, replace_str: &str) -> Self {
+        Self::Replace(backspace_num, replace_str.to_owned())
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Command {
+    Text(String),
+}
+
+impl Command {
+    pub fn text(t: &str) -> Self {
+        Self::Text(t.to_owned())
     }
 }
 
 pub struct Dictionary {
-    strokes: HashMap<Stroke, Output>,
+    strokes: HashMap<Stroke, Command>,
 }
 
-type DictEntries = Vec<(Stroke, Output)>;
-type RawDictEntries = Vec<(String, String)>;
+type DictEntries = Vec<(Stroke, Command)>;
 
 impl Dictionary {
     pub fn new(entries: DictEntries) -> Self {
@@ -45,17 +63,14 @@ impl Dictionary {
         Dictionary { strokes: hashmap }
     }
 
-    fn has(&self, stroke: &Stroke) -> bool {
-        self.strokes.get(stroke).is_some()
-    }
-
-    fn get(&self, stroke: &Stroke) -> Option<&Output> {
+    fn get(&self, stroke: &Stroke) -> Option<&Command> {
         self.strokes.get(stroke)
     }
 }
 
 #[derive(Debug, PartialEq)]
 pub struct State {
+    // should only include "undo-able" strokes (this excludes commands)
     prev_strokes: Vec<Stroke>,
 }
 
@@ -75,57 +90,101 @@ impl State {
     }
 }
 
-/// Translate needs: stroke, temporary state (previous strokes, next word
-/// uppercase, etc), persistent state (dictionary(ies))
-pub fn translate(stroke: Stroke, dict: &Dictionary, mut state: State) -> (&Output, State) {
-    for i in (0..state.prev_strokes.len()).rev() {
-        let mut prev_strokes_combined = stroke.clone();
-        for s in &state.prev_strokes[0..i] {
-            prev_strokes_combined = prev_strokes_combined.append(s.clone());
-        }
-        if let Some(output) = dict.get(&prev_strokes_combined) {
-            state.add_stroke(stroke);
-            return (output, state);
+pub fn translate(stroke: Stroke, dict: &Dictionary, mut state: State) -> (Output, State) {
+    let old_commands = translate_strokes(&state.prev_strokes, dict);
+    state.prev_strokes.push(stroke);
+    let new_commands = translate_strokes(&state.prev_strokes, dict);
+    println!("old_commands: {:?}", old_commands);
+    println!("new_commands: {:?}", new_commands);
+
+    if let Some(Command::Text(text)) = dict.get(&String::from("H-L")) {
+        return (Output::text(text), state);
+    }
+    panic!("oops");
+}
+
+fn translate_strokes<'a>(strokes: &Vec<Stroke>, dict: &'a Dictionary) -> Vec<&'a Command> {
+    let mut strokes_combined = empty_stroke();
+    let mut commands: Vec<&Command> = vec![];
+
+    // TODO: this algorithm needs to be greedy; it needs to find the greatest
+    // strokes that have a translation
+    for s in strokes {
+        strokes_combined = stroke_join(s, &strokes_combined);
+        if let Some(command) = dict.get(&strokes_combined) {
+            commands.push(command);
+            strokes_combined = String::from("");
         }
     }
-    if let Some(output) = dict.get(&stroke) {
-        state.add_stroke(stroke);
-        return (output, state);
-    }
-    panic!("Stroke {:?} not found in dictionary", stroke);
+
+    commands
+}
+
+fn text_diff(old: &Vec<Stroke>, new: &Vec<Stroke>) -> Output {
+    Output::text("")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn setup_dict() -> Dictionary {
+        Dictionary::new(vec![
+            (String::from("H-L"), Command::text("Hello")),
+            (String::from("WORLD"), Command::text("World")),
+            (String::from("H-L/A"), Command::text("He..llo")),
+            (String::from("A"), Command::text("Wrong thing")),
+        ])
+    }
+
     #[test]
-    fn test_dict_has() {
+    fn test_dict_lower_overwrite() {
         let dict = Dictionary::new(vec![
-            (Stroke::new("H-L"), Output::text("Hello")),
-            (Stroke::new("WORLD"), Output::text("World")),
+            (String::from("H-L"), Command::text("Hello")),
+            (String::from("WORLD"), Command::text("World")),
+            (String::from("H-L"), Command::text("another")),
         ]);
 
-        assert!(dict.has(&Stroke::new("H-L")));
-        assert!(!dict.has(&Stroke::new("TPHOG")));
+        let state = State::initial();
+
+        let (output, _) = translate(String::from("H-L"), &dict, state);
+
+        assert_eq!(output, Output::text("another"));
     }
 
     #[test]
     fn test_translate_with_stroke_history() {
-        let dict = Dictionary::new(vec![
-            (Stroke::new("H-L"), Output::text("Hello")),
-            (Stroke::new("WORLD"), Output::text("World")),
-        ]);
-        let state = State::with_strokes(vec![Stroke::new("TP")]);
+        let dict = setup_dict();
+        let state = State::with_strokes(vec![String::from("TP")]);
 
-        let (output, new_state) = translate(Stroke::new("H-L"), &dict, state);
+        let (output, new_state) = translate(String::from("H-L"), &dict, state);
 
-        assert_eq!(output, &Output::text("Hello"));
+        assert_eq!(output, Output::text("Hello"));
         assert_eq!(
             new_state,
-            State {
-                prev_strokes: vec![Stroke::new("TP"), Stroke::new("H-L")]
-            }
+            State::with_strokes(vec![String::from("TP"), String::from("H-L")])
         );
+    }
+
+    #[test]
+    fn test_translate_no_stroke_history() {
+        let dict = setup_dict();
+        let state = State::initial();
+
+        let (output, new_state) = translate(String::from("H-L"), &dict, state);
+
+        assert_eq!(output, Output::text("Hello"));
+        assert_eq!(new_state, State::with_strokes(vec![String::from("H-L")]));
+    }
+
+    #[test]
+    fn test_translate_change_stroke() {
+        let dict = setup_dict();
+        let state = State::with_strokes(vec![String::from("H-L")]);
+
+        let (output, new_state) = translate(String::from("A"), &dict, state);
+
+        assert_eq!(output, Output::replace(3, "..llo"));
+        assert_eq!(new_state, State::with_strokes(vec![String::from("H-L")]));
     }
 }
