@@ -1,42 +1,8 @@
 use std::cmp;
 use std::collections::HashMap;
 
+use crate::stroke::Stroke;
 use crate::commands as cmds;
-
-/// A stroke can be a single stroke (ex: "H-L") or several strokes (ex:
-/// "H-L/WORLD")
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub struct Stroke(String);
-
-impl Stroke {
-    fn new(stroke: &str) -> Self {
-        Self(String::from(stroke))
-    }
-
-    fn empty_stroke() -> Self {
-        Self::new("")
-    }
-
-    fn is_empty(&self) -> bool {
-        self.0.len() == 0
-    }
-
-    fn to_raw(self) -> String {
-        self.0
-    }
-
-    /// Join a copy of two strokes together with a `/` in the middle. If either stroke is empty,
-    /// return the other stroke
-    fn join(&self, other: &Self) -> Self {
-        if other.0.len() == 0 {
-            (*self).clone()
-        } else if self.0.len() == 0 {
-            (*other).clone()
-        } else {
-            Self::new(&format!("{}/{}", self.0, other.0))
-        }
-    }
-}
 
 /// What action should be taken
 #[derive(Debug, PartialEq)]
