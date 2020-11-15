@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="bb5d62d8-ef46-47a9-b9cf-3040c7d3f35e" name="Default Changelist" comment="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure">
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/plojo.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dispatcher/controller.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dispatcher/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/translator/diff.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/translator/translate.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/bin.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/commands.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/commands.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/machine/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/machine/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/machine/raw_stroke.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/machine/raw_stroke.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/translator/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/mod.rs" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="sklfjd6p" />
+  </component>
+  <component name="ProjectId" id="1kJ2zoj0iP0apHKuj4eT9OJsNKZ" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="cf.first.check.clang-format" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.path.for.package.tslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+    <property name="settings.editor.selected.configurable" value="language.rust.rustfmt" />
+  </component>
+  <component name="RunManager" selected="Cargo.Run">
+    <configuration name="Check ignore dead code" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="check" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs>
+        <env name="RUSTFLAGS" value="-A dead_code" />
+      </envs>
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Check" type="CargoCommandRunConfiguration" factoryName="Cargo Command" nameIsGenerated="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="check" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run" type="CargoCommandRunConfiguration" factoryName="Cargo Command" nameIsGenerated="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="run" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test ignore dead code" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs>
+        <env name="RUSTFLAGS" value="-A dead_code" />
+      </envs>
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test translator::tests::test_translator_basic" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package plojo --lib translator::tests::test_translator_basic -- --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs>
+        <env name="RUSTFLAGS" value="-A dead_code" />
+      </envs>
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Cargo.Test" />
+      <item itemvalue="Cargo.Test ignore dead code" />
+      <item itemvalue="Cargo.Check" />
+      <item itemvalue="Cargo.Check ignore dead code" />
+      <item itemvalue="Cargo.Run" />
+      <item itemvalue="Cargo.Test translator::tests::test_translator_basic" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo.Test translator::tests::test_translator_basic" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="runRustfmtOnSave" value="true" />
+    <option name="toolchainHomeDirectory" value="$PROJECT_DIR$/../.cargo/bin" />
+    <option name="version" value="2" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="bb5d62d8-ef46-47a9-b9cf-3040c7d3f35e" name="Default Changelist" comment="" />
+      <created>1605404639799</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1605404639799</updated>
+      <workItem from="1605404641318" duration="416000" />
+      <workItem from="1605405074992" duration="1231000" />
+      <workItem from="1605406429636" duration="11354000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="CUSTOM_BOOLEAN_PROPERTIES">
+                <map>
+                  <entry key="Show.Git.Branches" value="false" />
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CHECK_NEW_TODO" value="false" />
+    <MESSAGE value="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure" />
+    <option name="LAST_COMMIT_MESSAGE" value="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="780" y="254" key="#Plugins" timestamp="1605405055158">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="780" y="254" key="#Plugins/0.0.2560.1398@0.0.2560.1398" timestamp="1605405055158" />
+    <state x="1158" y="526" width="597" height="630" key="#Vim_Emulation" timestamp="1605405111790">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="1158" y="526" width="597" height="630" key="#Vim_Emulation/0.0.2560.1398@0.0.2560.1398" timestamp="1605405111790" />
+    <state x="466" y="309" width="1079" height="792" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1605406525368">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="466" y="309" width="1079" height="792" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605406525368" />
+    <state x="100" y="100" width="2360" height="1198" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog" timestamp="1605407742222">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="100" y="100" width="2360" height="1198" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605407742222" />
+    <state x="582" y="79" key="CommitChangelistDialog2" timestamp="1605420095838">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="582" y="79" key="CommitChangelistDialog2/0.0.2560.1398@0.0.2560.1398" timestamp="1605420095838" />
+    <state x="820" y="394" width="576" height="721" key="EnvironmentVariablesDialog" timestamp="1605405989880">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="820" y="394" width="576" height="721" key="EnvironmentVariablesDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605405989880" />
+    <state width="2500" height="372" key="GridCell.Tab.0.bottom" timestamp="1605421452688">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state width="2500" height="372" key="GridCell.Tab.0.bottom/0.0.2560.1398@0.0.2560.1398" timestamp="1605421452688" />
+    <state width="2500" height="372" key="GridCell.Tab.0.center" timestamp="1605421452687">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state width="2500" height="372" key="GridCell.Tab.0.center/0.0.2560.1398@0.0.2560.1398" timestamp="1605421452687" />
+    <state width="2500" height="372" key="GridCell.Tab.0.left" timestamp="1605421452684">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state width="2500" height="372" key="GridCell.Tab.0.left/0.0.2560.1398@0.0.2560.1398" timestamp="1605421452684" />
+    <state width="2500" height="372" key="GridCell.Tab.0.right" timestamp="1605421452687">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state width="2500" height="372" key="GridCell.Tab.0.right/0.0.2560.1398@0.0.2560.1398" timestamp="1605421452687" />
+    <state x="649" y="243" width="1271" height="912" key="SettingsEditor" timestamp="1605406678197">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="649" y="243" width="1271" height="912" key="SettingsEditor/0.0.2560.1398@0.0.2560.1398" timestamp="1605406678197" />
+    <state x="772" y="322" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1605418715260">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="772" y="322" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.2560.1398@0.0.2560.1398" timestamp="1605418715260" />
+    <state x="898" y="181" width="764" height="1035" key="find.popup" timestamp="1605417353066">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="898" y="181" width="764" height="1035" key="find.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605417353066" />
+    <state x="860" y="321" key="run.anything.popup" timestamp="1605418549217">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="860" y="321" key="run.anything.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605418549217" />
+    <state x="859" y="311" width="840" height="1034" key="search.everywhere.popup" timestamp="1605418658322">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="859" y="311" width="840" height="1034" key="search.everywhere.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605418658322" />
+  </component>
+</project>

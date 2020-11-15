@@ -1,16 +1,56 @@
 use crate::stroke::Stroke;
 
 pub trait RawStroke {
+    // left hand should not include S key
+    fn get_left_hand(&self) -> &String;
+    fn get_right_hand(&self) -> &String;
+    // only vowels A and O, if any
+    fn get_center_left(&self) -> &String;
+    // only vowels E and U, if any
+    fn get_center_right(&self) -> &String;
     fn parse_raw(raw: &Vec<u8>) -> Self;
-    fn to_stroke(&self) -> Stroke;
-    fn get_s_keys(&self) -> &Vec<bool> {
-        todo!("get s keys");
-    }
-    fn get_star_keys(&self) -> &Vec<bool> {
-        todo!("get star keys");
-    }
-    fn get_num_keys(&self) -> &Vec<bool> {
-        todo!("get num keys");
+
+    // The s, star, and num keys can correspond to multiple physical keys, represented by each bool
+    // in the vector. If there is only one physical key, the vector should only have 1 item
+    fn get_s_keys(&self) -> &Vec<bool>;
+    fn get_star_keys(&self) -> &Vec<bool>;
+    fn get_num_keys(&self) -> &Vec<bool>;
+
+    fn to_stroke(&self) -> Stroke {
+        let mut stroke = String::from("");
+
+        if self.get_s_keys().iter().any(|x| *x) {
+            stroke.push('S');
+        }
+        stroke.push_str(&self.get_left_hand());
+        stroke.push_str(&self.get_center_left());
+        if self.get_star_keys().iter().any(|x| *x) {
+            stroke.push('*');
+        } else {
+            // the hyphen is only used when there are no center strokes nor star key, and there are
+            // keys on the right hand
+            if self.get_center_left().len() == 0
+                && self.get_center_right().len() == 0
+                && self.get_right_hand().len() > 0
+            {
+                stroke.push('-')
+            }
+        }
+        stroke.push_str(&self.get_center_right());
+        stroke.push_str(&self.get_right_hand());
+
+        // TODO: two ways to do numbers: "23EU" or "#TPEU" (both are valid, need to decide on one of them)
+        if self.get_num_keys().iter().any(|x| *x) {
+            let mut number_stroke = String::from("#");
+            number_stroke.push_str(&to_number(stroke));
+            return Stroke::new(&number_stroke);
+        }
+
+        if stroke == "-" {
+            Stroke::new("")
+        } else {
+            Stroke::new(&stroke)
+        }
     }
 }
 
@@ -172,40 +212,17 @@ impl RawStroke for RawStrokeGeminipr {
         }
     }
 
-    fn to_stroke(&self) -> Stroke {
-        let mut stroke = String::from("");
-
-        if self.s_keys.iter().any(|x| *x) {
-            stroke.push('S');
-        }
-        stroke.push_str(&self.left_hand);
-        stroke.push_str(&self.center_left);
-        if self.star_keys.iter().any(|x| *x) {
-            stroke.push('*');
-        } else {
-            // the hyphen is only used when there are no center strokes nor star key, and there are
-            // keys on the right hand
-            if self.center_left.len() == 0
-                && self.center_right.len() == 0
-                && self.right_hand.len() > 0
-            {
-                stroke.push('-')
-            }
-        }
-        stroke.push_str(&self.center_right);
-        stroke.push_str(&self.right_hand);
-
-        if self.num_keys.iter().any(|x| *x) {
-            let mut number_stroke = String::from("#");
-            number_stroke.push_str(&to_number(stroke));
-            return Stroke::new(&number_stroke);
-        }
-
-        if stroke == "-" {
-            Stroke::new("")
-        } else {
-            Stroke::new(&stroke)
-        }
+    fn get_left_hand(&self) -> &String {
+        &self.left_hand
+    }
+    fn get_right_hand(&self) -> &String {
+        &self.right_hand
+    }
+    fn get_center_left(&self) -> &String {
+        &self.center_left
+    }
+    fn get_center_right(&self) -> &String {
+        &self.center_right
     }
 
     fn get_s_keys(&self) -> &Vec<bool> {

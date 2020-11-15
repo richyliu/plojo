@@ -1,24 +1,12 @@
-use std::cmp;
 use std::collections::HashMap;
 
+use crate::commands::Command;
 use crate::stroke::Stroke;
-use crate::commands as cmds;
+use crate::translator::diff::translation_diff;
+use crate::translator::translate::translate_strokes;
 
-/// What action should be taken
-#[derive(Debug, PartialEq)]
-pub enum Output {
-    Replace(usize, String),
-    Command(cmds::Command),
-}
-
-impl Output {
-    pub fn add_text(output: &str) -> Self {
-        Self::replace(0, output)
-    }
-    pub fn replace(backspace_num: usize, replace_str: &str) -> Self {
-        Self::Replace(backspace_num, replace_str.to_owned())
-    }
-}
+mod diff;
+mod translate;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum TextAction {
@@ -30,12 +18,14 @@ pub enum TextAction {
     UppercaseNext,
 }
 
+/// A dictionary entry. It could be a command, in which case it is passed directly to the
+/// dispatcher. Otherwise it is a text/text action, which is parsed here in the translator
 #[derive(Debug, PartialEq, Clone)]
 pub enum Translation {
     Text(String),
     UnknownStroke(Stroke),
     TextAction(Vec<TextAction>),
-    Command(Vec<cmds::Command>),
+    Command(Vec<Command>),
 }
 
 impl Translation {
@@ -60,19 +50,27 @@ type DictEntries = Vec<(Stroke, Translation)>;
 impl Dictionary {
     pub fn new(entries: DictEntries) -> Self {
         let mut hashmap = HashMap::new();
-        for (stroke, output) in entries.into_iter() {
-            hashmap.insert(stroke, output);
+        for (stroke, command) in entries.into_iter() {
+            hashmap.insert(stroke, command);
         }
 
         Dictionary { strokes: hashmap }
     }
 
     fn get(&self, stroke: &Stroke) -> Option<Translation> {
-        if let Some(translation) = self.strokes.get(stroke) {
-            Some((*translation).clone())
-        } else {
-            None
-        }
+        self.strokes.get(stroke).cloned()
+    }
+
+    fn lookup(&self, strokes: &[Stroke]) -> Option<Translation> {
+        // combine strokes with a `/` between them
+        let mut combined = strokes
+            .into_iter()
+            .map(|s| s.clone().to_raw())
+            .fold(String::new(), |acc, s| acc + &s + "/");
+        // remove trailing `/`
+        combined.pop();
+
+        self.get(&Stroke::new(&combined)).clone()
     }
 }
 
@@ -102,188 +100,14 @@ impl State {
     }
 }
 
-pub fn translate(stroke: Stroke, dict: &Dictionary, mut state: State) -> (Output, State) {
+pub fn translate(stroke: Stroke, dict: &Dictionary, mut state: State) -> (Command, State) {
     let old_translations = translate_strokes(&state.prev_strokes, dict);
     state.prev_strokes.push(stroke);
     let new_translations = translate_strokes(&state.prev_strokes, dict);
 
-    let output = translation_diff(&old_translations, &new_translations);
+    let command = translation_diff(&old_translations, &new_translations);
 
-    (output, state)
-}
-
-/// Looks up the definition of strokes in the dictionary, converting them into a Translation. Since
-/// multiple strokes map to one dictionary translation, a greedy algorithm is used starting from
-/// the oldest strokes
-fn translate_strokes(strokes: &Vec<Stroke>, dict: &Dictionary) -> Vec<Translation> {
-    println!("strokes: {:?}", strokes);
-    // TODO: instead of combining strokes here, do it in the `dict.get`
-    let mut strokes_combined = Stroke::empty_stroke();
-    let mut translations: Vec<Translation> = vec![];
-
-    let mut longest_translation: Option<Translation> = None;
-    for s in strokes {
-        let strokes_combined_with_new = strokes_combined.join(s);
-        if let Some(translation) = dict.get(&strokes_combined_with_new) {
-            longest_translation = Some(translation);
-            strokes_combined = strokes_combined_with_new;
-        } else {
-            if strokes_combined.is_empty() {
-                translations.push(Translation::UnknownStroke((*s).clone()));
-            } else {
-                if let Some(translation) = longest_translation {
-                    translations.push(translation);
-                    strokes_combined = (*s).clone();
-                    longest_translation = dict.get(s);
-                } else {
-                    panic!("Empty translation! This state is not possible");
-                }
-            }
-        }
-    }
-
-    if let Some(translation) = longest_translation {
-        translations.push(translation);
-    }
-
-    translations
-}
-
-/// Finds the difference between two translations, converts them to their string representations,
-/// and diffs the strings to create an output
-fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -> Output {
-    // find where the new translations differ from the old
-    let mut i = 0;
-    let loop_size = cmp::min(old.len(), new.len());
-    while i < loop_size {
-        if old.get(i) != new.get(i) {
-            break;
-        }
-        i += 1;
-    }
-
-    // starting from where the translations differ, ignore any commands
-    let old_no_command: Vec<_> = old[i..].iter().filter(|t| !t.is_command()).collect();
-    let new_no_command: Vec<_> = new[i..].iter().filter(|t| !t.is_command()).collect();
-
-    // compare the two and return the result
-    text_diff(
-        translation_to_string(old_no_command),
-        translation_to_string(new_no_command),
-    )
-}
-
-/// Converts translations into their string representation by adding spaces in between words and
-/// applying text actions.
-///
-/// Can only add space before each word
-fn translation_to_string(translations: Vec<&Translation>) -> String {
-    let mut s = String::from("");
-
-    let mut next_add_space = true;
-    // force first letter of next word to be upper (true) or lower (false)
-    // None represents no forcing
-    let mut next_force_upper: Option<bool> = None;
-    for t in translations {
-        println!("t: {:?}, add space: {:?}", t, next_add_space);
-        match t {
-            Translation::Text(text) => {
-                if next_add_space {
-                    s.push_str(" ");
-                }
-
-                if let Some(upper) = next_force_upper {
-                    s.push_str(&word_change_first_letter(text.to_owned(), upper));
-                } else {
-                    s.push_str(text);
-                }
-
-                next_add_space = true;
-                next_force_upper = None;
-            }
-            Translation::UnknownStroke(stroke) => {
-                if next_add_space {
-                    s.push_str(" ");
-                }
-                s.push_str(&stroke.clone().to_raw());
-                next_add_space = true;
-                next_force_upper = None;
-            }
-            Translation::TextAction(actions) => {
-                for action in actions {
-                    match action {
-                        TextAction::NoSpace => {
-                            next_add_space = false;
-                        }
-                        TextAction::ForceSpace => {
-                            next_add_space = true;
-                        }
-                        TextAction::LowercasePrev => {
-                            panic!("actions on previous words not yet supported");
-                        }
-                        TextAction::UppercasePrev => {
-                            panic!("actions on previous words not yet supported");
-                        }
-                        TextAction::LowercaseNext => {
-                            next_force_upper = Some(false);
-                        }
-                        TextAction::UppercaseNext => {
-                            next_force_upper = Some(true);
-                        }
-                    }
-                }
-            }
-            _ => {}
-        }
-    }
-
-    s
-}
-
-fn word_change_first_letter(word: String, uppercase: bool) -> String {
-    if word.len() == 0 {
-        return word;
-    }
-
-    if let Some(first_letter) = word.get(0..1) {
-        let result = if uppercase {
-            first_letter.to_uppercase()
-        } else {
-            first_letter.to_lowercase()
-        };
-
-        let mut s = result.to_string();
-        if let Some(rest) = word.get(1..) {
-            s.push_str(rest);
-            return s;
-        }
-    }
-    panic!("oop");
-}
-
-/// Diffs two strings, creating a output to make the old into the new
-fn text_diff(old: String, new: String) -> Output {
-    if old.len() == 0 {
-        return Output::Replace(0, new);
-    }
-    if new.len() == 0 {
-        return Output::Replace(0, old);
-    }
-
-    let mut old_chars = old.chars();
-    let mut new_chars = new.chars();
-
-    // find where the new translations differ from the old
-    let mut i: usize = 0;
-    let loop_size: usize = cmp::min(old.len(), new.len());
-    while i < loop_size {
-        if old_chars.next() != new_chars.next() {
-            break;
-        }
-        i += 1;
-    }
-
-    Output::replace(old.len() - i, &new[i..])
+    (command, state)
 }
 
 #[cfg(test)]
@@ -296,6 +120,16 @@ mod tests {
             (Stroke::new("WORLD"), Translation::text("World")),
             (Stroke::new("H-L/A"), Translation::text("He..llo")),
             (Stroke::new("A"), Translation::text("Wrong thing")),
+            (Stroke::new("TPHO/WUPB"), Translation::text("no one")),
+            (Stroke::new("KW/A/TP"), Translation::text("request an if")),
+            (
+                Stroke::new("H-L/A/WORLD"),
+                Translation::text("hello a world"),
+            ),
+            (
+                Stroke::new("KW/H-L/WORLD"),
+                Translation::text("request a hello world"),
+            ),
         ])
     }
 
@@ -309,63 +143,9 @@ mod tests {
 
         let state = State::default();
 
-        let (output, _) = translate(Stroke::new("H-L"), &dict, state);
+        let (command, _) = translate(Stroke::new("H-L"), &dict, state);
 
-        assert_eq!(output, Output::add_text(" another"));
-    }
-
-    #[test]
-    fn test_translator_basic() {
-        let dict = setup_dict();
-        let strokes = vec![Stroke::new("H-L")];
-        let translations = translate_strokes(&strokes, &dict);
-
-        assert_eq!(translations, vec![Translation::text("Hello")]);
-    }
-
-    #[test]
-    fn test_translator_multistroke() {
-        let dict = setup_dict();
-        let strokes = vec![Stroke::new("A"), Stroke::new("H-L")];
-        let translations = translate_strokes(&strokes, &dict);
-
-        assert_eq!(
-            translations,
-            vec![Translation::text("Wrong thing"), Translation::text("Hello")]
-        );
-    }
-
-    #[test]
-    fn test_translator_correction() {
-        let dict = setup_dict();
-        let strokes = vec![Stroke::new("H-L"), Stroke::new("A")];
-        let translations = translate_strokes(&strokes, &dict);
-
-        assert_eq!(translations, vec![Translation::text("He..llo")]);
-    }
-
-    #[test]
-    fn test_translator_correction_with_history() {
-        let dict = setup_dict();
-        let strokes = vec![Stroke::new("WORLD"), Stroke::new("H-L"), Stroke::new("A")];
-        let translations = translate_strokes(&strokes, &dict);
-
-        assert_eq!(
-            translations,
-            vec![Translation::text("World"), Translation::text("He..llo")]
-        );
-    }
-
-    #[test]
-    fn test_translator_unknown_stroke() {
-        let dict = setup_dict();
-        let strokes = vec![Stroke::new("SKWR")];
-        let translations = translate_strokes(&strokes, &dict);
-
-        assert_eq!(
-            translations,
-            vec![Translation::UnknownStroke(Stroke::new("SKWR"))]
-        );
+        assert_eq!(command, Command::add_text(" another"));
     }
 
     #[test]
@@ -373,9 +153,9 @@ mod tests {
         let dict = setup_dict();
         let state = State::with_strokes(vec![Stroke::new("A")]);
 
-        let (output, new_state) = translate(Stroke::new("H-L"), &dict, state);
+        let (command, new_state) = translate(Stroke::new("H-L"), &dict, state);
 
-        assert_eq!(output, Output::add_text(" Hello"));
+        assert_eq!(command, Command::add_text(" Hello"));
         assert_eq!(
             new_state,
             State::with_strokes(vec![Stroke::new("A"), Stroke::new("H-L")])
@@ -387,9 +167,9 @@ mod tests {
         let dict = setup_dict();
         let state = State::default();
 
-        let (output, new_state) = translate(Stroke::new("H-L"), &dict, state);
+        let (command, new_state) = translate(Stroke::new("H-L"), &dict, state);
 
-        assert_eq!(output, Output::add_text(" Hello"));
+        assert_eq!(command, Command::add_text(" Hello"));
         assert_eq!(new_state, State::with_strokes(vec![Stroke::new("H-L")]));
     }
 
@@ -398,9 +178,9 @@ mod tests {
         let dict = setup_dict();
         let state = State::with_strokes(vec![Stroke::new("H-L")]);
 
-        let (output, new_state) = translate(Stroke::new("A"), &dict, state);
+        let (command, new_state) = translate(Stroke::new("A"), &dict, state);
 
-        assert_eq!(output, Output::replace(3, "..llo"));
+        assert_eq!(command, Command::replace_text(3, "..llo"));
         assert_eq!(
             new_state,
             State::with_strokes(vec![Stroke::new("H-L"), Stroke::new("A")])
@@ -408,87 +188,41 @@ mod tests {
     }
 
     #[test]
-    fn test_translation_diff_same() {
-        let output = translation_diff(
-            &vec![Translation::text("Hello"), Translation::text("Hi")],
-            &vec![Translation::text("Hello"), Translation::text("Hi")],
-        );
-
-        assert_eq!(output, Output::add_text(""));
-    }
-
-    #[test]
-    fn test_translation_diff_empty() {
-        let output = translation_diff(&vec![], &vec![]);
-
-        assert_eq!(output, Output::add_text(""));
-    }
-
-    #[test]
-    fn test_translation_diff_simple_add() {
-        let output = translation_diff(
-            &vec![Translation::text("Hello")],
-            &vec![Translation::text("Hello"), Translation::text("Hi")],
-        );
-
-        assert_eq!(output, Output::add_text(" Hi"));
-    }
-
-    #[test]
-    fn test_translation_to_string_basic() {
-        let translated =
-            translation_to_string(vec![&Translation::text("hello"), &Translation::text("hi")]);
-
-        assert_eq!(translated, " hello hi");
-    }
-
-    #[test]
-    fn test_translation_to_string_text_commands() {
-        let translated = translation_to_string(vec![
-            &Translation::TextAction(vec![TextAction::NoSpace, TextAction::UppercaseNext]),
-            &Translation::text("hello"),
-            &Translation::text("hi"),
-            &Translation::TextAction(vec![TextAction::UppercaseNext]),
-            &Translation::text("FOo"),
-            &Translation::text("bar"),
-            &Translation::text("baZ"),
-            &Translation::TextAction(vec![TextAction::LowercaseNext]),
-            &Translation::TextAction(vec![TextAction::NoSpace]),
-            &Translation::text("NICE"),
-            &Translation::TextAction(vec![TextAction::NoSpace]),
-            &Translation::text(""),
-            &Translation::text("well done"),
-        ]);
-
-        assert_eq!(translated, "Hello hi FOo bar baZnICE well done");
-    }
-
-    #[test]
-    fn test_translation_to_string_line_start() {
-        let translated = translation_to_string(vec![
-            &Translation::TextAction(vec![TextAction::NoSpace, TextAction::UppercaseNext]),
-            &Translation::text("hello"),
-            &Translation::text("hi"),
-        ]);
-
-        assert_eq!(translated, "Hello hi");
-    }
-
-    #[test]
     fn test_translate_unknown_stroke() {
         let dict = setup_dict();
         let state = State::default();
 
-        let (output, new_state) = translate(Stroke::new("SKW-S"), &dict, state);
+        let (command, new_state) = translate(Stroke::new("SKW-S"), &dict, state);
 
-        assert_eq!(output, Output::add_text(" SKW-S"));
+        assert_eq!(command, Command::add_text(" SKW-S"));
         assert_eq!(new_state, State::with_strokes(vec![Stroke::new("SKW-S")]));
     }
 
     #[test]
-    fn test_word_change_first_letter() {
-        assert_eq!(word_change_first_letter("hello".to_owned(), true), "Hello");
-        assert_eq!(word_change_first_letter("".to_owned(), true), "");
-        assert_eq!(word_change_first_letter("Hello".to_owned(), true), "Hello");
+    fn test_translate_unknown_stroke_correction() {
+        let dict = setup_dict();
+        let state = State::with_strokes(vec![
+            Stroke::new("H-L"),
+            Stroke::new("WORLD"),
+            Stroke::new("TPHO"),
+        ]);
+
+        let (command, _) = translate(Stroke::new("WUPB"), &dict, state);
+
+        assert_eq!(command, Command::replace_text(4, "no one"));
+    }
+
+    #[test]
+    fn test_translate_unknown_stroke_in_sequence() {
+        let dict = setup_dict();
+        let state = State::with_strokes(vec![
+            Stroke::new("H-L"),
+            Stroke::new("WORLD"),
+            Stroke::new("STP*EU"),
+        ]);
+
+        let (command, _) = translate(Stroke::new("H-L"), &dict, state);
+
+        assert_eq!(command, Command::add_text(" Hello"));
     }
 }

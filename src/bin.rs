@@ -1,5 +1,5 @@
 use plojo_lib;
 
 pub fn main() {
-    plojo_lib::start();
+    plojo_lib::start_georgi();
 }
