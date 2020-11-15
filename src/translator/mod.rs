@@ -12,6 +12,8 @@ mod translate;
 pub enum TextAction {
     NoSpace,
     ForceSpace,
+    NoSpacePrev,
+    ForceSpacePrev,
     LowercasePrev,
     LowercaseNext,
     UppercasePrev,
@@ -114,25 +116,6 @@ pub fn translate(stroke: Stroke, dict: &Dictionary, mut state: State) -> (Comman
 mod tests {
     use super::*;
 
-    fn setup_dict() -> Dictionary {
-        Dictionary::new(vec![
-            (Stroke::new("H-L"), Translation::text("Hello")),
-            (Stroke::new("WORLD"), Translation::text("World")),
-            (Stroke::new("H-L/A"), Translation::text("He..llo")),
-            (Stroke::new("A"), Translation::text("Wrong thing")),
-            (Stroke::new("TPHO/WUPB"), Translation::text("no one")),
-            (Stroke::new("KW/A/TP"), Translation::text("request an if")),
-            (
-                Stroke::new("H-L/A/WORLD"),
-                Translation::text("hello a world"),
-            ),
-            (
-                Stroke::new("KW/H-L/WORLD"),
-                Translation::text("request a hello world"),
-            ),
-        ])
-    }
-
     #[test]
     fn test_dict_lower_overwrite() {
         let dict = Dictionary::new(vec![
@@ -146,83 +129,5 @@ mod tests {
         let (command, _) = translate(Stroke::new("H-L"), &dict, state);
 
         assert_eq!(command, Command::add_text(" another"));
-    }
-
-    #[test]
-    fn test_translate_with_stroke_history() {
-        let dict = setup_dict();
-        let state = State::with_strokes(vec![Stroke::new("A")]);
-
-        let (command, new_state) = translate(Stroke::new("H-L"), &dict, state);
-
-        assert_eq!(command, Command::add_text(" Hello"));
-        assert_eq!(
-            new_state,
-            State::with_strokes(vec![Stroke::new("A"), Stroke::new("H-L")])
-        );
-    }
-
-    #[test]
-    fn test_translate_no_stroke_history() {
-        let dict = setup_dict();
-        let state = State::default();
-
-        let (command, new_state) = translate(Stroke::new("H-L"), &dict, state);
-
-        assert_eq!(command, Command::add_text(" Hello"));
-        assert_eq!(new_state, State::with_strokes(vec![Stroke::new("H-L")]));
-    }
-
-    #[test]
-    fn test_translate_stroke_correction() {
-        let dict = setup_dict();
-        let state = State::with_strokes(vec![Stroke::new("H-L")]);
-
-        let (command, new_state) = translate(Stroke::new("A"), &dict, state);
-
-        assert_eq!(command, Command::replace_text(3, "..llo"));
-        assert_eq!(
-            new_state,
-            State::with_strokes(vec![Stroke::new("H-L"), Stroke::new("A")])
-        );
-    }
-
-    #[test]
-    fn test_translate_unknown_stroke() {
-        let dict = setup_dict();
-        let state = State::default();
-
-        let (command, new_state) = translate(Stroke::new("SKW-S"), &dict, state);
-
-        assert_eq!(command, Command::add_text(" SKW-S"));
-        assert_eq!(new_state, State::with_strokes(vec![Stroke::new("SKW-S")]));
-    }
-
-    #[test]
-    fn test_translate_unknown_stroke_correction() {
-        let dict = setup_dict();
-        let state = State::with_strokes(vec![
-            Stroke::new("H-L"),
-            Stroke::new("WORLD"),
-            Stroke::new("TPHO"),
-        ]);
-
-        let (command, _) = translate(Stroke::new("WUPB"), &dict, state);
-
-        assert_eq!(command, Command::replace_text(4, "no one"));
-    }
-
-    #[test]
-    fn test_translate_unknown_stroke_in_sequence() {
-        let dict = setup_dict();
-        let state = State::with_strokes(vec![
-            Stroke::new("H-L"),
-            Stroke::new("WORLD"),
-            Stroke::new("STP*EU"),
-        ]);
-
-        let (command, _) = translate(Stroke::new("H-L"), &dict, state);
-
-        assert_eq!(command, Command::add_text(" Hello"));
     }
 }

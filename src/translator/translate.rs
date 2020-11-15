@@ -4,6 +4,11 @@ use crate::translator::Dictionary;
 use crate::translator::Translation;
 
 // Limit the max number of strokes per translation for performance reasons
+// Note: running the following command on the plover dictionary reveals that just 10 translations
+// require more than 7 strokes (the max being 10)
+// ```
+// sed 's/[^\/]//g' plover.json | awk '{ print length }' | sort -nr | head -30
+// ```
 const MAX_TRANSLATION_STROKE_LEN: usize = 15;
 
 /// Looks up the definition of strokes in the dictionary, converting them into a Translation. Since
@@ -73,7 +78,7 @@ mod tests {
     }
 
     #[test]
-    fn test_translator_basic() {
+    fn test_basic() {
         let dict = setup_dict();
         let strokes = vec![Stroke::new("H-L")];
         let translations = translate_strokes(&strokes, &dict);
@@ -82,7 +87,7 @@ mod tests {
     }
 
     #[test]
-    fn test_translator_multistroke() {
+    fn test_multistroke() {
         let dict = setup_dict();
         let strokes = vec![Stroke::new("A"), Stroke::new("H-L")];
         let translations = translate_strokes(&strokes, &dict);
@@ -94,7 +99,7 @@ mod tests {
     }
 
     #[test]
-    fn test_translator_correction() {
+    fn test_correction() {
         let dict = setup_dict();
         let strokes = vec![Stroke::new("H-L"), Stroke::new("A")];
         let translations = translate_strokes(&strokes, &dict);
@@ -103,7 +108,7 @@ mod tests {
     }
 
     #[test]
-    fn test_translator_correction_with_history() {
+    fn test_correction_with_history() {
         let dict = setup_dict();
         let strokes = vec![Stroke::new("WORLD"), Stroke::new("H-L"), Stroke::new("A")];
         let translations = translate_strokes(&strokes, &dict);
@@ -115,7 +120,7 @@ mod tests {
     }
 
     #[test]
-    fn test_translator_unknown_stroke() {
+    fn test_unknown_stroke() {
         let dict = setup_dict();
         let strokes = vec![Stroke::new("SKWR")];
         let translations = translate_strokes(&strokes, &dict);
@@ -127,7 +132,7 @@ mod tests {
     }
 
     #[test]
-    fn test_translator_all_unknown_stroke() {
+    fn test_all_unknown_stroke() {
         let dict = setup_dict();
         let strokes = vec![
             Stroke::new("TPHO"),
@@ -148,7 +153,7 @@ mod tests {
     }
 
     #[test]
-    fn test_translator_multi_unknown_stroke() {
+    fn test_multi_unknown_stroke() {
         let dict = setup_dict();
         let strokes = vec![
             Stroke::new("TPHO"),
@@ -170,7 +175,7 @@ mod tests {
     }
 
     #[test]
-    fn test_translator_middle_unknown() {
+    fn test_middle_unknown() {
         let dict = setup_dict();
         let strokes = vec![Stroke::new("H-L"), Stroke::new("A"), Stroke::new("WORLD")];
 
@@ -183,7 +188,7 @@ mod tests {
     }
 
     #[test]
-    fn test_translator_around_unknown() {
+    fn test_around_unknown() {
         let dict = setup_dict();
         let strokes = vec![Stroke::new("KW"), Stroke::new("A"), Stroke::new("TP")];
 
@@ -196,7 +201,7 @@ mod tests {
     }
 
     #[test]
-    fn test_translator_beginning_unknown() {
+    fn test_beginning_unknown() {
         let dict = setup_dict();
         let strokes = vec![Stroke::new("KW"), Stroke::new("H-L"), Stroke::new("WORLD")];
 

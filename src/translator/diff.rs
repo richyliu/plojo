@@ -74,6 +74,12 @@ fn translation_to_string(translations: Vec<&Translation>) -> String {
                         TextAction::ForceSpace => {
                             next_add_space = true;
                         }
+                        TextAction::NoSpacePrev => {
+                            panic!("actions on previous words not yet supported");
+                        }
+                        TextAction::ForceSpacePrev => {
+                            panic!("actions on previous words not yet supported");
+                        }
                         TextAction::LowercasePrev => {
                             panic!("actions on previous words not yet supported");
                         }
@@ -146,9 +152,10 @@ fn text_diff(old: String, new: String) -> Command {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::stroke::Stroke;
 
     #[test]
-    fn test_translation_diff_same() {
+    fn test_diff_same() {
         let command = translation_diff(
             &vec![Translation::text("Hello"), Translation::text("Hi")],
             &vec![Translation::text("Hello"), Translation::text("Hi")],
@@ -158,14 +165,14 @@ mod tests {
     }
 
     #[test]
-    fn test_translation_diff_empty() {
+    fn test_diff_empty() {
         let command = translation_diff(&vec![], &vec![]);
 
         assert_eq!(command, Command::add_text(""));
     }
 
     #[test]
-    fn test_translation_diff_simple_add() {
+    fn test_diff_simple_add() {
         let command = translation_diff(
             &vec![Translation::text("Hello")],
             &vec![Translation::text("Hello"), Translation::text("Hi")],
@@ -175,7 +182,62 @@ mod tests {
     }
 
     #[test]
-    fn test_translation_to_string_basic() {
+    fn test_diff_correction() {
+        let command = translation_diff(
+            &vec![Translation::text("Hello")],
+            &vec![Translation::text("He..llo")],
+        );
+
+        assert_eq!(command, Command::replace_text(3, "..llo"));
+    }
+
+    #[test]
+    fn test_diff_unknown_correction() {
+        let command = translation_diff(
+            &vec![
+                Translation::text("Hello"),
+                Translation::UnknownStroke(Stroke::new("WUPB")),
+            ],
+            &vec![Translation::text("Hello"), Translation::text("Won")],
+        );
+
+        assert_eq!(command, Command::replace_text(3, "on"));
+    }
+
+    #[test]
+    fn test_diff_text_actions() {
+        let command = translation_diff(
+            &vec![
+                Translation::text("Hello"),
+                Translation::TextAction(vec![TextAction::NoSpace]),
+                Translation::text("world"),
+            ],
+            &vec![
+                Translation::text("Hi"),
+                Translation::TextAction(vec![TextAction::UppercaseNext]),
+                Translation::text("world"),
+            ],
+        );
+
+        assert_eq!(command, Command::replace_text(9, "i World"));
+    }
+
+    #[test]
+    fn test_diff_prev_word_text_actions() {
+        let command = translation_diff(
+            &vec![Translation::text("Hello"), Translation::text("world")],
+            &vec![
+                Translation::text("Hello"),
+                Translation::text("world"),
+                Translation::TextAction(vec![TextAction::UppercasePrev]),
+            ],
+        );
+
+        assert_eq!(command, Command::replace_text(5, "World"));
+    }
+
+    #[test]
+    fn test_to_string_basic() {
         let translated =
             translation_to_string(vec![&Translation::text("hello"), &Translation::text("hi")]);
 
@@ -183,7 +245,7 @@ mod tests {
     }
 
     #[test]
-    fn test_translation_to_string_text_commands() {
+    fn test_to_string_text_actions() {
         let translated = translation_to_string(vec![
             &Translation::TextAction(vec![TextAction::NoSpace, TextAction::UppercaseNext]),
             &Translation::text("hello"),
@@ -204,7 +266,27 @@ mod tests {
     }
 
     #[test]
-    fn test_translation_to_string_line_start() {
+    fn test_to_string_prev_word_text_actions() {
+        let translated = translation_to_string(vec![
+            &Translation::text("hi"),
+            &Translation::TextAction(vec![TextAction::UppercasePrev, TextAction::LowercasePrev]),
+            &Translation::TextAction(vec![TextAction::UppercasePrev]),
+            &Translation::text("FOo"),
+            &Translation::text("bar"),
+            &Translation::TextAction(vec![TextAction::NoSpacePrev, TextAction::UppercasePrev]),
+            &Translation::text("hello"),
+            &Translation::text("hello world"),
+            &Translation::TextAction(vec![TextAction::NoSpace, TextAction::LowercaseNext]),
+            &Translation::TextAction(vec![TextAction::UppercasePrev]),
+            &Translation::TextAction(vec![TextAction::UppercaseNext, TextAction::ForceSpace]),
+            &Translation::text("nice"),
+        ]);
+
+        assert_eq!(translated, "Hi FOoBar hello Hello world Nice");
+    }
+
+    #[test]
+    fn test_to_string_line_start() {
         let translated = translation_to_string(vec![
             &Translation::TextAction(vec![TextAction::NoSpace, TextAction::UppercaseNext]),
             &Translation::text("hello"),
