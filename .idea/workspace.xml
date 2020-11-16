@@ -20,10 +20,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bb5d62d8-ef46-47a9-b9cf-3040c7d3f35e" name="Default Changelist" comment="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure">
+      <change afterPath="$PROJECT_DIR$/src/translator/diff/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/translator/diff/parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/translator/diff.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/diff.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/stroke.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/stroke.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/translator/diff.rs" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/translator/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/translator/translate.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/translate.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/translator/translate.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/lookup.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,6 +48,7 @@
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
@@ -60,23 +65,9 @@
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
-    <property name="settings.editor.selected.configurable" value="language.rust.rustfmt" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RunManager" selected="Cargo.Test">
-    <configuration name="Check ignore dead code" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-      <option name="channel" value="DEFAULT" />
-      <option name="command" value="check" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs>
-        <env name="RUSTFLAGS" value="-A dead_code" />
-      </envs>
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Check" type="CargoCommandRunConfiguration" factoryName="Cargo Command" nameIsGenerated="true">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="check" />
@@ -101,34 +92,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test ignore dead code" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-      <option name="channel" value="DEFAULT" />
-      <option name="command" value="test" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs>
-        <env name="RUSTFLAGS" value="-A dead_code" />
-      </envs>
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test translator::tests::test_translator_basic" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package plojo --lib translator::tests::test_translator_basic -- --exact" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs>
-        <env name="RUSTFLAGS" value="-A dead_code" />
-      </envs>
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="test" />
@@ -148,17 +111,9 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
-      <item itemvalue="Cargo.Test ignore dead code" />
       <item itemvalue="Cargo.Check" />
-      <item itemvalue="Cargo.Check ignore dead code" />
       <item itemvalue="Cargo.Run" />
-      <item itemvalue="Cargo.Test translator::tests::test_translator_basic" />
     </list>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Cargo.Test translator::tests::test_translator_basic" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="RustProjectSettings">
     <option name="runRustfmtOnSave" value="true" />
@@ -177,7 +132,7 @@
       <workItem from="1605405074992" duration="1231000" />
       <workItem from="1605406429636" duration="11354000" />
       <workItem from="1605421496284" duration="100000" />
-      <workItem from="1605473922133" duration="2518000" />
+      <workItem from="1605473922133" duration="17986000" />
     </task>
     <task id="LOCAL-00001" summary="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure">
       <created>1605421548275</created>
@@ -224,14 +179,22 @@
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
     <state x="1158" y="526" width="597" height="630" key="#Vim_Emulation/0.0.2560.1398@0.0.2560.1398" timestamp="1605405111790" />
-    <state x="466" y="309" width="1079" height="792" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1605406525368">
+    <state x="466" y="309" width="1169" height="792" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1605507938449">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="466" y="309" width="1079" height="792" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605406525368" />
-    <state x="100" y="100" width="2360" height="1198" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog" timestamp="1605407742222">
+    <state x="466" y="309" width="1169" height="792" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605507938449" />
+    <state x="100" y="100" width="2360" height="1198" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog" timestamp="1605507301235">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="100" y="100" width="2360" height="1198" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605407742222" />
+    <state x="100" y="100" width="2360" height="1198" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605507301235" />
+    <state x="1046" y="347" key="#com.intellij.ide.util.MemberChooser" timestamp="1605504293146">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="1046" y="347" key="#com.intellij.ide.util.MemberChooser/0.0.2560.1398@0.0.2560.1398" timestamp="1605504293146" />
+    <state x="952" y="384" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1605490682459">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="952" y="384" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605490682459" />
     <state x="582" y="79" key="CommitChangelistDialog2" timestamp="1605420095838">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
@@ -240,49 +203,49 @@
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
     <state x="820" y="394" width="576" height="721" key="EnvironmentVariablesDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605405989880" />
-    <state width="2500" height="372" key="GridCell.Tab.0.bottom" timestamp="1605476349325">
+    <state width="2500" height="486" key="GridCell.Tab.0.bottom" timestamp="1605507944605">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state width="2500" height="372" key="GridCell.Tab.0.bottom/0.0.2560.1398@0.0.2560.1398" timestamp="1605476349325" />
-    <state width="2500" height="372" key="GridCell.Tab.0.center" timestamp="1605476349324">
+    <state width="2500" height="486" key="GridCell.Tab.0.bottom/0.0.2560.1398@0.0.2560.1398" timestamp="1605507944605" />
+    <state width="2500" height="486" key="GridCell.Tab.0.center" timestamp="1605507944605">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state width="2500" height="372" key="GridCell.Tab.0.center/0.0.2560.1398@0.0.2560.1398" timestamp="1605476349324" />
-    <state width="2500" height="372" key="GridCell.Tab.0.left" timestamp="1605476349323">
+    <state width="2500" height="486" key="GridCell.Tab.0.center/0.0.2560.1398@0.0.2560.1398" timestamp="1605507944605" />
+    <state width="2500" height="486" key="GridCell.Tab.0.left" timestamp="1605507944604">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state width="2500" height="372" key="GridCell.Tab.0.left/0.0.2560.1398@0.0.2560.1398" timestamp="1605476349323" />
-    <state width="2500" height="372" key="GridCell.Tab.0.right" timestamp="1605476349324">
+    <state width="2500" height="486" key="GridCell.Tab.0.left/0.0.2560.1398@0.0.2560.1398" timestamp="1605507944604" />
+    <state width="2500" height="486" key="GridCell.Tab.0.right" timestamp="1605507944605">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state width="2500" height="372" key="GridCell.Tab.0.right/0.0.2560.1398@0.0.2560.1398" timestamp="1605476349324" />
-    <state x="649" y="243" width="1271" height="912" key="SettingsEditor" timestamp="1605406678197">
+    <state width="2500" height="486" key="GridCell.Tab.0.right/0.0.2560.1398@0.0.2560.1398" timestamp="1605507944605" />
+    <state x="649" y="243" width="1271" height="912" key="SettingsEditor" timestamp="1605500211972">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="649" y="243" width="1271" height="912" key="SettingsEditor/0.0.2560.1398@0.0.2560.1398" timestamp="1605406678197" />
+    <state x="649" y="243" width="1271" height="912" key="SettingsEditor/0.0.2560.1398@0.0.2560.1398" timestamp="1605500211972" />
     <state x="780" y="368" key="Vcs.Push.Dialog.v2" timestamp="1605421574225">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
     <state x="780" y="368" key="Vcs.Push.Dialog.v2/0.0.2560.1398@0.0.2560.1398" timestamp="1605421574225" />
-    <state x="772" y="322" width="953" height="766" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1605421541788">
+    <state x="772" y="322" width="953" height="766" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1605507206490">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="772" y="322" width="953" height="766" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.2560.1398@0.0.2560.1398" timestamp="1605421541788" />
+    <state x="772" y="322" width="953" height="766" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.2560.1398@0.0.2560.1398" timestamp="1605507206490" />
     <state x="100" y="100" width="2360" height="1198" key="dock-window-1" timestamp="1605476200676">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
     <state x="100" y="100" width="2360" height="1198" key="dock-window-1/0.0.2560.1398@0.0.2560.1398" timestamp="1605476200676" />
-    <state x="898" y="181" width="764" height="1035" key="find.popup" timestamp="1605417353066">
+    <state x="1003" y="151" width="764" height="1035" key="find.popup" timestamp="1605507963913">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="898" y="181" width="764" height="1035" key="find.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605417353066" />
-    <state x="860" y="321" key="run.anything.popup" timestamp="1605474087609">
+    <state x="1003" y="151" width="764" height="1035" key="find.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605507963913" />
+    <state x="860" y="321" key="run.anything.popup" timestamp="1605504750140">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="860" y="321" key="run.anything.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605474087609" />
-    <state x="859" y="311" width="840" height="1034" key="search.everywhere.popup" timestamp="1605475343361">
+    <state x="860" y="321" key="run.anything.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605504750140" />
+    <state x="859" y="311" width="840" height="1034" key="search.everywhere.popup" timestamp="1605505231992">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="859" y="311" width="840" height="1034" key="search.everywhere.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605475343361" />
+    <state x="859" y="311" width="840" height="1034" key="search.everywhere.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605505231992" />
   </component>
 </project>

@@ -4,6 +4,7 @@ mod machine;
 mod stroke;
 mod translator;
 
+use crate::translator::TextAction;
 use machine::raw_stroke::{RawStroke, RawStrokeGeminipr};
 use machine::SerialMachine;
 use stroke::Stroke;
@@ -13,12 +14,7 @@ pub fn start_georgi() {
     println!("starting plojo...");
     SerialMachine::print_available_ports();
 
-    let dict = Dictionary::new(vec![
-        (Stroke::new("H-L"), Translation::text("Hello")),
-        (Stroke::new("WORLD"), Translation::text("World")),
-        (Stroke::new("H-L/A"), Translation::text("He..llo")),
-        (Stroke::new("A"), Translation::text("Wrong thing")),
-    ]);
+    let dict = mock_dict();
     if let Some(port) = SerialMachine::get_georgi_port() {
         let machine = SerialMachine::new(port);
 
@@ -55,4 +51,47 @@ pub fn start_georgi() {
 struct AllState {
     controller: dispatcher::Controller,
     translation_state: translator::State,
+}
+
+fn mock_dict() -> Dictionary {
+    Dictionary::new(vec![
+        (Stroke::new("H-L"), Translation::Text("hello".to_string())),
+        (Stroke::new("WORLD"), Translation::Text("world".to_string())),
+        (
+            Stroke::new("H-L/A"),
+            Translation::Text("He..llo".to_string()),
+        ),
+        (
+            Stroke::new("A"),
+            Translation::Text("Wrong thing".to_string()),
+        ),
+        (
+            Stroke::new("KPA"),
+            Translation::TextAction(vec![
+                TextAction::space(true, true),
+                TextAction::case(true, true),
+            ]),
+        ),
+        (
+            Stroke::new("KPA*"),
+            Translation::TextAction(vec![
+                TextAction::space(true, false),
+                TextAction::case(true, true),
+            ]),
+        ),
+        (
+            Stroke::new("-RB"),
+            Translation::TextAction(vec![
+                TextAction::space(true, false),
+                TextAction::case(true, false),
+            ]),
+        ),
+        (
+            Stroke::new("S-P"),
+            Translation::TextAction(vec![
+                TextAction::space(true, true),
+                TextAction::case(true, false),
+            ]),
+        ),
+    ])
 }

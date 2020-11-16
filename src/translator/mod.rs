@@ -3,21 +3,49 @@ use std::collections::HashMap;
 use crate::commands::Command;
 use crate::stroke::Stroke;
 use crate::translator::diff::translation_diff;
-use crate::translator::translate::translate_strokes;
+use crate::translator::lookup::translate_strokes;
 
 mod diff;
-mod translate;
+mod lookup;
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum TextAction {
-    NoSpace,
-    ForceSpace,
-    NoSpacePrev,
-    ForceSpacePrev,
-    LowercasePrev,
-    LowercaseNext,
-    UppercasePrev,
-    UppercaseNext,
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+pub struct TextAction {
+    action_type: TextActionType,
+    // associated value for each text action (see TextActionType documentation)
+    val: bool,
+}
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+enum TextActionType {
+    // true to force a space, false for no space
+    SpaceNext,
+    SpacePrev,
+    // true for uppercase, false for lowercase
+    CaseNext,
+    CasePrev,
+}
+
+impl TextAction {
+    pub fn space(is_next: bool, val: bool) -> Self {
+        Self {
+            action_type: if is_next {
+                TextActionType::SpaceNext
+            } else {
+                TextActionType::SpacePrev
+            },
+            val,
+        }
+    }
+
+    pub fn case(is_next: bool, val: bool) -> Self {
+        Self {
+            action_type: if is_next {
+                TextActionType::CaseNext
+            } else {
+                TextActionType::CasePrev
+            },
+            val,
+        }
+    }
 }
 
 /// A dictionary entry. It could be a command, in which case it is passed directly to the
@@ -28,19 +56,6 @@ pub enum Translation {
     UnknownStroke(Stroke),
     TextAction(Vec<TextAction>),
     Command(Vec<Command>),
-}
-
-impl Translation {
-    pub fn text(t: &str) -> Self {
-        Self::Text(t.to_owned())
-    }
-
-    pub fn is_command(&self) -> bool {
-        match self {
-            Translation::Command(_) => true,
-            _ => false,
-        }
-    }
 }
 
 pub struct Dictionary {
@@ -88,7 +103,7 @@ impl Default for State {
     fn default() -> Self {
         State {
             prev_strokes: vec![],
-            initial_text_actions: vec![TextAction::NoSpace, TextAction::UppercaseNext],
+            initial_text_actions: vec![TextAction::space(true, true), TextAction::case(true, true)],
         }
     }
 }
@@ -119,9 +134,9 @@ mod tests {
     #[test]
     fn test_dict_lower_overwrite() {
         let dict = Dictionary::new(vec![
-            (Stroke::new("H-L"), Translation::text("Hello")),
-            (Stroke::new("WORLD"), Translation::text("World")),
-            (Stroke::new("H-L"), Translation::text("another")),
+            (Stroke::new("H-L"), Translation::Text("Hello".to_string())),
+            (Stroke::new("WORLD"), Translation::Text("World".to_string())),
+            (Stroke::new("H-L"), Translation::Text("another".to_string())),
         ]);
 
         let state = State::default();

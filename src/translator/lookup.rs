@@ -14,7 +14,7 @@ const MAX_TRANSLATION_STROKE_LEN: usize = 15;
 /// Looks up the definition of strokes in the dictionary, converting them into a Translation. Since
 /// multiple strokes could map to one dictionary translation, a greedy algorithm is used starting
 /// from the oldest strokes
-pub fn translate_strokes(strokes: &Vec<Stroke>, dict: &Dictionary) -> Vec<Translation> {
+pub(super) fn translate_strokes(strokes: &Vec<Stroke>, dict: &Dictionary) -> Vec<Translation> {
     let mut translations: Vec<Translation> = vec![];
 
     // limit how far to look forward
@@ -60,19 +60,31 @@ mod tests {
 
     fn setup_dict() -> Dictionary {
         Dictionary::new(vec![
-            (Stroke::new("H-L"), Translation::text("Hello")),
-            (Stroke::new("WORLD"), Translation::text("World")),
-            (Stroke::new("H-L/A"), Translation::text("He..llo")),
-            (Stroke::new("A"), Translation::text("Wrong thing")),
-            (Stroke::new("TPHO/WUPB"), Translation::text("no one")),
-            (Stroke::new("KW/A/TP"), Translation::text("request an if")),
+            (Stroke::new("H-L"), Translation::Text("Hello".to_string())),
+            (Stroke::new("WORLD"), Translation::Text("World".to_string())),
+            (
+                Stroke::new("H-L/A"),
+                Translation::Text("He..llo".to_string()),
+            ),
+            (
+                Stroke::new("A"),
+                Translation::Text("Wrong thing".to_string()),
+            ),
+            (
+                Stroke::new("TPHO/WUPB"),
+                Translation::Text("no one".to_string()),
+            ),
+            (
+                Stroke::new("KW/A/TP"),
+                Translation::Text("request an if".to_string()),
+            ),
             (
                 Stroke::new("H-L/A/WORLD"),
-                Translation::text("hello a world"),
+                Translation::Text("hello a world".to_string()),
             ),
             (
                 Stroke::new("KW/H-L/WORLD"),
-                Translation::text("request a hello world"),
+                Translation::Text("request a hello world".to_string()),
             ),
         ])
     }
@@ -83,7 +95,7 @@ mod tests {
         let strokes = vec![Stroke::new("H-L")];
         let translations = translate_strokes(&strokes, &dict);
 
-        assert_eq!(translations, vec![Translation::text("Hello")]);
+        assert_eq!(translations, vec![Translation::Text("Hello".to_string())]);
     }
 
     #[test]
@@ -94,7 +106,10 @@ mod tests {
 
         assert_eq!(
             translations,
-            vec![Translation::text("Wrong thing"), Translation::text("Hello")]
+            vec![
+                Translation::Text("Wrong thing".to_string()),
+                Translation::Text("Hello".to_string())
+            ]
         );
     }
 
@@ -104,7 +119,7 @@ mod tests {
         let strokes = vec![Stroke::new("H-L"), Stroke::new("A")];
         let translations = translate_strokes(&strokes, &dict);
 
-        assert_eq!(translations, vec![Translation::text("He..llo")]);
+        assert_eq!(translations, vec![Translation::Text("He..llo".to_string())]);
     }
 
     #[test]
@@ -115,7 +130,10 @@ mod tests {
 
         assert_eq!(
             translations,
-            vec![Translation::text("World"), Translation::text("He..llo")]
+            vec![
+                Translation::Text("World".to_string()),
+                Translation::Text("He..llo".to_string())
+            ]
         );
     }
 
