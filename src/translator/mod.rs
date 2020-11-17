@@ -55,7 +55,7 @@ pub enum Translation {
     Text(String),
     UnknownStroke(Stroke),
     TextAction(Vec<TextAction>),
-    Command(Vec<Command>),
+    Command(Command),
 }
 
 pub struct Dictionary {
@@ -95,20 +95,18 @@ impl Dictionary {
 pub struct State {
     // should only include "undo-able" strokes (this excludes commands)
     prev_strokes: Vec<Stroke>,
-    // text actions to be inserted before the initial strokes
-    initial_text_actions: Vec<TextAction>,
 }
 
 impl Default for State {
     fn default() -> Self {
         State {
             prev_strokes: vec![],
-            initial_text_actions: vec![TextAction::space(true, true), TextAction::case(true, true)],
         }
     }
 }
 
 impl State {
+    #[cfg(test)]
     pub fn with_strokes(prev_strokes: Vec<Stroke>) -> Self {
         State {
             prev_strokes,
@@ -119,7 +117,20 @@ impl State {
 
 pub fn translate(stroke: Stroke, dict: &Dictionary, mut state: State) -> (Command, State) {
     let old_translations = translate_strokes(&state.prev_strokes, dict);
+    // TODO: strokes that trigger commands shouldn't be stored (like undo, capitalization, etc.)
     state.prev_strokes.push(stroke);
+    let new_translations = translate_strokes(&state.prev_strokes, dict);
+
+    let command = translation_diff(&old_translations, &new_translations);
+
+    (command, state)
+}
+
+pub fn undo(dict: &Dictionary, mut state: State) -> (Command, State) {
+    let old_translations = translate_strokes(&state.prev_strokes, dict);
+    // need to remove two strokes: the one that triggered the undo and the stroke to be undone
+    state.prev_strokes.pop();
+    state.prev_strokes.pop();
     let new_translations = translate_strokes(&state.prev_strokes, dict);
 
     let command = translation_diff(&old_translations, &new_translations);

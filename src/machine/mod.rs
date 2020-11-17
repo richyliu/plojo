@@ -30,16 +30,6 @@ impl SerialMachine {
         }
     }
 
-    pub fn with_baud_rate(self, baud_rate: u32) -> Self {
-        Self {
-            serialport_settings: SerialPortSettings {
-                baud_rate,
-                ..self.serialport_settings
-            },
-            ..self
-        }
-    }
-
     pub fn listen<T, U>(&self, action: T, initial_state: U)
     where
         T: Fn(&Vec<u8>, U) -> U,

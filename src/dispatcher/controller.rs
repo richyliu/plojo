@@ -4,7 +4,6 @@
 use std::{thread, time::Duration};
 
 use enigo::KeyboardControllable;
-use enigo::MouseControllable;
 use enigo::{Enigo, Key};
 
 pub struct Controller {
@@ -13,16 +12,21 @@ pub struct Controller {
 
 impl Controller {
     pub fn new() -> Self {
-        Controller {
+        Self {
             enigo: Enigo::new(),
         }
     }
 
-    pub fn type_no_delay(&mut self, text: &str) {
-        self.enigo.key_sequence(text);
+    pub fn parse(&mut self, actions: Vec<ControllerAction>) {
+        for action in actions {
+            match action {
+                ControllerAction::TypeWithDelay(text, delay) => self.type_with_delay(&text, delay),
+                ControllerAction::BackspaceWithDelay(num, delay) => self.backspace(num, delay),
+            }
+        }
     }
 
-    pub fn type_with_delay(&mut self, text: &str, delay: u32) {
+    fn type_with_delay(&mut self, text: &str, delay: u32) {
         let duration = Duration::from_millis(delay.into());
         for c in text.chars() {
             self.enigo.key_sequence(&c.to_string());
@@ -31,15 +35,17 @@ impl Controller {
     }
 
     /// Press the backspace key with specified delay in milliseconds between each press
-    pub fn backspace(&mut self, num: usize, delay: u32) {
+    fn backspace(&mut self, num: usize, delay: u32) {
         let duration = Duration::from_millis(delay.into());
         for _ in 0..num {
             self.enigo.key_click(Key::Backspace);
             thread::sleep(duration);
         }
     }
+}
 
-    pub fn mouse_move_to(&mut self, x: i32, y: i32) {
-        self.enigo.mouse_move_to(x, y);
-    }
+#[derive(Debug, PartialEq)]
+pub enum ControllerAction {
+    TypeWithDelay(String, u32),
+    BackspaceWithDelay(usize, u32),
 }

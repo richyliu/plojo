@@ -20,14 +20,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bb5d62d8-ef46-47a9-b9cf-3040c7d3f35e" name="Default Changelist" comment="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure">
-      <change afterPath="$PROJECT_DIR$/src/translator/diff/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/translator/diff/parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/commands.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/commands.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/dispatcher/controller.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/dispatcher/controller.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/dispatcher/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/dispatcher/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/stroke.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/stroke.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/translator/diff.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/machine/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/machine/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/translator/diff/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/diff/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/translator/diff/parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/diff/parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/translator/lookup.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/lookup.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/translator/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/translator/translate.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/lookup.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,7 +69,12 @@
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
-  <component name="RunManager" selected="Cargo.Test">
+  <component name="RunManager" selected="Cargo.Run">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Check" type="CargoCommandRunConfiguration" factoryName="Cargo Command" nameIsGenerated="true">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="check" />
@@ -104,11 +111,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
       <item itemvalue="Cargo.Check" />
@@ -132,7 +134,8 @@
       <workItem from="1605405074992" duration="1231000" />
       <workItem from="1605406429636" duration="11354000" />
       <workItem from="1605421496284" duration="100000" />
-      <workItem from="1605473922133" duration="17986000" />
+      <workItem from="1605473922133" duration="18237000" />
+      <workItem from="1605542528092" duration="21418000" />
     </task>
     <task id="LOCAL-00001" summary="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure">
       <created>1605421548275</created>
@@ -141,7 +144,14 @@
       <option name="project" value="LOCAL" />
       <updated>1605421548275</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="implement text actions on previous words, refactor translation code">
+      <created>1605508207593</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1605508207593</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -168,7 +178,8 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_NEW_TODO" value="false" />
     <MESSAGE value="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure" />
-    <option name="LAST_COMMIT_MESSAGE" value="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure" />
+    <MESSAGE value="implement text actions on previous words, refactor translation code" />
+    <option name="LAST_COMMIT_MESSAGE" value="implement text actions on previous words, refactor translation code" />
   </component>
   <component name="WindowStateProjectService">
     <state x="780" y="254" key="#Plugins" timestamp="1605405055158">
@@ -179,18 +190,18 @@
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
     <state x="1158" y="526" width="597" height="630" key="#Vim_Emulation/0.0.2560.1398@0.0.2560.1398" timestamp="1605405111790" />
-    <state x="466" y="309" width="1169" height="792" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1605507938449">
+    <state x="466" y="309" width="1169" height="792" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1605581994516">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="466" y="309" width="1169" height="792" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605507938449" />
-    <state x="100" y="100" width="2360" height="1198" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog" timestamp="1605507301235">
+    <state x="466" y="309" width="1169" height="792" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605581994516" />
+    <state x="100" y="100" width="2360" height="1198" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog" timestamp="1605572597302">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="100" y="100" width="2360" height="1198" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605507301235" />
-    <state x="1046" y="347" key="#com.intellij.ide.util.MemberChooser" timestamp="1605504293146">
+    <state x="100" y="100" width="2360" height="1198" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605572597302" />
+    <state x="1046" y="347" width="575" height="704" key="#com.intellij.ide.util.MemberChooser" timestamp="1605578222076">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="1046" y="347" key="#com.intellij.ide.util.MemberChooser/0.0.2560.1398@0.0.2560.1398" timestamp="1605504293146" />
+    <state x="1046" y="347" width="575" height="704" key="#com.intellij.ide.util.MemberChooser/0.0.2560.1398@0.0.2560.1398" timestamp="1605578222076" />
     <state x="952" y="384" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1605490682459">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
@@ -203,49 +214,53 @@
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
     <state x="820" y="394" width="576" height="721" key="EnvironmentVariablesDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605405989880" />
-    <state width="2500" height="486" key="GridCell.Tab.0.bottom" timestamp="1605507944605">
+    <state width="2500" height="486" key="GridCell.Tab.0.bottom" timestamp="1605582185056">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state width="2500" height="486" key="GridCell.Tab.0.bottom/0.0.2560.1398@0.0.2560.1398" timestamp="1605507944605" />
-    <state width="2500" height="486" key="GridCell.Tab.0.center" timestamp="1605507944605">
+    <state width="2500" height="486" key="GridCell.Tab.0.bottom/0.0.2560.1398@0.0.2560.1398" timestamp="1605582185056" />
+    <state width="2500" height="486" key="GridCell.Tab.0.center" timestamp="1605582185056">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state width="2500" height="486" key="GridCell.Tab.0.center/0.0.2560.1398@0.0.2560.1398" timestamp="1605507944605" />
-    <state width="2500" height="486" key="GridCell.Tab.0.left" timestamp="1605507944604">
+    <state width="2500" height="486" key="GridCell.Tab.0.center/0.0.2560.1398@0.0.2560.1398" timestamp="1605582185056" />
+    <state width="2500" height="486" key="GridCell.Tab.0.left" timestamp="1605582185056">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state width="2500" height="486" key="GridCell.Tab.0.left/0.0.2560.1398@0.0.2560.1398" timestamp="1605507944604" />
-    <state width="2500" height="486" key="GridCell.Tab.0.right" timestamp="1605507944605">
+    <state width="2500" height="486" key="GridCell.Tab.0.left/0.0.2560.1398@0.0.2560.1398" timestamp="1605582185056" />
+    <state width="2500" height="486" key="GridCell.Tab.0.right" timestamp="1605582185056">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state width="2500" height="486" key="GridCell.Tab.0.right/0.0.2560.1398@0.0.2560.1398" timestamp="1605507944605" />
+    <state width="2500" height="486" key="GridCell.Tab.0.right/0.0.2560.1398@0.0.2560.1398" timestamp="1605582185056" />
     <state x="649" y="243" width="1271" height="912" key="SettingsEditor" timestamp="1605500211972">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
     <state x="649" y="243" width="1271" height="912" key="SettingsEditor/0.0.2560.1398@0.0.2560.1398" timestamp="1605500211972" />
-    <state x="780" y="368" key="Vcs.Push.Dialog.v2" timestamp="1605421574225">
+    <state width="623" height="498" key="SwitcherDM" timestamp="1605508254234">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="780" y="368" key="Vcs.Push.Dialog.v2/0.0.2560.1398@0.0.2560.1398" timestamp="1605421574225" />
-    <state x="772" y="322" width="953" height="766" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1605507206490">
+    <state width="623" height="498" key="SwitcherDM/0.0.2560.1398@0.0.2560.1398" timestamp="1605508254234" />
+    <state x="780" y="368" key="Vcs.Push.Dialog.v2" timestamp="1605508214178">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="772" y="322" width="953" height="766" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.2560.1398@0.0.2560.1398" timestamp="1605507206490" />
+    <state x="780" y="368" key="Vcs.Push.Dialog.v2/0.0.2560.1398@0.0.2560.1398" timestamp="1605508214178" />
+    <state x="772" y="322" width="953" height="766" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1605574268828">
+      <screen x="0" y="0" width="2560" height="1398" />
+    </state>
+    <state x="772" y="322" width="953" height="766" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.2560.1398@0.0.2560.1398" timestamp="1605574268828" />
     <state x="100" y="100" width="2360" height="1198" key="dock-window-1" timestamp="1605476200676">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
     <state x="100" y="100" width="2360" height="1198" key="dock-window-1/0.0.2560.1398@0.0.2560.1398" timestamp="1605476200676" />
-    <state x="1003" y="151" width="764" height="1035" key="find.popup" timestamp="1605507963913">
+    <state x="1003" y="151" width="764" height="1035" key="find.popup" timestamp="1605581407606">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="1003" y="151" width="764" height="1035" key="find.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605507963913" />
-    <state x="860" y="321" key="run.anything.popup" timestamp="1605504750140">
+    <state x="1003" y="151" width="764" height="1035" key="find.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605581407606" />
+    <state x="860" y="321" key="run.anything.popup" timestamp="1605547714280">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="860" y="321" key="run.anything.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605504750140" />
-    <state x="859" y="311" width="840" height="1034" key="search.everywhere.popup" timestamp="1605505231992">
+    <state x="860" y="321" key="run.anything.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605547714280" />
+    <state x="859" y="311" width="840" height="1034" key="search.everywhere.popup" timestamp="1605580406658">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
-    <state x="859" y="311" width="840" height="1034" key="search.everywhere.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605505231992" />
+    <state x="859" y="311" width="840" height="1034" key="search.everywhere.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605580406658" />
   </component>
 </project>

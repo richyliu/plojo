@@ -54,10 +54,26 @@ pub fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -> Comma
         i -= 1;
     }
 
+    // directly return the new command if that is what differs
+    if let Some(Translation::Command(ref cmd)) = new.last() {
+        if let Some(old_translation) = old.last() {
+            match old_translation {
+                // return the new command if it's different than the old
+                Translation::Command(ref old_cmd) => {
+                    if cmd != old_cmd {
+                        return cmd.clone();
+                    }
+                }
+                _ => {
+                    return cmd.clone();
+                }
+            }
+        }
+    }
+
     // only diff translations starting from where they differ and ignore commands
     let old_no_command: Vec<_> = remove_commands(old[i..].to_owned());
     let new_no_command: Vec<_> = remove_commands(new[i..].to_owned());
-    // TODO: return the command directly if that is what is different
 
     // compare the two and return the result
     text_diff(
@@ -66,13 +82,13 @@ pub fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -> Comma
     )
 }
 
-/// Diffs two strings, creating a command to make the old into the new
+/// Compute the command necessary to make the old string into the new
 fn text_diff(old: String, new: String) -> Command {
     if old.len() == 0 {
         return Command::add_text(&new);
     }
     if new.len() == 0 {
-        return Command::add_text(&old);
+        return Command::replace_text(old.len(), "");
     }
 
     let mut old_chars = old.chars();
@@ -94,6 +110,7 @@ fn text_diff(old: String, new: String) -> Command {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::commands::{ExternalCommand, InternalCommand};
     use crate::stroke::Stroke;
 
     #[test]
@@ -140,6 +157,13 @@ mod tests {
         );
 
         assert_eq!(command, Command::replace_text(3, "..llo"));
+    }
+
+    #[test]
+    fn test_diff_deletion() {
+        let command = translation_diff(&vec![Translation::Text("Hello".to_string())], &vec![]);
+
+        assert_eq!(command, Command::replace_text(6, ""));
     }
 
     #[test]
@@ -191,5 +215,38 @@ mod tests {
         );
 
         assert_eq!(command, Command::replace_text(5, "World"));
+    }
+    #[test]
+    fn test_diff_external_command() {
+        let command = translation_diff(
+            &vec![
+                Translation::Text("Hello".to_string()),
+                Translation::Text("world".to_string()),
+            ],
+            &vec![
+                Translation::Text("Hello".to_string()),
+                Translation::Text("world".to_string()),
+                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+            ],
+        );
+
+        assert_eq!(command, Command::External(ExternalCommand::PrintHello));
+    }
+
+    #[test]
+    fn test_diff_undo() {
+        let command = translation_diff(
+            &vec![
+                Translation::Text("Hello".to_string()),
+                Translation::Text("world".to_string()),
+            ],
+            &vec![
+                Translation::Text("Hello".to_string()),
+                Translation::Text("world".to_string()),
+                Translation::Command(Command::Internal(InternalCommand::Undo)),
+            ],
+        );
+
+        assert_eq!(command, Command::Internal(InternalCommand::Undo));
     }
 }

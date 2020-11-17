@@ -14,7 +14,7 @@ const MAX_TRANSLATION_STROKE_LEN: usize = 15;
 /// Looks up the definition of strokes in the dictionary, converting them into a Translation. Since
 /// multiple strokes could map to one dictionary translation, a greedy algorithm is used starting
 /// from the oldest strokes
-pub(super) fn translate_strokes(strokes: &Vec<Stroke>, dict: &Dictionary) -> Vec<Translation> {
+pub fn translate_strokes(strokes: &Vec<Stroke>, dict: &Dictionary) -> Vec<Translation> {
     let mut translations: Vec<Translation> = vec![];
 
     // limit how far to look forward
@@ -53,45 +53,14 @@ pub(super) fn translate_strokes(strokes: &Vec<Stroke>, dict: &Dictionary) -> Vec
 
     translations
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn setup_dict() -> Dictionary {
-        Dictionary::new(vec![
-            (Stroke::new("H-L"), Translation::Text("Hello".to_string())),
-            (Stroke::new("WORLD"), Translation::Text("World".to_string())),
-            (
-                Stroke::new("H-L/A"),
-                Translation::Text("He..llo".to_string()),
-            ),
-            (
-                Stroke::new("A"),
-                Translation::Text("Wrong thing".to_string()),
-            ),
-            (
-                Stroke::new("TPHO/WUPB"),
-                Translation::Text("no one".to_string()),
-            ),
-            (
-                Stroke::new("KW/A/TP"),
-                Translation::Text("request an if".to_string()),
-            ),
-            (
-                Stroke::new("H-L/A/WORLD"),
-                Translation::Text("hello a world".to_string()),
-            ),
-            (
-                Stroke::new("KW/H-L/WORLD"),
-                Translation::Text("request a hello world".to_string()),
-            ),
-        ])
-    }
+    use crate::testing_dict;
 
     #[test]
     fn test_basic() {
-        let dict = setup_dict();
+        let dict = testing_dict();
         let strokes = vec![Stroke::new("H-L")];
         let translations = translate_strokes(&strokes, &dict);
 
@@ -100,7 +69,7 @@ mod tests {
 
     #[test]
     fn test_multistroke() {
-        let dict = setup_dict();
+        let dict = testing_dict();
         let strokes = vec![Stroke::new("A"), Stroke::new("H-L")];
         let translations = translate_strokes(&strokes, &dict);
 
@@ -115,7 +84,7 @@ mod tests {
 
     #[test]
     fn test_correction() {
-        let dict = setup_dict();
+        let dict = testing_dict();
         let strokes = vec![Stroke::new("H-L"), Stroke::new("A")];
         let translations = translate_strokes(&strokes, &dict);
 
@@ -124,7 +93,7 @@ mod tests {
 
     #[test]
     fn test_correction_with_history() {
-        let dict = setup_dict();
+        let dict = testing_dict();
         let strokes = vec![Stroke::new("WORLD"), Stroke::new("H-L"), Stroke::new("A")];
         let translations = translate_strokes(&strokes, &dict);
 
@@ -139,7 +108,7 @@ mod tests {
 
     #[test]
     fn test_unknown_stroke() {
-        let dict = setup_dict();
+        let dict = testing_dict();
         let strokes = vec![Stroke::new("SKWR")];
         let translations = translate_strokes(&strokes, &dict);
 
@@ -151,7 +120,7 @@ mod tests {
 
     #[test]
     fn test_all_unknown_stroke() {
-        let dict = setup_dict();
+        let dict = testing_dict();
         let strokes = vec![
             Stroke::new("TPHO"),
             Stroke::new("TPHOU"),
@@ -172,7 +141,7 @@ mod tests {
 
     #[test]
     fn test_multi_unknown_stroke() {
-        let dict = setup_dict();
+        let dict = testing_dict();
         let strokes = vec![
             Stroke::new("TPHO"),
             Stroke::new("TPHOU"),
@@ -194,7 +163,7 @@ mod tests {
 
     #[test]
     fn test_middle_unknown() {
-        let dict = setup_dict();
+        let dict = testing_dict();
         let strokes = vec![Stroke::new("H-L"), Stroke::new("A"), Stroke::new("WORLD")];
 
         let translations = translate_strokes(&strokes, &dict);
@@ -207,7 +176,7 @@ mod tests {
 
     #[test]
     fn test_around_unknown() {
-        let dict = setup_dict();
+        let dict = testing_dict();
         let strokes = vec![Stroke::new("KW"), Stroke::new("A"), Stroke::new("TP")];
 
         let translations = translate_strokes(&strokes, &dict);
@@ -220,7 +189,7 @@ mod tests {
 
     #[test]
     fn test_beginning_unknown() {
-        let dict = setup_dict();
+        let dict = testing_dict();
         let strokes = vec![Stroke::new("KW"), Stroke::new("H-L"), Stroke::new("WORLD")];
 
         let translations = translate_strokes(&strokes, &dict);

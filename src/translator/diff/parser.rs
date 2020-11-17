@@ -164,6 +164,13 @@ mod tests {
     use std::iter::FromIterator;
 
     #[test]
+    fn test_parse_empty() {
+        let translated = parse_translation(vec![]);
+
+        assert_eq!(translated, "");
+    }
+
+    #[test]
     fn test_parse_basic() {
         let translated = parse_translation(vec![
             TranslationNoCommand::Text("hello".to_string()),
