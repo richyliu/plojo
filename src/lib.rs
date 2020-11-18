@@ -29,15 +29,13 @@ pub fn start_georgi() {
                  translation_state,
              }| {
                 let stroke = RawStrokeGeminipr::parse_raw(raw).to_stroke();
-                print!("{:?}, ", stroke);
+                print!("{:?} => ", stroke);
 
                 let (command, new_state) = translate(stroke, &dict, translation_state);
-                print!("{:?}, ", command);
+                println!("{:?}", command);
 
                 let mut new_controller = controller;
-                print!("{:?}, ", new_state);
                 let (actions, new_state) = parse_command(new_state, &dict, command);
-                println!("{:?}", actions);
                 new_controller.parse(actions);
 
                 AllState {
@@ -62,69 +60,61 @@ struct AllState {
 
 // #[cfg(test)]
 pub fn testing_dict() -> Dictionary {
+    // handy helper function for making dictionary entries
+    fn row(stroke: &str, translation: &str) -> (Stroke, Vec<Translation>) {
+        (
+            Stroke::new(stroke),
+            vec![Translation::Text(translation.to_string())],
+        )
+    }
+
+    fn row_ta(stroke: &str, text_actions: Vec<TextAction>) -> (Stroke, Vec<Translation>) {
+        (
+            Stroke::new(stroke),
+            vec![Translation::TextAction(text_actions)],
+        )
+    }
+
     Dictionary::new(vec![
-        (Stroke::new("H-L"), Translation::Text("Hello".to_string())),
-        (Stroke::new("WORLD"), Translation::Text("World".to_string())),
-        (
-            Stroke::new("H-L/A"),
-            Translation::Text("He..llo".to_string()),
-        ),
-        (
-            Stroke::new("A"),
-            Translation::Text("Wrong thing".to_string()),
-        ),
-        (
-            Stroke::new("TPHO/WUPB"),
-            Translation::Text("no one".to_string()),
-        ),
-        (
-            Stroke::new("KW/A/TP"),
-            Translation::Text("request an if".to_string()),
-        ),
-        (
-            Stroke::new("H-L/A/WORLD"),
-            Translation::Text("hello a world".to_string()),
-        ),
-        (
-            Stroke::new("KW/H-L/WORLD"),
-            Translation::Text("request a hello world".to_string()),
-        ),
-        (Stroke::new("TPAOD"), Translation::Text("food".to_string())),
-        (
-            Stroke::new("KPA"),
-            Translation::TextAction(vec![
-                TextAction::space(true, true),
-                TextAction::case(true, true),
-            ]),
-        ),
-        (
-            Stroke::new("KPA*"),
-            Translation::TextAction(vec![
-                TextAction::space(true, false),
-                TextAction::case(true, true),
-            ]),
-        ),
-        (
-            Stroke::new("-RB"),
-            Translation::TextAction(vec![
-                TextAction::space(true, false),
-                TextAction::case(true, false),
-            ]),
-        ),
-        (
-            Stroke::new("S-P"),
-            Translation::TextAction(vec![
-                TextAction::space(true, true),
-                TextAction::case(true, false),
-            ]),
-        ),
+        (row("H-L", "Hello")),
+        (row("WORLD", "World")),
+        (row("H-L/A", "He..llo")),
+        (row("A", "Wrong thing")),
+        (row("TPHO/WUPB", "no one")),
+        (row("KW/A/TP", "request an if")),
+        (row("H-L/A/WORLD", "hello a world")),
+        (row("KW/H-L/WORLD", "request a hello world")),
+        (row("PWEUG", "big")),
+        (row("PWEUG/PWOEU", "Big Boy")),
+        (row("TPAOD", "food")),
+        (row_ta(
+            "KPA",
+            vec![TextAction::space(true, true), TextAction::case(true, true)],
+        )),
+        (row_ta(
+            "KPA*",
+            vec![TextAction::space(true, false), TextAction::case(true, true)],
+        )),
+        (row_ta("-RB", vec![TextAction::space(true, false)])),
+        (row_ta("S-P", vec![TextAction::space(true, true)])),
         (
             Stroke::new("*"),
-            Translation::Command(Command::Internal(InternalCommand::Undo)),
+            vec![Translation::Command(Command::Internal(
+                InternalCommand::Undo,
+            ))],
         ),
         (
             Stroke::new("H*L"),
-            Translation::Command(Command::External(ExternalCommand::PrintHello)),
+            vec![Translation::Command(Command::External(
+                ExternalCommand::PrintHello,
+            ))],
+        ),
+        (
+            Stroke::new("TKAO*ER"),
+            vec![
+                Translation::Text("deer and printing hello".to_string()),
+                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+            ],
         ),
     ])
 }

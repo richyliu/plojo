@@ -59,10 +59,10 @@ pub enum Translation {
 }
 
 pub struct Dictionary {
-    strokes: HashMap<Stroke, Translation>,
+    strokes: HashMap<Stroke, Vec<Translation>>,
 }
 
-type DictEntries = Vec<(Stroke, Translation)>;
+type DictEntries = Vec<(Stroke, Vec<Translation>)>;
 
 impl Dictionary {
     pub fn new(entries: DictEntries) -> Self {
@@ -74,11 +74,7 @@ impl Dictionary {
         Dictionary { strokes: hashmap }
     }
 
-    fn get(&self, stroke: &Stroke) -> Option<Translation> {
-        self.strokes.get(stroke).cloned()
-    }
-
-    fn lookup(&self, strokes: &[Stroke]) -> Option<Translation> {
+    fn lookup(&self, strokes: &[Stroke]) -> Option<Vec<Translation>> {
         // combine strokes with a `/` between them
         let mut combined = strokes
             .into_iter()
@@ -87,7 +83,7 @@ impl Dictionary {
         // remove trailing `/`
         combined.pop();
 
-        self.get(&Stroke::new(&combined)).clone()
+        self.strokes.get(&Stroke::new(&combined)).cloned()
     }
 }
 
@@ -117,7 +113,6 @@ impl State {
 
 pub fn translate(stroke: Stroke, dict: &Dictionary, mut state: State) -> (Command, State) {
     let old_translations = translate_strokes(&state.prev_strokes, dict);
-    // TODO: strokes that trigger commands shouldn't be stored (like undo, capitalization, etc.)
     state.prev_strokes.push(stroke);
     let new_translations = translate_strokes(&state.prev_strokes, dict);
 
@@ -128,6 +123,7 @@ pub fn translate(stroke: Stroke, dict: &Dictionary, mut state: State) -> (Comman
 
 pub fn undo(dict: &Dictionary, mut state: State) -> (Command, State) {
     let old_translations = translate_strokes(&state.prev_strokes, dict);
+    // TODO: undo should remove all strokes until the next non-command stroke
     // need to remove two strokes: the one that triggered the undo and the stroke to be undone
     state.prev_strokes.pop();
     state.prev_strokes.pop();
@@ -144,10 +140,20 @@ mod tests {
 
     #[test]
     fn test_dict_lower_overwrite() {
+        // later dictionary entries should overwrite earlier ones
         let dict = Dictionary::new(vec![
-            (Stroke::new("H-L"), Translation::Text("Hello".to_string())),
-            (Stroke::new("WORLD"), Translation::Text("World".to_string())),
-            (Stroke::new("H-L"), Translation::Text("another".to_string())),
+            (
+                Stroke::new("H-L"),
+                vec![Translation::Text("Hello".to_string())],
+            ),
+            (
+                Stroke::new("WORLD"),
+                vec![Translation::Text("World".to_string())],
+            ),
+            (
+                Stroke::new("H-L"),
+                vec![Translation::Text("another".to_string())],
+            ),
         ]);
 
         let state = State::default();

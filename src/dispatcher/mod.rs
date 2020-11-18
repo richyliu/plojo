@@ -5,7 +5,7 @@ use crate::translator::{undo, Dictionary, State};
 pub mod controller;
 
 const BACKSPACE_DELAY: u32 = 10;
-const KEY_DELAY: u32 = 50;
+const KEY_DELAY: u32 = 20;
 
 /// Given a translation state and a dictionary, parse the new command into a list of controller actions and new state
 pub fn parse_command(
@@ -48,7 +48,7 @@ fn parse_external_command(command: ExternalCommand) -> Vec<ControllerAction> {
             }
         }
         ExternalCommand::PrintHello => {
-            println!("hello!");
+            println!("\n====================== hello! ======================\n");
         }
     }
 
@@ -72,12 +72,13 @@ fn parse_internal_command(
 mod tests {
     use super::*;
     use crate::stroke::Stroke;
+    use crate::testing_dict;
 
     #[test]
     fn test_undo_command() {
         // state includes the undo stroke because that was the newest translation which turned into the undo command
         let state = State::with_strokes(vec![Stroke::new("H-L"), Stroke::new("*")]);
-        let dict = crate::testing_dict();
+        let dict = testing_dict();
         let action = Command::Internal(InternalCommand::Undo);
 
         let (actions, _new_state) = parse_command(state, &dict, action);

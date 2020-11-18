@@ -39,10 +39,14 @@ pub trait RawStroke {
         stroke.push_str(&self.get_center_right());
         stroke.push_str(&self.get_right_hand());
 
-        // TODO: two ways to do numbers: "23EU" or "#TPEU" (both are valid, need to decide on one of them)
         if self.get_num_keys().iter().any(|x| *x) {
-            let mut number_stroke = String::from("#");
-            number_stroke.push_str(&to_number(stroke));
+            let mut number_stroke = String::from("");
+            let new_stroke = &to_number(&stroke);
+            // only add the "#" sign if the stroke is the same (to distinguish it from a stroke without number key)
+            if new_stroke == &stroke {
+                number_stroke.push('#');
+            }
+            number_stroke.push_str(new_stroke);
             return Stroke::new(&number_stroke);
         }
 
@@ -236,7 +240,7 @@ impl RawStroke for RawStrokeGeminipr {
     }
 }
 
-fn to_number(stroke: String) -> String {
+fn to_number(stroke: &str) -> String {
     fn is_center_key(key: char) -> bool {
         match key {
             'A' => true,
@@ -316,7 +320,7 @@ mod tests {
         );
         assert_eq!(
             RawStrokeGeminipr::parse_raw(&vec![160, 127, 124, 63, 127, 65]).to_stroke(),
-            Stroke::new("#12K3W4R50*EU6R7B8G9SDZ")
+            Stroke::new("12K3W4R50*EU6R7B8G9SDZ")
         );
         assert_eq!(
             RawStrokeGeminipr::parse_raw(&vec![128, 21, 0, 0, 0, 0]).to_stroke(),

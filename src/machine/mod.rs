@@ -124,7 +124,7 @@ impl SerialMachine {
                 for p in ports {
                     match p.port_type {
                         SerialPortType::UsbPort(info) => {
-                            if info.product == Some("Georgi".to_string()) {
+                            if info.manufacturer == Some("g Heavy Industries".to_string()) {
                                 return Some(p.port_name);
                             }
                         }

@@ -107,7 +107,9 @@ fn merge_translations(translations: Vec<TranslationNoCommand>) -> Vec<Text> {
                         state.actions = None;
                     }
 
+                    // TODO: somewhat confusing that unknown strokes are sometimes not all caps
                     state.acc.push(Text::Lit(stroke.to_raw()));
+                    // state.acc.push(Text::Lit(format!("[{:}]", stroke.to_raw())));
                 }
                 TranslationNoCommand::TextAction(actions) => match state.actions {
                     Some(mut prev_actions) => {

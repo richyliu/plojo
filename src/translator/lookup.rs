@@ -15,7 +15,7 @@ const MAX_TRANSLATION_STROKE_LEN: usize = 15;
 /// multiple strokes could map to one dictionary translation, a greedy algorithm is used starting
 /// from the oldest strokes
 pub fn translate_strokes(strokes: &Vec<Stroke>, dict: &Dictionary) -> Vec<Translation> {
-    let mut translations: Vec<Translation> = vec![];
+    let mut all_translations: Vec<Translation> = vec![];
 
     // limit how far to look forward
     let add_max_limit_len = |n: usize| -> usize {
@@ -33,8 +33,8 @@ pub fn translate_strokes(strokes: &Vec<Stroke>, dict: &Dictionary) -> Vec<Transl
         // look forward up to a certain number of strokes, starting from the most strokes
         for end in (start..add_max_limit_len(start)).rev() {
             // if that gives a translation, add it and advance start
-            if let Some(translation) = dict.lookup(&strokes[start..=end]) {
-                translations.push(translation);
+            if let Some(mut translations) = dict.lookup(&strokes[start..=end]) {
+                all_translations.append(&mut translations);
                 start = end + 1;
                 found_translation = true;
                 break;
@@ -45,17 +45,18 @@ pub fn translate_strokes(strokes: &Vec<Stroke>, dict: &Dictionary) -> Vec<Transl
         if !found_translation {
             // translation for this stroke
             if let Some(s) = strokes.get(start) {
-                translations.push(Translation::UnknownStroke(s.clone()));
+                all_translations.push(Translation::UnknownStroke(s.clone()));
                 start += 1;
             }
         }
     }
 
-    translations
+    all_translations
 }
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::commands::{Command, ExternalCommand};
     use crate::testing_dict;
 
     #[test]
@@ -197,6 +198,23 @@ mod tests {
         assert_eq!(
             translations,
             vec![Translation::Text("request a hello world".to_string())]
+        );
+    }
+
+    #[test]
+    fn test_multiple_translations() {
+        let dict = testing_dict();
+        let strokes = vec![Stroke::new("H-L"), Stroke::new("TKAO*ER")];
+
+        let translations = translate_strokes(&strokes, &dict);
+
+        assert_eq!(
+            translations,
+            vec![
+                Translation::Text("Hello".to_string()),
+                Translation::Text("deer and printing hello".to_string()),
+                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+            ]
         );
     }
 }

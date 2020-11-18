@@ -68,6 +68,9 @@ pub fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -> Comma
                     return cmd.clone();
                 }
             }
+        } else {
+            // there was no older translation, so directly return the new one
+            return cmd.clone();
         }
     }
 
@@ -134,6 +137,25 @@ mod tests {
         let command = translation_diff(&vec![], &vec![]);
 
         assert_eq!(command, Command::add_text(""));
+    }
+
+    #[test]
+    fn test_diff_one_empty() {
+        let command = translation_diff(&vec![], &vec![Translation::Text("Hello".to_string())]);
+
+        assert_eq!(command, Command::add_text(" Hello"));
+    }
+
+    #[test]
+    fn test_diff_one_command_empty() {
+        let command = translation_diff(
+            &vec![],
+            &vec![Translation::Command(Command::External(
+                ExternalCommand::PrintHello,
+            ))],
+        );
+
+        assert_eq!(command, Command::External(ExternalCommand::PrintHello));
     }
 
     #[test]
@@ -216,6 +238,7 @@ mod tests {
 
         assert_eq!(command, Command::replace_text(5, "World"));
     }
+
     #[test]
     fn test_diff_external_command() {
         let command = translation_diff(
