@@ -240,6 +240,41 @@ mod tests {
     }
 
     #[test]
+    fn test_diff_same_command() {
+        let command = translation_diff(
+            &vec![
+                Translation::Text("Hello".to_string()),
+                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+            ],
+            &vec![
+                Translation::Text("Hello".to_string()),
+                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+            ],
+        );
+
+        assert_eq!(command, Command::add_text(""));
+    }
+
+    #[test]
+    fn test_diff_repeated_command() {
+        let command = translation_diff(
+            &vec![
+                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+            ],
+            &vec![
+                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+            ],
+        );
+
+        assert_eq!(command, Command::External(ExternalCommand::PrintHello));
+    }
+
+    #[test]
     fn test_diff_external_command() {
         let command = translation_diff(
             &vec![

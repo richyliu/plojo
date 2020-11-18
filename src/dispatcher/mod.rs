@@ -4,8 +4,8 @@ use crate::translator::{undo, Dictionary, State};
 
 pub mod controller;
 
-const BACKSPACE_DELAY: u32 = 10;
-const KEY_DELAY: u32 = 20;
+const BACKSPACE_DELAY: u32 = 2;
+const KEY_DELAY: u32 = 5;
 
 /// Given a translation state and a dictionary, parse the new command into a list of controller actions and new state
 pub fn parse_command(

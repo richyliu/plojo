@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 serialport = "3.3.0"
 enigo = "0.0.14"
+serde_json = "1.0.59"
 
 [lib]
 name = "plojo_lib"

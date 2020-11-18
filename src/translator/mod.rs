@@ -4,6 +4,7 @@ use crate::commands::Command;
 use crate::stroke::Stroke;
 use crate::translator::diff::translation_diff;
 use crate::translator::lookup::translate_strokes;
+use std::iter::FromIterator;
 
 mod diff;
 mod lookup;
@@ -63,15 +64,11 @@ pub struct Dictionary {
 }
 
 type DictEntries = Vec<(Stroke, Vec<Translation>)>;
+type DictEntry = (Stroke, Vec<Translation>);
 
 impl Dictionary {
     pub fn new(entries: DictEntries) -> Self {
-        let mut hashmap = HashMap::new();
-        for (stroke, command) in entries.into_iter() {
-            hashmap.insert(stroke, command);
-        }
-
-        Dictionary { strokes: hashmap }
+        Self::from_iter(entries.into_iter())
     }
 
     fn lookup(&self, strokes: &[Stroke]) -> Option<Vec<Translation>> {
@@ -84,6 +81,17 @@ impl Dictionary {
         combined.pop();
 
         self.strokes.get(&Stroke::new(&combined)).cloned()
+    }
+}
+
+impl FromIterator<DictEntry> for Dictionary {
+    fn from_iter<T: IntoIterator<Item = DictEntry>>(iter: T) -> Self {
+        let mut hashmap: HashMap<Stroke, Vec<Translation>> = HashMap::new();
+        for (stroke, command) in iter {
+            hashmap.insert(stroke, command);
+        }
+
+        Dictionary { strokes: hashmap }
     }
 }
 

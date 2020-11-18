@@ -4,59 +4,18 @@ mod machine;
 mod stroke;
 mod translator;
 
-use crate::commands::{ExternalCommand, InternalCommand};
-use crate::dispatcher::parse_command;
-use crate::translator::translate;
-use commands::Command;
-use machine::raw_stroke::{RawStroke, RawStrokeGeminipr};
-use machine::SerialMachine;
-use stroke::Stroke;
-use translator::TextAction;
-use translator::{Dictionary, Translation};
+pub use commands::{Command, ExternalCommand, InternalCommand};
+pub use dispatcher::{controller::Controller, parse_command};
+pub use machine::{
+    raw_stroke::{RawStroke, RawStrokeGeminipr},
+    SerialMachine,
+};
+pub use stroke::Stroke;
+pub use translator::{translate, Dictionary, State, TextAction, Translation};
 
-pub fn start_georgi() {
-    println!("starting plojo...");
-    SerialMachine::print_available_ports();
-
-    let dict = testing_dict();
-    if let Some(port) = SerialMachine::get_georgi_port() {
-        let machine = SerialMachine::new(port);
-
-        machine.listen(
-            |raw,
-             AllState {
-                 controller,
-                 translation_state,
-             }| {
-                let stroke = RawStrokeGeminipr::parse_raw(raw).to_stroke();
-                print!("{:?} => ", stroke);
-
-                let (command, new_state) = translate(stroke, &dict, translation_state);
-                println!("{:?}", command);
-
-                let mut new_controller = controller;
-                let (actions, new_state) = parse_command(new_state, &dict, command);
-                new_controller.parse(actions);
-
-                AllState {
-                    controller: new_controller,
-                    translation_state: new_state,
-                }
-            },
-            AllState {
-                controller: dispatcher::controller::Controller::new(),
-                translation_state: translator::State::default(),
-            },
-        );
-    } else {
-        eprintln!("Couldn't find the Georgi port");
-    }
-}
-
-struct AllState {
-    controller: dispatcher::controller::Controller,
-    translation_state: translator::State,
-}
+// TODO: fingerspelling (implement "glue" operator)
+// TODO: orthographies
+// TODO: joined strokes (like `-D` => {^ed})
 
 // #[cfg(test)]
 pub fn testing_dict() -> Dictionary {

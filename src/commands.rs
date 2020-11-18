@@ -1,5 +1,6 @@
 /// What action should be taken
 
+// TODO: add noop?
 #[derive(Debug, Clone, PartialEq)]
 pub enum Command {
     Internal(InternalCommand),
