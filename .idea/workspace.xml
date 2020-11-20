@@ -20,16 +20,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bb5d62d8-ef46-47a9-b9cf-3040c7d3f35e" name="Default Changelist" comment="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure">
-      <change afterPath="$PROJECT_DIR$/runtime_files/dict.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/plojo.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/plojo.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/translator/diff/orthography.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/bin.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/commands.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/commands.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/dispatcher/controller.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/dispatcher/controller.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/dispatcher/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/dispatcher/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/translator/diff/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/diff/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/translator/diff/parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/diff/parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/translator/lookup.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/lookup.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/translator/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -39,6 +42,13 @@
   </component>
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Rust File" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -71,12 +81,7 @@
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
     <property name="settings.editor.selected.configurable" value="preferences.fileTypes" />
   </component>
-  <component name="RunManager" selected="Cargo.Check">
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager" selected="Cargo.Test">
     <configuration name="Check" type="CargoCommandRunConfiguration" factoryName="Cargo Command" nameIsGenerated="true">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="check" />
@@ -116,6 +121,11 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
     <list>
       <item itemvalue="Cargo.Check" />
       <item itemvalue="Cargo.Run" />
@@ -149,7 +159,10 @@
       <workItem from="1605678775869" duration="5439000" />
       <workItem from="1605717647413" duration="449000" />
       <workItem from="1605726190213" duration="973000" />
-      <workItem from="1605727274444" duration="3137000" />
+      <workItem from="1605727274444" duration="3679000" />
+      <workItem from="1605733938699" duration="3021000" />
+      <workItem from="1605806567892" duration="13991000" />
+      <workItem from="1605846631410" duration="3401000" />
     </task>
     <task id="LOCAL-00001" summary="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure">
       <created>1605421548275</created>
@@ -172,7 +185,14 @@
       <option name="project" value="LOCAL" />
       <updated>1605684441622</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="added basic dictionary reading from file">
+      <created>1605730795161</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1605730795161</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -201,7 +221,8 @@
     <MESSAGE value="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure" />
     <MESSAGE value="implement text actions on previous words, refactor translation code" />
     <MESSAGE value="fixed number strokes, allowed for multiple translations per stroke&#10;&#10;Fixed translation as the first stroke not being detected bug." />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed number strokes, allowed for multiple translations per stroke&#10;&#10;Fixed translation as the first stroke not being detected bug." />
+    <MESSAGE value="added basic dictionary reading from file" />
+    <option name="LAST_COMMIT_MESSAGE" value="added basic dictionary reading from file" />
   </component>
   <component name="WindowStateProjectService">
     <state x="780" y="254" key="#Plugins" timestamp="1605405055158">
@@ -237,34 +258,34 @@
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
     <state x="820" y="394" width="576" height="721" key="EnvironmentVariablesDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605405989880" />
-    <state width="1988" height="482" key="GridCell.Tab.0.bottom" timestamp="1605730512979">
+    <state width="2052" height="462" key="GridCell.Tab.0.bottom" timestamp="1605850088799">
       <screen x="0" y="25" width="2560" height="1415" />
     </state>
     <state width="2500" height="486" key="GridCell.Tab.0.bottom/0.0.2560.1398@0.0.2560.1398" timestamp="1605582185056" />
     <state width="1358" height="215" key="GridCell.Tab.0.bottom/0.25.1440.875@0.25.1440.875" timestamp="1605589177594" />
-    <state width="2510" height="498" key="GridCell.Tab.0.bottom/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605682432790" />
-    <state width="1988" height="482" key="GridCell.Tab.0.bottom/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605730512979" />
-    <state width="1988" height="482" key="GridCell.Tab.0.center" timestamp="1605730512978">
+    <state width="2508" height="499" key="GridCell.Tab.0.bottom/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605816755638" />
+    <state width="2052" height="462" key="GridCell.Tab.0.bottom/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605850088799" />
+    <state width="2052" height="462" key="GridCell.Tab.0.center" timestamp="1605850088798">
       <screen x="0" y="25" width="2560" height="1415" />
     </state>
     <state width="2500" height="486" key="GridCell.Tab.0.center/0.0.2560.1398@0.0.2560.1398" timestamp="1605582185056" />
     <state width="1358" height="215" key="GridCell.Tab.0.center/0.25.1440.875@0.25.1440.875" timestamp="1605589177594" />
-    <state width="2510" height="498" key="GridCell.Tab.0.center/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605682432788" />
-    <state width="1988" height="482" key="GridCell.Tab.0.center/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605730512978" />
-    <state width="1988" height="482" key="GridCell.Tab.0.left" timestamp="1605730512977">
+    <state width="2508" height="499" key="GridCell.Tab.0.center/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605816755636" />
+    <state width="2052" height="462" key="GridCell.Tab.0.center/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605850088798" />
+    <state width="2052" height="462" key="GridCell.Tab.0.left" timestamp="1605850088797">
       <screen x="0" y="25" width="2560" height="1415" />
     </state>
     <state width="2500" height="486" key="GridCell.Tab.0.left/0.0.2560.1398@0.0.2560.1398" timestamp="1605582185056" />
     <state width="1358" height="215" key="GridCell.Tab.0.left/0.25.1440.875@0.25.1440.875" timestamp="1605589177593" />
-    <state width="2510" height="498" key="GridCell.Tab.0.left/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605682432787" />
-    <state width="1988" height="482" key="GridCell.Tab.0.left/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605730512977" />
-    <state width="1988" height="482" key="GridCell.Tab.0.right" timestamp="1605730512979">
+    <state width="2508" height="499" key="GridCell.Tab.0.left/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605816755634" />
+    <state width="2052" height="462" key="GridCell.Tab.0.left/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605850088797" />
+    <state width="2052" height="462" key="GridCell.Tab.0.right" timestamp="1605850088798">
       <screen x="0" y="25" width="2560" height="1415" />
     </state>
     <state width="2500" height="486" key="GridCell.Tab.0.right/0.0.2560.1398@0.0.2560.1398" timestamp="1605582185056" />
     <state width="1358" height="215" key="GridCell.Tab.0.right/0.25.1440.875@0.25.1440.875" timestamp="1605589177594" />
-    <state width="2510" height="498" key="GridCell.Tab.0.right/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605682432789" />
-    <state width="1988" height="482" key="GridCell.Tab.0.right/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605730512979" />
+    <state width="2508" height="499" key="GridCell.Tab.0.right/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605816755637" />
+    <state width="2052" height="462" key="GridCell.Tab.0.right/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605850088798" />
     <state x="649" y="262" width="900" height="728" key="SettingsEditor" timestamp="1605727096067">
       <screen x="0" y="25" width="2560" height="1415" />
     </state>
@@ -296,21 +317,21 @@
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
     <state x="100" y="100" width="2360" height="1198" key="dock-window-1/0.0.2560.1398@0.0.2560.1398" timestamp="1605476200676" />
-    <state x="1003" y="178" width="764" height="1048" key="find.popup" timestamp="1605683993871">
+    <state x="1003" y="178" width="764" height="1048" key="find.popup" timestamp="1605821519899">
       <screen x="0" y="25" width="2560" height="1415" />
     </state>
     <state x="1003" y="151" width="764" height="1035" key="find.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605581407606" />
-    <state x="1003" y="178" width="764" height="1048" key="find.popup/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605683993871" />
+    <state x="1003" y="178" width="764" height="1048" key="find.popup/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605821519899" />
     <state x="860" y="321" key="run.anything.popup" timestamp="1605547714280">
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
     <state x="860" y="321" key="run.anything.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605547714280" />
-    <state x="859" y="340" width="1192" height="1049" key="search.everywhere.popup" timestamp="1605729443698">
+    <state x="859" y="340" width="1192" height="1049" key="search.everywhere.popup" timestamp="1605850085434">
       <screen x="0" y="25" width="2560" height="1415" />
     </state>
     <state x="859" y="311" width="840" height="1034" key="search.everywhere.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605580406658" />
     <state x="483" y="220" width="670" height="648" key="search.everywhere.popup/0.25.1440.875@0.25.1440.875" timestamp="1605637148015" />
     <state x="859" y="321" width="1192" height="1067" key="search.everywhere.popup/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605682390466" />
-    <state x="859" y="340" width="1192" height="1049" key="search.everywhere.popup/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605729443698" />
+    <state x="859" y="340" width="1192" height="1049" key="search.everywhere.popup/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605850085434" />
   </component>
 </project>

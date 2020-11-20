@@ -17,7 +17,7 @@ impl Controller {
         }
     }
 
-    pub fn parse(&mut self, actions: Vec<ControllerAction>) {
+    pub fn dispatch(&mut self, actions: Vec<ControllerAction>) {
         for action in actions {
             match action {
                 ControllerAction::TypeWithDelay(text, delay) => self.type_with_delay(&text, delay),

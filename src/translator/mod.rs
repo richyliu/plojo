@@ -50,13 +50,32 @@ impl TextAction {
 }
 
 /// A dictionary entry. It could be a command, in which case it is passed directly to the
-/// dispatcher. Otherwise it is a text/text action, which is parsed here in the translator
+/// dispatcher. Otherwise it is something that pertains to text, which is parsed here in translator
 #[derive(Debug, PartialEq, Clone)]
 pub enum Translation {
-    Text(String),
-    UnknownStroke(Stroke),
-    TextAction(Vec<TextAction>),
+    Text(Text),
     Command(Command),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Text {
+    // text literal that can be upper/lower cased
+    Lit(String),
+    // unknown strokes always printed in all caps
+    UnknownStroke(Stroke),
+    // an attached string that gets orthographic rules applied
+    Attached(String),
+    // actions like no space, uppercase; apply to adjacent Texts
+    TextAction(Vec<TextAction>),
+}
+
+impl Translation {
+    fn as_text(&self) -> Option<Text> {
+        match self {
+            Translation::Text(ref text) => Some(text.clone()),
+            _ => None,
+        }
+    }
 }
 
 pub struct Dictionary {
@@ -119,7 +138,16 @@ impl State {
     }
 }
 
+// most number of strokes to stroke in prev_strokes; limits undo to this many strokes
+const MAX_STROKE_BUFFER: usize = 100;
+
 pub fn translate(stroke: Stroke, dict: &Dictionary, mut state: State) -> (Command, State) {
+    println!("size of state.prev_strokes: {:}", state.prev_strokes.len());
+
+    if state.prev_strokes.len() > MAX_STROKE_BUFFER {
+        state.prev_strokes.remove(0);
+    }
+
     let old_translations = translate_strokes(&state.prev_strokes, dict);
     state.prev_strokes.push(stroke);
     let new_translations = translate_strokes(&state.prev_strokes, dict);
@@ -131,7 +159,6 @@ pub fn translate(stroke: Stroke, dict: &Dictionary, mut state: State) -> (Comman
 
 pub fn undo(dict: &Dictionary, mut state: State) -> (Command, State) {
     let old_translations = translate_strokes(&state.prev_strokes, dict);
-    // TODO: undo should remove all strokes until the next non-command stroke
     // need to remove two strokes: the one that triggered the undo and the stroke to be undone
     state.prev_strokes.pop();
     state.prev_strokes.pop();
@@ -152,15 +179,15 @@ mod tests {
         let dict = Dictionary::new(vec![
             (
                 Stroke::new("H-L"),
-                vec![Translation::Text("Hello".to_string())],
+                vec![Translation::Text(Text::Lit("Hello".to_string()))],
             ),
             (
                 Stroke::new("WORLD"),
-                vec![Translation::Text("World".to_string())],
+                vec![Translation::Text(Text::Lit("World".to_string()))],
             ),
             (
                 Stroke::new("H-L"),
-                vec![Translation::Text("another".to_string())],
+                vec![Translation::Text(Text::Lit("another".to_string()))],
             ),
         ]);
 

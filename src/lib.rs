@@ -11,11 +11,7 @@ pub use machine::{
     SerialMachine,
 };
 pub use stroke::Stroke;
-pub use translator::{translate, Dictionary, State, TextAction, Translation};
-
-// TODO: fingerspelling (implement "glue" operator)
-// TODO: orthographies
-// TODO: joined strokes (like `-D` => {^ed})
+pub use translator::{translate, Dictionary, State, Text, TextAction, Translation};
 
 // #[cfg(test)]
 pub fn testing_dict() -> Dictionary {
@@ -23,14 +19,14 @@ pub fn testing_dict() -> Dictionary {
     fn row(stroke: &str, translation: &str) -> (Stroke, Vec<Translation>) {
         (
             Stroke::new(stroke),
-            vec![Translation::Text(translation.to_string())],
+            vec![Translation::Text(Text::Lit(translation.to_string()))],
         )
     }
 
     fn row_ta(stroke: &str, text_actions: Vec<TextAction>) -> (Stroke, Vec<Translation>) {
         (
             Stroke::new(stroke),
-            vec![Translation::TextAction(text_actions)],
+            vec![Translation::Text(Text::TextAction(text_actions))],
         )
     }
 
@@ -71,7 +67,7 @@ pub fn testing_dict() -> Dictionary {
         (
             Stroke::new("TKAO*ER"),
             vec![
-                Translation::Text("deer and printing hello".to_string()),
+                Translation::Text(Text::Lit("deer and printing hello".to_string())),
                 Translation::Command(Command::External(ExternalCommand::PrintHello)),
             ],
         ),

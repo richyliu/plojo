@@ -1,7 +1,6 @@
 //! Looks up the stroke the dictionary, using a greedy algorithm to convert it into a translation
 use crate::stroke::Stroke;
-use crate::translator::Dictionary;
-use crate::translator::Translation;
+use crate::translator::{Dictionary, Text, Translation};
 
 // Limit the max number of strokes per translation for performance reasons
 // Note: running the following command on the plover dictionary reveals that just 10 translations
@@ -45,7 +44,7 @@ pub fn translate_strokes(strokes: &Vec<Stroke>, dict: &Dictionary) -> Vec<Transl
         if !found_translation {
             // translation for this stroke
             if let Some(s) = strokes.get(start) {
-                all_translations.push(Translation::UnknownStroke(s.clone()));
+                all_translations.push(Translation::Text(Text::UnknownStroke(s.clone())));
                 start += 1;
             }
         }
@@ -57,7 +56,7 @@ pub fn translate_strokes(strokes: &Vec<Stroke>, dict: &Dictionary) -> Vec<Transl
 mod tests {
     use super::*;
     use crate::commands::{Command, ExternalCommand};
-    use crate::testing_dict;
+    use crate::{testing_dict, Text};
 
     #[test]
     fn test_basic() {
@@ -65,7 +64,10 @@ mod tests {
         let strokes = vec![Stroke::new("H-L")];
         let translations = translate_strokes(&strokes, &dict);
 
-        assert_eq!(translations, vec![Translation::Text("Hello".to_string())]);
+        assert_eq!(
+            translations,
+            vec![Translation::Text(Text::Lit("Hello".to_string()))]
+        );
     }
 
     #[test]
@@ -77,8 +79,8 @@ mod tests {
         assert_eq!(
             translations,
             vec![
-                Translation::Text("Wrong thing".to_string()),
-                Translation::Text("Hello".to_string())
+                Translation::Text(Text::Lit("Wrong thing".to_string())),
+                Translation::Text(Text::Lit("Hello".to_string()))
             ]
         );
     }
@@ -89,7 +91,10 @@ mod tests {
         let strokes = vec![Stroke::new("H-L"), Stroke::new("A")];
         let translations = translate_strokes(&strokes, &dict);
 
-        assert_eq!(translations, vec![Translation::Text("He..llo".to_string())]);
+        assert_eq!(
+            translations,
+            vec![Translation::Text(Text::Lit("He..llo".to_string()))]
+        );
     }
 
     #[test]
@@ -101,8 +106,8 @@ mod tests {
         assert_eq!(
             translations,
             vec![
-                Translation::Text("World".to_string()),
-                Translation::Text("He..llo".to_string())
+                Translation::Text(Text::Lit("World".to_string())),
+                Translation::Text(Text::Lit("He..llo".to_string()))
             ]
         );
     }
@@ -115,7 +120,7 @@ mod tests {
 
         assert_eq!(
             translations,
-            vec![Translation::UnknownStroke(Stroke::new("SKWR"))]
+            vec![Translation::Text(Text::UnknownStroke(Stroke::new("SKWR")))]
         );
     }
 
@@ -133,9 +138,9 @@ mod tests {
         assert_eq!(
             translations,
             vec![
-                Translation::UnknownStroke(Stroke::new("TPHO")),
-                Translation::UnknownStroke(Stroke::new("TPHOU")),
-                Translation::UnknownStroke(Stroke::new("TPHOUT"))
+                Translation::Text(Text::UnknownStroke(Stroke::new("TPHO"))),
+                Translation::Text(Text::UnknownStroke(Stroke::new("TPHOU"))),
+                Translation::Text(Text::UnknownStroke(Stroke::new("TPHOUT")))
             ]
         );
     }
@@ -155,9 +160,9 @@ mod tests {
         assert_eq!(
             translations,
             vec![
-                Translation::UnknownStroke(Stroke::new("TPHO")),
-                Translation::UnknownStroke(Stroke::new("TPHOU")),
-                Translation::Text("no one".to_string())
+                Translation::Text(Text::UnknownStroke(Stroke::new("TPHO"))),
+                Translation::Text(Text::UnknownStroke(Stroke::new("TPHOU"))),
+                Translation::Text(Text::Lit("no one".to_string()))
             ]
         );
     }
@@ -171,7 +176,7 @@ mod tests {
 
         assert_eq!(
             translations,
-            vec![Translation::Text("hello a world".to_string())]
+            vec![Translation::Text(Text::Lit("hello a world".to_string()))]
         );
     }
 
@@ -184,7 +189,7 @@ mod tests {
 
         assert_eq!(
             translations,
-            vec![Translation::Text("request an if".to_string())]
+            vec![Translation::Text(Text::Lit("request an if".to_string()))]
         );
     }
 
@@ -197,7 +202,9 @@ mod tests {
 
         assert_eq!(
             translations,
-            vec![Translation::Text("request a hello world".to_string())]
+            vec![Translation::Text(Text::Lit(
+                "request a hello world".to_string()
+            ))]
         );
     }
 
@@ -211,8 +218,8 @@ mod tests {
         assert_eq!(
             translations,
             vec![
-                Translation::Text("Hello".to_string()),
-                Translation::Text("deer and printing hello".to_string()),
+                Translation::Text(Text::Lit("Hello".to_string())),
+                Translation::Text(Text::Lit("deer and printing hello".to_string())),
                 Translation::Command(Command::External(ExternalCommand::PrintHello)),
             ]
         );

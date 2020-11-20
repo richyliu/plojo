@@ -27,6 +27,7 @@ pub fn parse_command(
             let mut new_actions = parse_external_command(external_command);
             actions.append(&mut new_actions);
         }
+        Command::NoOp => {}
     }
 
     (actions, new_state)
