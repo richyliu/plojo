@@ -56,7 +56,8 @@ pub fn translate_strokes(strokes: &Vec<Stroke>, dict: &Dictionary) -> Vec<Transl
 mod tests {
     use super::*;
     use crate::commands::{Command, ExternalCommand};
-    use crate::{testing_dict, Text};
+    use crate::testing_resources::testing_dict;
+    use crate::Text;
 
     #[test]
     fn test_basic() {

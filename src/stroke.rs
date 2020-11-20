@@ -12,3 +12,7 @@ impl Stroke {
         self.0
     }
 }
+
+pub fn is_valid_stroke(stroke: &str) -> bool {
+    stroke.len() > 0
+}

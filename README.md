@@ -16,5 +16,6 @@ users may need to install libxdo-dev.
 - for translation, check if 1 old command is replaced by 2 new commands
 - sort orthography rules in the order of most to least used
 - limit number of strokes sent to `translate_strokes`
+- check for stroke validity
 - organize imports better
 - add integration tests

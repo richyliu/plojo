@@ -1,6 +1,6 @@
 /// What action should be taken
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum Command {
     Internal(InternalCommand),
     External(ExternalCommand),
@@ -8,13 +8,13 @@ pub enum Command {
 }
 
 /// Internal commands affect the translation state
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum InternalCommand {
     Undo,
 }
 
 /// External commands create some output to the computer (keyboard press, mouse move, etc.)
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum ExternalCommand {
     Replace(usize, String),
     PrintHello,

@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-
 use crate::commands::Command;
 use crate::stroke::Stroke;
 use crate::translator::diff::translation_diff;
 use crate::translator::lookup::translate_strokes;
-use std::iter::FromIterator;
+use dictionary::Dictionary;
 
+pub mod dictionary;
 mod diff;
 mod lookup;
 
@@ -51,13 +50,13 @@ impl TextAction {
 
 /// A dictionary entry. It could be a command, in which case it is passed directly to the
 /// dispatcher. Otherwise it is something that pertains to text, which is parsed here in translator
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Hash, Eq)]
 pub enum Translation {
     Text(Text),
     Command(Command),
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Hash, Eq)]
 pub enum Text {
     // text literal that can be upper/lower cased
     Lit(String),
@@ -78,41 +77,8 @@ impl Translation {
     }
 }
 
-pub struct Dictionary {
-    strokes: HashMap<Stroke, Vec<Translation>>,
-}
-
 type DictEntries = Vec<(Stroke, Vec<Translation>)>;
 type DictEntry = (Stroke, Vec<Translation>);
-
-impl Dictionary {
-    pub fn new(entries: DictEntries) -> Self {
-        Self::from_iter(entries.into_iter())
-    }
-
-    fn lookup(&self, strokes: &[Stroke]) -> Option<Vec<Translation>> {
-        // combine strokes with a `/` between them
-        let mut combined = strokes
-            .into_iter()
-            .map(|s| s.clone().to_raw())
-            .fold(String::new(), |acc, s| acc + &s + "/");
-        // remove trailing `/`
-        combined.pop();
-
-        self.strokes.get(&Stroke::new(&combined)).cloned()
-    }
-}
-
-impl FromIterator<DictEntry> for Dictionary {
-    fn from_iter<T: IntoIterator<Item = DictEntry>>(iter: T) -> Self {
-        let mut hashmap: HashMap<Stroke, Vec<Translation>> = HashMap::new();
-        for (stroke, command) in iter {
-            hashmap.insert(stroke, command);
-        }
-
-        Dictionary { strokes: hashmap }
-    }
-}
 
 #[derive(Debug, PartialEq)]
 pub struct State {

@@ -1,6 +1,7 @@
 use crate::commands::{Command, ExternalCommand, InternalCommand};
 use crate::dispatcher::controller::ControllerAction;
-use crate::translator::{undo, Dictionary, State};
+use crate::translator::dictionary::Dictionary;
+use crate::translator::{undo, State};
 
 pub mod controller;
 
@@ -73,7 +74,7 @@ fn parse_internal_command(
 mod tests {
     use super::*;
     use crate::stroke::Stroke;
-    use crate::testing_dict;
+    use crate::testing_resources::testing_dict;
 
     #[test]
     fn test_undo_command() {
