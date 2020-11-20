@@ -1,7 +1,10 @@
 use regex::Regex;
 
-/// Join a word and suffixes together, applying orthographic (spelling) rules
-pub fn apply_orthography(strs: Vec<String>) -> String {
+lazy_static! {
+    static ref ORTHOGRAPHY_RULES: Rules = default_orthography();
+}
+
+fn default_orthography() -> Rules {
     // helper for building rules
     fn rule_with_lit(b: &str, s: &str, lit: &'static str) -> (Find, Replace) {
         (
@@ -10,10 +13,9 @@ pub fn apply_orthography(strs: Vec<String>) -> String {
         )
     }
 
-    // TODO: move this definition out to save on run time
     // Same orthography rules as Plover
     // Source: https://github.com/openstenoproject/plover/blob/master/plover/system/english_stenotype.py
-    let orthography_rules: Rules = vec![
+    vec![
         // artistic + ly = artistically
         rule_with_lit(r"^(.*[aeiou]c)$", r"^ly$", "ally"),
         // statute + ry = statutory
@@ -69,22 +71,26 @@ pub fn apply_orthography(strs: Vec<String>) -> String {
                 ReplaceItem::SuffixGroup(1),
             ],
         ),
-    ];
-
-    apply(&orthography_rules, &strs)
+    ]
 }
 
-fn apply(rules: &Rules, strs: &[String]) -> String {
+/// Join a word and suffixes together, applying orthographic (spelling) rules
+pub fn apply_orthography(strs: Vec<String>) -> String {
+    apply(&strs)
+}
+
+fn apply(strs: &[String]) -> String {
     match strs.len() {
         0 => String::new(),
         1 => strs[0].clone(),
-        _ => merge(rules, &strs[0], &strs[1]) + &apply(rules, &strs[2..]),
+        _ => merge(&strs[0], &strs[1]) + &apply(&strs[2..]),
     }
 }
 
 /// If a word and its suffix matches Find, it will be replaced with Replace
 type Rules = Vec<(Find, Replace)>;
 
+#[derive(Debug)]
 struct Find {
     base: Regex,
     suffix: Regex,
@@ -101,9 +107,16 @@ impl Find {
     }
 }
 
+impl PartialEq for Find {
+    fn eq(&self, other: &Self) -> bool {
+        self.base.as_str() == other.base.as_str() && self.suffix.as_str() == other.suffix.as_str()
+    }
+}
+
 type Replace = Vec<ReplaceItem>;
 
 /// Replace with a capturing group from base/suffix, or a literal string
+#[derive(Debug, PartialEq)]
 enum ReplaceItem {
     BaseGroup(usize),
     SuffixGroup(usize),
@@ -112,8 +125,8 @@ enum ReplaceItem {
 
 /// Applies orthography rules to a given base word and a suffix
 /// Panics for invalid rules
-fn merge(rules: &Rules, base: &str, suffix: &str) -> String {
-    for (find, replace) in rules {
+fn merge(base: &str, suffix: &str) -> String {
+    for (find, replace) in ORTHOGRAPHY_RULES.iter() {
         if let (Some(base_captures), Some(suffix_captures)) =
             (find.base.captures(base), find.suffix.captures(suffix))
         {
@@ -136,4 +149,35 @@ fn merge(rules: &Rules, base: &str, suffix: &str) -> String {
     base.to_owned() + suffix
 }
 
-// TODO: add orthography tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // helper function that calls apply_orthography
+    fn orthog(s: Vec<&str>) -> String {
+        apply_orthography(s.iter().map(|s| (*s).to_string()).collect())
+    }
+
+    #[test]
+    fn test_orthography_basic() {
+        assert_eq!(orthog(vec!["artistic", "ly"]), "artistically");
+        assert_eq!(orthog(vec!["statute", "ry"]), "statutory");
+        assert_eq!(orthog(vec!["frequent", "cy"]), "frequency");
+        assert_eq!(orthog(vec!["establish", "s"]), "establishes");
+        assert_eq!(orthog(vec!["speech", "s"]), "speeches");
+        assert_eq!(orthog(vec!["cherry", "s"]), "cherries");
+        assert_eq!(orthog(vec!["die", "ing"]), "dying");
+        assert_eq!(orthog(vec!["metallurgy", "ist"]), "metallurgist");
+        assert_eq!(orthog(vec!["beauty", "ful"]), "beautiful");
+        assert_eq!(orthog(vec!["write", "en"]), "written");
+        assert_eq!(orthog(vec!["free", "ed"]), "freed");
+        assert_eq!(orthog(vec!["narrate", "ing"]), "narrating");
+        assert_eq!(orthog(vec!["defer", "ed"]), "deferred");
+    }
+
+    #[test]
+    fn test_orthography_multiple() {
+        assert_eq!(orthog(vec!["artistic", "ly", "s"]), "artisticallys");
+        assert_eq!(orthog(vec!["bite", "ing", "s"]), "bitings");
+    }
+}

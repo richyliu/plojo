@@ -255,6 +255,7 @@ fn to_number(stroke: &str) -> String {
 
     let mut result = String::from("");
 
+    let mut numbers_only = true;
     let mut first_half = true;
     for key in stroke.chars() {
         if is_center_key(key) {
@@ -267,7 +268,10 @@ fn to_number(stroke: &str) -> String {
                 'T' => '2',
                 'P' => '3',
                 'H' => '4',
-                _k => _k,
+                _k => {
+                    numbers_only = false;
+                    _k
+                }
             }
         } else {
             match key {
@@ -277,12 +281,28 @@ fn to_number(stroke: &str) -> String {
                 'P' => '7',
                 'L' => '8',
                 'T' => '9',
-                _k => _k,
+                // a dash still means its only numbers
+                '-' => '-',
+                _k => {
+                    numbers_only = false;
+                    _k
+                }
             }
         });
     }
 
-    result
+    if !numbers_only {
+        result
+    } else {
+        // if there are only numbers, remove the dash if there is one
+        let mut new_result = String::new();
+        for key in result.chars() {
+            if key != '-' {
+                new_result.push(key);
+            }
+        }
+        new_result
+    }
 }
 
 #[cfg(test)]
@@ -329,6 +349,14 @@ mod tests {
         assert_eq!(
             RawStrokeGeminipr::parse_raw(&vec![128, 0, 64, 0, 64, 0]).to_stroke(),
             Stroke::new("R-P")
+        );
+        assert_eq!(
+            RawStrokeGeminipr::parse_raw(&vec![128, 1, 0, 2, 0, 64]).to_stroke(),
+            Stroke::new("46")
+        );
+        assert_eq!(
+            RawStrokeGeminipr::parse_raw(&vec![128, 68, 0, 0, 4, 64]).to_stroke(),
+            Stroke::new("139")
         );
     }
 

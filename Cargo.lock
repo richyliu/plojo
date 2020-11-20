@@ -209,6 +209,7 @@ name = "plojo"
 version = "0.1.0"
 dependencies = [
  "enigo",
+ "lazy_static",
  "regex",
  "serde_json",
  "serialport",

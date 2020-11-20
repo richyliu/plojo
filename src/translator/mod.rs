@@ -142,8 +142,6 @@ impl State {
 const MAX_STROKE_BUFFER: usize = 100;
 
 pub fn translate(stroke: Stroke, dict: &Dictionary, mut state: State) -> (Command, State) {
-    println!("size of state.prev_strokes: {:}", state.prev_strokes.len());
-
     if state.prev_strokes.len() > MAX_STROKE_BUFFER {
         state.prev_strokes.remove(0);
     }
