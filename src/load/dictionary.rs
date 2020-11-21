@@ -3,6 +3,8 @@ use crate::translator::dictionary::Dictionary;
 use crate::{Stroke, Text, TextAction, Translation};
 use regex::Regex;
 use serde_json;
+use std::error::Error;
+use std::fmt;
 use std::fs;
 use std::iter::FromIterator;
 
@@ -32,7 +34,7 @@ use std::iter::FromIterator;
 /// after the caret sign, in which case it will apply orthography rules
 ///
 /// ### Glue operator
-/// TODO: implement glue operator
+/// Not yet implemented
 ///
 /// ### Capitalizing
 /// The first letter of the next (or previous) translation can be capitalized
@@ -43,15 +45,28 @@ use std::iter::FromIterator;
 ///       previous word and add `ville` to the end. For example: `cat` would become `Catville`.
 ///
 /// ### Carrying capitalizing
-/// Not yet implemented
+/// - `{~|text}` or `{^~|text^}` where the attach operator is optional and the text can be changed
+///     - Note that currently this operator can be recognized, but does nothing
 ///
 /// ### Punctuation symbols
 /// - `{.}`, `{?}`, `{!}`: inserts a the punctuation joined to the previous word and uppercases anything next
 /// - `{,}`, `{:}`, `{;}`: inserts the punctuation joined to the previous word
-pub fn load(filename: &str) -> Result<Dictionary, ParseError> {
-    // TODO: handle IO error properly
-    let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
-    parse_dictionary(&contents).map(Dictionary::from_iter)
+///
+/// ### Retrospective Space
+/// - `{*?}`: retrospectivly add space before the previous translated word
+/// - `{*!}`: retrospectivly add space before the previous translated word
+///
+///
+/// ## Differences from plover
+///
+/// - The empty text commmand (`{}`) does not do anything. In plover, this stroke cancels the
+///   formatting of the next word.
+/// - Retrospective space adding/removing works on the previous word, not tne previous stroke
+pub fn load(filename: &str) -> Result<Dictionary, Box<dyn Error>> {
+    let contents = fs::read_to_string(filename)?;
+    parse_dictionary(&contents)
+        .map(Dictionary::from_iter)
+        .map_err(|e| e.into())
 }
 
 #[derive(Debug, PartialEq)]
@@ -67,6 +82,15 @@ pub enum ParseError {
     InvalidSpecialAction(String),
     JsonError(String),
 }
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // Use `self.number` to refer to each positional data point.
+        write!(f, "{:?}", self)
+    }
+}
+
+impl Error for ParseError {}
 
 impl From<serde_json::Error> for ParseError {
     fn from(e: serde_json::Error) -> Self {
@@ -127,7 +151,6 @@ fn parse_translation(t: &str) -> Result<Vec<Translation>, ParseError> {
             }
             '}' => {
                 if !in_brackets {
-                    println!("{}", t);
                     return Err(ParseError::InvalidTranslation(
                         "Unbalanced brackets: extra closing bracket(s)".to_string(),
                     ));
@@ -160,13 +183,16 @@ lazy_static! {
     // 2nd capturing group: possible text to apply orthography to
     // 3rd capturing group: possible caret (^)
     static ref SUFFIX_REGEX: Regex = Regex::new(r"^(\^?)([^\^]*)(\^?)$").unwrap();
+    // part of the suffix_regex (which checks for attach operator)
+    // checks if the content of the suffix starts with `~|`, to carry the capitalization
+    static ref CARRYING_CAP: Regex = Regex::new(r"^~\|(.+)$").unwrap();
 }
 
 /// Parses "special actions" which are in the translation surrounded by brackets
 fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
     match t {
-        // cancel formatting of next work by inserting an empty text
-        "" => Ok(vec![Translation::Text(Text::Lit("".to_string()))]),
+        // do nothing for empty action
+        "" => Ok(vec![]),
         // period
         "." => Ok(vec![
             Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
@@ -204,13 +230,20 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
         "-|" => Ok(vec![Translation::Text(Text::TextAction(vec![
             TextAction::case(true, true),
         ]))]),
-        // capitalize next word and suppress space
+        // capitalize previous word
         "*-|" => Ok(vec![Translation::Text(Text::TextAction(vec![
-            TextAction::case(true, true),
-            TextAction::space(true, false),
+            TextAction::case(false, true),
+        ]))]),
+        // add space to prev word
+        "*?" => Ok(vec![Translation::Text(Text::TextAction(vec![
+            TextAction::space(false, true),
+        ]))]),
+        // remove space from prev word
+        "*!" => Ok(vec![Translation::Text(Text::TextAction(vec![
+            TextAction::space(false, false),
         ]))]),
         _t => {
-            // check for prefix/suffix action
+            // check for prefix/suffix action (attach operator)
             let matched = SUFFIX_REGEX.captures(_t);
             if let Some(groups) = matched {
                 // all regexes have 1 as the first capturing group
@@ -223,32 +256,47 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                         ]))]);
                     }
 
+                    // simply ignore the `~|` in carrying capitalization for now
+                    let mut content = groups[2].to_string();
+                    if let Some(carrying_cap) = CARRYING_CAP.captures(&content) {
+                        content = carrying_cap[1].to_string();
+                    }
+
                     // apply orthography with an attached action
                     if &groups[3] == "^" {
                         // suppress next space if needed
                         return Ok(vec![
-                            Translation::Text(Text::Attached(groups[2].to_string())),
+                            Translation::Text(Text::Attached(content)),
                             Translation::Text(Text::TextAction(vec![TextAction::space(
                                 true, false,
                             )])),
                         ]);
                     } else {
-                        return Ok(vec![Translation::Text(Text::Attached(
-                            groups[2].to_string(),
-                        ))]);
+                        return Ok(vec![Translation::Text(Text::Attached(content))]);
                     }
                 } else if &groups[3] == "^" {
+                    // simply ignore the `~|` in carrying capitalization for now
+                    let mut content = groups[2].to_string();
+                    if let Some(carrying_cap) = CARRYING_CAP.captures(&content) {
+                        content = carrying_cap[1].to_string();
+                    }
+
                     // caret at end is a prefix stroke
                     return Ok(vec![
-                        Translation::Text(Text::Lit(groups[2].to_string())),
+                        Translation::Text(Text::Lit(content)),
                         Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
                     ]);
                 }
                 // no caret, ignore it
-            }
 
-            // TODO: parse carrying capitalization (maybe not implement it just yet)
-            // TODO: remove space prev, uppercase prev
+                // simply ignore the `~|` in carrying capitalization for now
+                let content = groups[2].to_string();
+                if let Some(carrying_cap) = CARRYING_CAP.captures(&content) {
+                    let content = carrying_cap[1].to_string();
+
+                    return Ok(vec![Translation::Text(Text::Lit(content))]);
+                }
+            }
 
             return Err(ParseError::InvalidSpecialAction(_t.to_string()));
         }
@@ -272,6 +320,7 @@ mod tests {
         let contents = r#"
 {
 "TP": "if",
+"KPA": "{}{-|}",
 "-T/WUPB": "The One"
 }
         "#;
@@ -282,6 +331,12 @@ mod tests {
             (
                 Stroke::new("TP"),
                 vec![Translation::Text(Text::Lit("if".to_string()))],
+            ),
+            (
+                Stroke::new("KPA"),
+                vec![Translation::Text(Text::TextAction(vec![TextAction::case(
+                    true, true,
+                )]))],
             ),
             (
                 Stroke::new("-T/WUPB"),
@@ -335,6 +390,89 @@ mod tests {
             parse_translation("{in^}").unwrap(),
             vec![
                 Translation::Text(Text::Lit("in".to_string())),
+                Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_translation_text_actions() {
+        // uppercase next word
+        assert_eq!(
+            parse_translation("{-|}").unwrap(),
+            vec![Translation::Text(Text::TextAction(vec![TextAction::case(
+                true, true
+            )])),]
+        );
+        // uppercase next word and suppress space
+        assert_eq!(
+            parse_translation("{^}{-|}").unwrap(),
+            vec![
+                Translation::Text(Text::TextAction(vec![TextAction::space(true, false),])),
+                Translation::Text(Text::TextAction(vec![TextAction::case(true, true)])),
+            ]
+        );
+        // uppercase previus word
+        assert_eq!(
+            parse_translation("{*-|}").unwrap(),
+            vec![Translation::Text(Text::TextAction(vec![TextAction::case(
+                false, true
+            )])),]
+        );
+        // add space to prev word
+        assert_eq!(
+            parse_translation("{*?}").unwrap(),
+            vec![Translation::Text(Text::TextAction(vec![
+                TextAction::space(false, true)
+            ])),]
+        );
+        // remove space from prev word
+        assert_eq!(
+            parse_translation("{*!}").unwrap(),
+            vec![Translation::Text(Text::TextAction(vec![
+                TextAction::space(false, false)
+            ])),]
+        );
+    }
+
+    // only testing parsing for now
+    #[test]
+    fn test_translation_carrying_capitalization() {
+        // quote attached to next word
+        assert_eq!(
+            parse_translation(r#"{~|"^}"#).unwrap(),
+            vec![
+                Translation::Text(Text::Lit("\"".to_string())),
+                Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+            ]
+        );
+        // parentheses attached to previous word
+        assert_eq!(
+            parse_translation(r#"{^~|(}"#).unwrap(),
+            vec![Translation::Text(Text::Attached("(".to_string())),]
+        );
+        // quote attached on both sides
+        assert_eq!(
+            parse_translation(r#"{^~|'^}"#).unwrap(),
+            vec![
+                Translation::Text(Text::Attached("'".to_string())),
+                Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+            ]
+        );
+        // quote followed by word
+        assert_eq!(
+            parse_translation(r#"{~|'^}cause"#).unwrap(),
+            vec![
+                Translation::Text(Text::Lit("'".to_string())),
+                Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+                Translation::Text(Text::Lit("cause".to_string())),
+            ]
+        );
+        // long text carrying capitalized
+        assert_eq!(
+            parse_translation(r#"{~|hello^}"#).unwrap(),
+            vec![
+                Translation::Text(Text::Lit("hello".to_string())),
                 Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
             ]
         );

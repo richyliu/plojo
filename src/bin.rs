@@ -11,7 +11,7 @@ pub fn main() {
         println!("You have not passed in any arguments, so output is DISABLED");
     }
 
-    println!("starting plojo...");
+    println!("\nStarting plojo...");
     plojo::SerialMachine::print_available_ports();
 
     let dict = load_dictionary("runtime_files/dict.json").expect("unable to load dictionary");

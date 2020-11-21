@@ -57,7 +57,7 @@ mod tests {
     use super::*;
     use crate::commands::{Command, ExternalCommand};
     use crate::testing_resources::testing_dict;
-    use crate::Text;
+    use crate::{Text, TextAction};
 
     #[test]
     fn test_basic() {
@@ -222,6 +222,25 @@ mod tests {
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Text(Text::Lit("deer and printing hello".to_string())),
                 Translation::Command(Command::External(ExternalCommand::PrintHello)),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_text_actions() {
+        let dict = testing_dict();
+        let strokes = vec![Stroke::new("H-L"), Stroke::new("KPA")];
+
+        let translations = translate_strokes(&strokes, &dict);
+
+        assert_eq!(
+            translations,
+            vec![
+                Translation::Text(Text::Lit("Hello".to_string())),
+                Translation::Text(Text::TextAction(vec![
+                    TextAction::space(true, true),
+                    TextAction::case(true, true)
+                ])),
             ]
         );
     }

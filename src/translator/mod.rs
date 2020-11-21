@@ -115,7 +115,6 @@ pub fn translate(stroke: Stroke, dict: &Dictionary, mut state: State) -> (Comman
     let old_translations = translate_strokes(&state.prev_strokes, dict);
     state.prev_strokes.push(stroke);
     let new_translations = translate_strokes(&state.prev_strokes, dict);
-    println!("{:?}, {:?}", old_translations, new_translations);
 
     let command = translation_diff(&old_translations, &new_translations);
 
@@ -124,7 +123,6 @@ pub fn translate(stroke: Stroke, dict: &Dictionary, mut state: State) -> (Comman
 
 pub fn undo(dict: &Dictionary, mut state: State) -> (Command, State) {
     let old_translations = translate_strokes(&state.prev_strokes, dict);
-    // TODO: undo should remove all the text actions if there are any
     state.prev_strokes.pop();
     let new_translations = translate_strokes(&state.prev_strokes, dict);
 
