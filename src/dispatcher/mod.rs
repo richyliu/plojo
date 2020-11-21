@@ -1,27 +1,18 @@
 use crate::commands::{Command, ExternalCommand, InternalCommand};
 use crate::dispatcher::controller::ControllerAction;
-use crate::translator::dictionary::Dictionary;
-use crate::translator::{undo, State};
 
 pub mod controller;
 
 const BACKSPACE_DELAY: u32 = 2;
 const KEY_DELAY: u32 = 5;
 
-/// Given a translation state and a dictionary, parse the new command into a list of controller actions and new state
-pub fn parse_command(
-    state: State,
-    dict: &Dictionary,
-    command: Command,
-) -> (Vec<ControllerAction>, State) {
-    let mut new_state = state;
+/// Parse the new command into a list of controller actions
+pub fn parse_command(command: Command) -> Vec<ControllerAction> {
     let mut actions = vec![];
 
     match command {
         Command::Internal(internal_command) => {
-            let (mut new_actions, temp_state) =
-                parse_internal_command(new_state, &dict, internal_command);
-            new_state = temp_state;
+            let mut new_actions = parse_internal_command(internal_command);
             actions.append(&mut new_actions);
         }
         Command::External(external_command) => {
@@ -31,7 +22,7 @@ pub fn parse_command(
         Command::NoOp => {}
     }
 
-    (actions, new_state)
+    actions
 }
 
 fn parse_external_command(command: ExternalCommand) -> Vec<ControllerAction> {
@@ -57,36 +48,9 @@ fn parse_external_command(command: ExternalCommand) -> Vec<ControllerAction> {
     actions
 }
 
-fn parse_internal_command(
-    state: State,
-    dict: &Dictionary,
-    command: InternalCommand,
-) -> (Vec<ControllerAction>, State) {
+fn parse_internal_command(command: InternalCommand) -> Vec<ControllerAction> {
+    // currently no internal commands
     match command {
-        InternalCommand::Undo => {
-            let (command, new_state) = undo(dict, state);
-            return parse_command(new_state, dict, command);
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::stroke::Stroke;
-    use crate::testing_resources::testing_dict;
-
-    #[test]
-    fn test_undo_command() {
-        // state includes the undo stroke because that was the newest translation which turned into the undo command
-        let state = State::with_strokes(vec![Stroke::new("H-L"), Stroke::new("*")]);
-        let dict = testing_dict();
-        let action = Command::Internal(InternalCommand::Undo);
-
-        let (actions, _new_state) = parse_command(state, &dict, action);
-        assert_eq!(
-            actions,
-            vec![ControllerAction::BackspaceWithDelay(6, BACKSPACE_DELAY)]
-        );
+        _ => vec![],
     }
 }

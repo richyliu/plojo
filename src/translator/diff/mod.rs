@@ -83,7 +83,7 @@ fn text_diff(old: String, new: String) -> Command {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::commands::{ExternalCommand, InternalCommand};
+    use crate::commands::ExternalCommand;
     use crate::stroke::Stroke;
     use crate::translator::TextAction;
     use crate::Text;
@@ -267,23 +267,6 @@ mod tests {
         );
 
         assert_eq!(command, Command::External(ExternalCommand::PrintHello));
-    }
-
-    #[test]
-    fn test_diff_undo() {
-        let command = translation_diff(
-            &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::Lit("world".to_string())),
-            ],
-            &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::Lit("world".to_string())),
-                Translation::Command(Command::Internal(InternalCommand::Undo)),
-            ],
-        );
-
-        assert_eq!(command, Command::Internal(InternalCommand::Undo));
     }
 
     #[test]

@@ -20,19 +20,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bb5d62d8-ef46-47a9-b9cf-3040c7d3f35e" name="Default Changelist" comment="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure">
-      <change afterPath="$PROJECT_DIR$/.idea/dictionaries/richard.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/testing_resources.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/translator/dictionary.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/runtime_files/dict_full.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/runtime_files/dict.json" beforeDir="false" afterPath="$PROJECT_DIR$/runtime_files/dict.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/bin.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/commands.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/commands.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/dispatcher/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/dispatcher/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/load/dictionary.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/load/dictionary.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/load/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/load/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/stroke.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/stroke.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/translator/lookup.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/lookup.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/testing_resources.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/testing_resources.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/translator/diff/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/diff/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/translator/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/translator/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -82,11 +81,6 @@
     <property name="settings.editor.selected.configurable" value="Errors" />
   </component>
   <component name="RunManager" selected="Cargo.Check tests">
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Check tests" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="check --tests" />
@@ -151,6 +145,11 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
     <list>
       <item itemvalue="Cargo.Run" />
       <item itemvalue="Cargo.Test" />
@@ -158,11 +157,6 @@
       <item itemvalue="Cargo.Check tests" />
       <item itemvalue="Cargo.Open docs" />
     </list>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Cargo.doc" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="RustProjectSettings">
     <option name="runRustfmtOnSave" value="true" />
@@ -196,6 +190,7 @@
       <workItem from="1605806567892" duration="13991000" />
       <workItem from="1605846631410" duration="8800000" />
       <workItem from="1605898366555" duration="9667000" />
+      <workItem from="1605927397040" duration="1413000" />
     </task>
     <task id="LOCAL-00001" summary="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure">
       <created>1605421548275</created>
@@ -308,34 +303,34 @@
       <screen x="0" y="0" width="2560" height="1398" />
     </state>
     <state x="820" y="394" width="576" height="721" key="EnvironmentVariablesDialog/0.0.2560.1398@0.0.2560.1398" timestamp="1605405989880" />
-    <state width="2052" height="462" key="GridCell.Tab.0.bottom" timestamp="1605909991533">
+    <state width="2052" height="462" key="GridCell.Tab.0.bottom" timestamp="1605930220175">
       <screen x="0" y="25" width="2560" height="1415" />
     </state>
     <state width="2500" height="486" key="GridCell.Tab.0.bottom/0.0.2560.1398@0.0.2560.1398" timestamp="1605582185056" />
     <state width="1358" height="215" key="GridCell.Tab.0.bottom/0.25.1440.875@0.25.1440.875" timestamp="1605589177594" />
     <state width="2508" height="499" key="GridCell.Tab.0.bottom/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605816755638" />
-    <state width="2052" height="462" key="GridCell.Tab.0.bottom/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605909991533" />
-    <state width="2052" height="462" key="GridCell.Tab.0.center" timestamp="1605909991532">
+    <state width="2052" height="462" key="GridCell.Tab.0.bottom/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605930220175" />
+    <state width="2052" height="462" key="GridCell.Tab.0.center" timestamp="1605930220172">
       <screen x="0" y="25" width="2560" height="1415" />
     </state>
     <state width="2500" height="486" key="GridCell.Tab.0.center/0.0.2560.1398@0.0.2560.1398" timestamp="1605582185056" />
     <state width="1358" height="215" key="GridCell.Tab.0.center/0.25.1440.875@0.25.1440.875" timestamp="1605589177594" />
     <state width="2508" height="499" key="GridCell.Tab.0.center/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605816755636" />
-    <state width="2052" height="462" key="GridCell.Tab.0.center/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605909991532" />
-    <state width="2052" height="462" key="GridCell.Tab.0.left" timestamp="1605909991532">
+    <state width="2052" height="462" key="GridCell.Tab.0.center/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605930220172" />
+    <state width="2052" height="462" key="GridCell.Tab.0.left" timestamp="1605930220171">
       <screen x="0" y="25" width="2560" height="1415" />
     </state>
     <state width="2500" height="486" key="GridCell.Tab.0.left/0.0.2560.1398@0.0.2560.1398" timestamp="1605582185056" />
     <state width="1358" height="215" key="GridCell.Tab.0.left/0.25.1440.875@0.25.1440.875" timestamp="1605589177593" />
     <state width="2508" height="499" key="GridCell.Tab.0.left/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605816755634" />
-    <state width="2052" height="462" key="GridCell.Tab.0.left/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605909991532" />
-    <state width="2052" height="462" key="GridCell.Tab.0.right" timestamp="1605909991533">
+    <state width="2052" height="462" key="GridCell.Tab.0.left/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605930220171" />
+    <state width="2052" height="462" key="GridCell.Tab.0.right" timestamp="1605930220173">
       <screen x="0" y="25" width="2560" height="1415" />
     </state>
     <state width="2500" height="486" key="GridCell.Tab.0.right/0.0.2560.1398@0.0.2560.1398" timestamp="1605582185056" />
     <state width="1358" height="215" key="GridCell.Tab.0.right/0.25.1440.875@0.25.1440.875" timestamp="1605589177594" />
     <state width="2508" height="499" key="GridCell.Tab.0.right/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605816755637" />
-    <state width="2052" height="462" key="GridCell.Tab.0.right/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605909991533" />
+    <state width="2052" height="462" key="GridCell.Tab.0.right/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605930220173" />
     <state x="649" y="262" width="900" height="728" key="SettingsEditor" timestamp="1605900776827">
       <screen x="0" y="25" width="2560" height="1415" />
     </state>
@@ -377,12 +372,12 @@
     </state>
     <state x="860" y="321" key="run.anything.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605547714280" />
     <state x="860" y="350" key="run.anything.popup/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605905554958" />
-    <state x="859" y="340" width="1192" height="1049" key="search.everywhere.popup" timestamp="1605909936672">
+    <state x="859" y="340" width="1192" height="1049" key="search.everywhere.popup" timestamp="1605927427540">
       <screen x="0" y="25" width="2560" height="1415" />
     </state>
     <state x="859" y="311" width="840" height="1034" key="search.everywhere.popup/0.0.2560.1398@0.0.2560.1398" timestamp="1605580406658" />
     <state x="483" y="220" width="670" height="648" key="search.everywhere.popup/0.25.1440.875@0.25.1440.875" timestamp="1605637148015" />
     <state x="859" y="321" width="1192" height="1067" key="search.everywhere.popup/2560.540.1440.900/0.0.2560.1440@0.0.2560.1440" timestamp="1605682390466" />
-    <state x="859" y="340" width="1192" height="1049" key="search.everywhere.popup/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605909936672" />
+    <state x="859" y="340" width="1192" height="1049" key="search.everywhere.popup/2560.565.1440.875/0.25.2560.1415@0.25.2560.1415" timestamp="1605927427540" />
   </component>
 </project>

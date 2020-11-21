@@ -1,5 +1,5 @@
 use crate::translator::dictionary::Dictionary;
-use crate::{Command, ExternalCommand, InternalCommand, Stroke, Text, TextAction, Translation};
+use crate::{Command, ExternalCommand, Stroke, Text, TextAction, Translation};
 
 pub fn testing_dict() -> Dictionary {
     // handy helper function for making dictionary entries
@@ -39,12 +39,6 @@ pub fn testing_dict() -> Dictionary {
         )),
         (row_ta("-RB", vec![TextAction::space(true, false)])),
         (row_ta("S-P", vec![TextAction::space(true, true)])),
-        (
-            Stroke::new("*"),
-            vec![Translation::Command(Command::Internal(
-                InternalCommand::Undo,
-            ))],
-        ),
         (
             Stroke::new("H*L"),
             vec![Translation::Command(Command::External(

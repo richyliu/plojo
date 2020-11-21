@@ -11,6 +11,10 @@ impl Stroke {
     pub fn to_raw(self) -> String {
         self.0
     }
+
+    pub fn is_undo(&self) -> bool {
+        self.0.len() == 1 && self.0.clone() == "*"
+    }
 }
 
 pub fn is_valid_stroke(stroke: &str) -> bool {

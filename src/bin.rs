@@ -1,11 +1,17 @@
 use plojo_lib as plojo;
 use plojo_lib::{load_dictionary, RawStroke};
-
-const DO_OUTPUT: bool = false;
+use std::env;
 
 pub fn main() {
+    let args: Vec<String> = env::args().collect();
+    let do_output = args.len() == 2;
+    if do_output {
+        println!("You have passed in an argument, so output is ENABLED");
+    } else {
+        println!("You have not passed in any arguments, so output is DISABLED");
+    }
+
     println!("starting plojo...");
-    println!("output enable: {:?}", DO_OUTPUT);
     plojo::SerialMachine::print_available_ports();
 
     let dict = load_dictionary("runtime_files/dict.json").expect("unable to load dictionary");
@@ -21,12 +27,16 @@ pub fn main() {
                 let stroke = plojo::RawStrokeGeminipr::parse_raw(raw).to_stroke();
                 print!("{:?} => ", stroke);
 
-                let (command, new_state) = plojo::translate(stroke, &dict, translation_state);
+                let (command, new_state) = if stroke.is_undo() {
+                    plojo::undo(&dict, translation_state)
+                } else {
+                    plojo::translate(stroke, &dict, translation_state)
+                };
                 println!("{:?}", command);
 
                 let mut new_controller = controller;
-                let (actions, new_state) = plojo::parse_command(new_state, &dict, command);
-                if DO_OUTPUT {
+                let actions = plojo::parse_command(command);
+                if do_output {
                     new_controller.dispatch(actions);
                 }
 

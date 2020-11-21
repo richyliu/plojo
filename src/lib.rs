@@ -16,7 +16,7 @@ pub use machine::{
     SerialMachine,
 };
 pub use stroke::Stroke;
-pub use translator::{translate, State, Text, TextAction, Translation};
+pub use translator::{translate, undo, State, Text, TextAction, Translation};
 
 #[cfg(test)]
 mod testing_resources;

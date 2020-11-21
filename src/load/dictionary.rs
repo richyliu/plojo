@@ -32,7 +32,7 @@ use std::iter::FromIterator;
 /// after the caret sign, in which case it will apply orthography rules
 ///
 /// ### Glue operator
-/// Not yet implemented
+/// TODO: implement glue operator
 ///
 /// ### Capitalizing
 /// The first letter of the next (or previous) translation can be capitalized
@@ -44,13 +44,17 @@ use std::iter::FromIterator;
 ///
 /// ### Carrying capitalizing
 /// Not yet implemented
+///
+/// ### Punctuation symbols
+/// - `{.}`, `{?}`, `{!}`: inserts a the punctuation joined to the previous word and uppercases anything next
+/// - `{,}`, `{:}`, `{;}`: inserts the punctuation joined to the previous word
 pub fn load(filename: &str) -> Result<Dictionary, ParseError> {
     // TODO: handle IO error properly
     let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
     parse_dictionary(&contents).map(Dictionary::from_iter)
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ParseError {
     // if the JSON file does not exclusively contain an object with entries
     NotEntries,
@@ -107,35 +111,35 @@ fn parse_translation(t: &str) -> Result<Vec<Translation>, ParseError> {
 
     let mut translations = vec![];
     let mut start = 0;
-    let mut end = 0;
     let mut in_brackets = false;
-    // pass anything in brackets to parse_special and everything else to parse_as_text
-    for c in t.chars() {
+    // using char_indices here to handle utf-8 chars, which might not be 1 byte long
+    for (end, c) in t.char_indices() {
+        // pass anything in brackets to parse_special and everything else to parse_as_text
         match c {
             '{' => {
                 if start < end {
-                    // if there's anything before, that should be a text literal
+                    // if there's anything before the bracket, that should be a text literal
                     translations.push(parse_as_text(&t[start..end]));
                 }
-                end += 1;
-                start = end;
+                // adding 1 here is fine because '{' is one byte long
+                start = end + 1;
                 in_brackets = true;
             }
             '}' => {
                 if !in_brackets {
+                    println!("{}", t);
                     return Err(ParseError::InvalidTranslation(
                         "Unbalanced brackets: extra closing bracket(s)".to_string(),
                     ));
                 }
 
                 translations.append(&mut parse_special(&t[start..end])?);
-                end += 1;
-                start = end;
+                // adding 1 here is fine because '{' is one byte long
+                start = end + 1;
                 in_brackets = false;
             }
-            _ => {
-                end += 1;
-            }
+            // ignore everything else
+            _ => {}
         }
     }
 
@@ -143,9 +147,9 @@ fn parse_translation(t: &str) -> Result<Vec<Translation>, ParseError> {
         return Err(ParseError::InvalidTranslation(
             "Unbalanced brackets: extra opening bracket(s)".to_string(),
         ));
-    } else if start < end {
-        // if there's anything before, that should be a text literal
-        translations.push(parse_as_text(&t[start..end]));
+    } else if start < t.len() {
+        // if there's still more text, add that as well as a text literal
+        translations.push(parse_as_text(&t[start..]));
     }
 
     Ok(translations)
@@ -161,9 +165,46 @@ lazy_static! {
 /// Parses "special actions" which are in the translation surrounded by brackets
 fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
     match t {
+        // cancel formatting of next work by inserting an empty text
+        "" => Ok(vec![Translation::Text(Text::Lit("".to_string()))]),
+        // period
+        "." => Ok(vec![
+            Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+            Translation::Text(Text::Lit(".".to_string())),
+            Translation::Text(Text::TextAction(vec![TextAction::case(true, true)])),
+        ]),
+        // question mark
+        "?" => Ok(vec![
+            Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+            Translation::Text(Text::Lit("?".to_string())),
+            Translation::Text(Text::TextAction(vec![TextAction::case(true, true)])),
+        ]),
+        // exclamation mark
+        "!" => Ok(vec![
+            Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+            Translation::Text(Text::Lit("!".to_string())),
+            Translation::Text(Text::TextAction(vec![TextAction::case(true, true)])),
+        ]),
+        // comma
+        "," => Ok(vec![
+            Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+            Translation::Text(Text::Lit(",".to_string())),
+        ]),
+        // colon
+        ":" => Ok(vec![
+            Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+            Translation::Text(Text::Lit(":".to_string())),
+        ]),
+        // colon
+        ";" => Ok(vec![
+            Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+            Translation::Text(Text::Lit(";".to_string())),
+        ]),
+        // capitalize next word
         "-|" => Ok(vec![Translation::Text(Text::TextAction(vec![
             TextAction::case(true, true),
         ]))]),
+        // capitalize next word and suppress space
         "*-|" => Ok(vec![Translation::Text(Text::TextAction(vec![
             TextAction::case(true, true),
             TextAction::space(true, false),
@@ -205,6 +246,9 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                 }
                 // no caret, ignore it
             }
+
+            // TODO: parse carrying capitalization (maybe not implement it just yet)
+            // TODO: remove space prev, uppercase prev
 
             return Err(ParseError::InvalidSpecialAction(_t.to_string()));
         }
@@ -293,6 +337,34 @@ mod tests {
                 Translation::Text(Text::Lit("in".to_string())),
                 Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
             ]
+        );
+    }
+
+    #[test]
+    fn test_translation_punctuation() {
+        assert_eq!(
+            parse_translation("{.}").unwrap(),
+            vec![
+                Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+                Translation::Text(Text::Lit(".".to_string())),
+                Translation::Text(Text::TextAction(vec![TextAction::case(true, true)])),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_translation_unicode() {
+        assert_eq!(
+            parse_translation("©").unwrap(),
+            vec![Translation::Text(Text::Lit("©".to_string()))]
+        );
+    }
+
+    #[test]
+    fn test_translation_empty_err() {
+        assert_eq!(
+            parse_translation("").unwrap_err(),
+            ParseError::EmptyTranslation
         );
     }
 }

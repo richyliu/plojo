@@ -9,9 +9,7 @@ pub enum Command {
 
 /// Internal commands affect the translation state
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
-pub enum InternalCommand {
-    Undo,
-}
+pub enum InternalCommand {}
 
 /// External commands create some output to the computer (keyboard press, mouse move, etc.)
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
