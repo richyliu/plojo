@@ -61,7 +61,7 @@ use std::iter::FromIterator;
 ///
 /// - The empty text commmand (`{}`) does not do anything. In plover, this stroke cancels the
 ///   formatting of the next word.
-/// - Retrospective space adding/removing works on the previous word, not tne previous stroke
+/// - Retrospective space adding/removing works on the previous word, not the previous stroke
 pub fn load(filename: &str) -> Result<Dictionary, Box<dyn Error>> {
     let contents = fs::read_to_string(filename)?;
     parse_dictionary(&contents)

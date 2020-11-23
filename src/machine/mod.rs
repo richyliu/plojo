@@ -1,5 +1,5 @@
 use serialport::{available_ports, SerialPortSettings, SerialPortType};
-use std::{any::Any, thread, time::Duration};
+use std::{any::Any, io::ErrorKind, thread, time::Duration};
 
 pub mod raw_stroke;
 
@@ -54,8 +54,13 @@ impl SerialMachine {
                             state = action(&serial_buf, state);
                         }
                         Err(e) => match e.kind() {
-                            std::io::ErrorKind::TimedOut => {
+                            ErrorKind::TimedOut => {
                                 // just a timeout (no data to read), ignore it
+                            }
+                            ErrorKind::BrokenPipe => {
+                                // broken pipe usually means the serial port disconnected
+                                eprintln!("Machine disconnected. Exiting.");
+                                break;
                             }
                             _ => {
                                 eprintln!("err: {:?}", e);

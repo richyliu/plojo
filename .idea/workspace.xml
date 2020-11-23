@@ -131,17 +131,12 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
     <list>
+      <item itemvalue="Cargo.Check tests" />
+      <item itemvalue="Cargo.Check" />
+      <item itemvalue="Cargo.Open docs" />
       <item itemvalue="Cargo.Run" />
       <item itemvalue="Cargo.Test" />
-      <item itemvalue="Cargo.Check" />
-      <item itemvalue="Cargo.Check tests" />
-      <item itemvalue="Cargo.Open docs" />
     </list>
   </component>
   <component name="RustProjectSettings">
@@ -177,6 +172,7 @@
       <workItem from="1605846631410" duration="8800000" />
       <workItem from="1605898366555" duration="9667000" />
       <workItem from="1605927397040" duration="1484000" />
+      <workItem from="1606014400063" duration="49000" />
     </task>
     <task id="LOCAL-00001" summary="used enigo crate for output, fixed greedy stroke translation, reorganized translator structure">
       <created>1605421548275</created>
