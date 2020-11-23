@@ -8,7 +8,7 @@ mod stroke;
 mod translator;
 
 pub use commands::{Command, ExternalCommand, InternalCommand};
-pub use dispatcher::{controller::Controller, parse_command};
+pub use dispatcher::{parse_command, Controller, ControllerAction};
 pub use machine::{
     raw_stroke::{RawStroke, RawStrokeGeminipr},
     SerialMachine,

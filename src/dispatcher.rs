@@ -1,7 +1,8 @@
-use crate::commands::{Command, ExternalCommand, InternalCommand};
-use crate::dispatcher::controller::ControllerAction;
+use crate::{Command, ExternalCommand, InternalCommand};
 
-pub mod controller;
+mod controller;
+
+pub use controller::{Controller, ControllerAction};
 
 const BACKSPACE_DELAY: u32 = 2;
 const KEY_DELAY: u32 = 5;
@@ -39,9 +40,6 @@ fn parse_external_command(command: ExternalCommand) -> Vec<ControllerAction> {
             if add_text.len() > 0 {
                 actions.push(ControllerAction::TypeWithDelay(add_text, KEY_DELAY));
             }
-        }
-        ExternalCommand::PrintHello => {
-            println!("\n====================== hello! ======================\n");
         }
     }
 

@@ -15,7 +15,6 @@ pub enum InternalCommand {}
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum ExternalCommand {
     Replace(usize, String),
-    PrintHello,
 }
 
 impl Command {

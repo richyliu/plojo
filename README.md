@@ -22,6 +22,8 @@ These todos are not as important as the ones directly in the code
 - BUG: suppress space should lowercase the next word as well
   - maybe make `{^^}` as a join of empty string to clear formatting
   - is `{^}` even supported (or even the same as `{^^}`)?
+- BUG: `SEUT/H-PB/TPH/-S` makes "sit-s in"
+- BUG: `TP-PL/KR-GS` makes "`. "`" instead of "`."`"
 - instead of `{}` to clear formatting, add custom stroke to also reset buffer
 - ability to load multiple dictionaries
 - external key presses (arrows, control, command, etc)

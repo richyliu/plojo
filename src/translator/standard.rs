@@ -49,6 +49,7 @@ impl TextAction {
 /// A dictionary entry. It could be a command, in which case it is passed directly to the
 /// dispatcher. Otherwise it is something that pertains to text, which is parsed here in translator
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
+#[allow(dead_code)]
 enum Translation {
     Text(Text),
     Command(Command),
