@@ -1,15 +1,13 @@
 //! Helper functions for finding the difference between 2 translations and turning that into a command.
+use crate::commands::Command;
+use crate::translator::standard::Translation;
 use std::cmp;
 
-use crate::commands::Command;
-use crate::translator::Translation;
-
-mod orthography;
 mod parser;
 
 /// Finds the difference between two translations, converts them to their string representations,
 /// and diffs the strings to create a command
-pub fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -> Command {
+pub(super) fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -> Command {
     // find where the new translations differ from the old
     let mut i = 0;
     let loop_size = cmp::min(old.len(), new.len());
@@ -84,9 +82,8 @@ fn text_diff(old: String, new: String) -> Command {
 mod tests {
     use super::*;
     use crate::commands::ExternalCommand;
-    use crate::stroke::Stroke;
-    use crate::translator::TextAction;
-    use crate::Text;
+    use crate::translator::standard::{Text, TextAction};
+    use crate::Stroke;
 
     #[test]
     fn test_diff_same() {

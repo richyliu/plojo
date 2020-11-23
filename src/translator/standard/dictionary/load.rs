@@ -1,11 +1,10 @@
-use crate::stroke;
-use crate::translator::dictionary::Dictionary;
-use crate::{Stroke, Text, TextAction, Translation};
+use crate::translator::standard::dictionary::Dictionary;
+use crate::translator::standard::{Text, TextAction, Translation};
+use crate::Stroke;
 use regex::Regex;
 use serde_json;
 use std::error::Error;
 use std::fmt;
-use std::fs;
 use std::iter::FromIterator;
 
 /// Loads the dictionary
@@ -62,11 +61,9 @@ use std::iter::FromIterator;
 /// - The empty text commmand (`{}`) does not do anything. In plover, this stroke cancels the
 ///   formatting of the next word.
 /// - Retrospective space adding/removing works on the previous word, not the previous stroke
-pub fn load(filename: &str) -> Result<Dictionary, Box<dyn Error>> {
-    let contents = fs::read_to_string(filename)?;
-    parse_dictionary(&contents)
-        .map(Dictionary::from_iter)
-        .map_err(|e| e.into())
+pub fn load(contents: &str) -> Result<Dictionary, ParseError> {
+    // TODO: remove this extraneous function
+    parse_dictionary(&contents).map(Dictionary::from_iter)
 }
 
 #[derive(Debug, PartialEq)]
@@ -85,6 +82,7 @@ pub enum ParseError {
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // TODO: write better formatter?
         // Use `self.number` to refer to each positional data point.
         write!(f, "{:?}", self)
     }
@@ -121,8 +119,9 @@ fn parse_dictionary(contents: &str) -> Result<Entries, ParseError> {
 }
 
 fn parse_stroke(s: &str) -> Result<Stroke, ParseError> {
-    if stroke::is_valid_stroke(s) {
-        Ok(Stroke::new(s))
+    let stroke = Stroke::new(s);
+    if stroke.is_valid() {
+        Ok(stroke)
     } else {
         Err(ParseError::InvalidStroke(s.to_string()))
     }

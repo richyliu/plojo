@@ -1,6 +1,8 @@
-use crate::translator::diff::orthography::apply_orthography;
-use crate::translator::{Text, TextActionType};
+use crate::translator::standard::{Text, TextActionType};
+use orthography::apply_orthography;
 use std::collections::HashMap;
+
+mod orthography;
 
 /// For the translation_to_string function
 #[derive(Debug, PartialEq)]
@@ -213,7 +215,7 @@ fn word_change_first_letter(word: String, uppercase: bool) -> String {
 mod tests {
     use super::*;
     use crate::stroke::Stroke;
-    use crate::translator::TextAction;
+    use crate::translator::standard::TextAction;
     use std::iter::FromIterator;
 
     #[test]

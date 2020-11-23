@@ -1,5 +1,5 @@
 use plojo_lib as plojo;
-use plojo_lib::{load_dictionary, RawStroke};
+use plojo_lib::{RawStroke, Translator};
 use std::env;
 
 pub fn main() {
@@ -14,7 +14,12 @@ pub fn main() {
     println!("\nStarting plojo...");
     plojo::SerialMachine::print_available_ports();
 
-    let dict = load_dictionary("runtime_files/dict.json").expect("unable to load dictionary");
+    let raw_dict =
+        std::fs::read_to_string("runtime_files/dict.json").expect("Unable to load the dictionary");
+    let initial_translator =
+        plojo::StandardTranslator::new(plojo::StandardTranslatorConfig::new(raw_dict, vec![]))
+            .expect("Unable to create translator");
+
     if let Some(port) = plojo::SerialMachine::get_georgi_port() {
         let machine = plojo::SerialMachine::new(port);
 
@@ -22,15 +27,16 @@ pub fn main() {
             |raw,
              AllState {
                  controller,
-                 translation_state,
+                 translator,
              }| {
                 let stroke = plojo::RawStrokeGeminipr::parse_raw(raw).to_stroke();
                 print!("{:?} => ", stroke);
 
-                let (command, new_state) = if stroke.is_undo() {
-                    plojo::undo(&dict, translation_state)
+                let mut new_translator = translator;
+                let command = if stroke.is_undo() {
+                    new_translator.undo()
                 } else {
-                    plojo::translate(stroke, &dict, translation_state)
+                    new_translator.translate(stroke)
                 };
                 println!("{:?}", command);
 
@@ -42,12 +48,12 @@ pub fn main() {
 
                 AllState {
                     controller: new_controller,
-                    translation_state: new_state,
+                    translator: new_translator,
                 }
             },
             AllState {
                 controller: plojo::Controller::new(),
-                translation_state: plojo::State::default(),
+                translator: initial_translator,
             },
         );
     } else {
@@ -57,5 +63,5 @@ pub fn main() {
 
 struct AllState {
     controller: plojo::Controller,
-    translation_state: plojo::State,
+    translator: plojo::StandardTranslator,
 }

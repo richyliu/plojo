@@ -1,18 +1,25 @@
-use crate::translator::{DictEntries, DictEntry};
-use crate::{Stroke, Translation};
+use crate::translator::standard::Translation;
+use crate::Stroke;
 use std::collections::HashMap;
+use std::error::Error;
 use std::iter::FromIterator;
 
+mod load;
+mod translate;
+
+type DictEntry = (Stroke, Vec<Translation>);
+
+#[derive(Debug, PartialEq)]
 pub struct Dictionary {
     strokes: HashMap<Stroke, Vec<Translation>>,
 }
 
 impl Dictionary {
-    pub fn new(entries: DictEntries) -> Self {
-        Self::from_iter(entries.into_iter())
+    pub fn new(raw: &str) -> Result<Self, Box<dyn Error>> {
+        load::load(raw).map_err(|e| e.into())
     }
 
-    pub fn lookup(&self, strokes: &[Stroke]) -> Option<Vec<Translation>> {
+    pub(super) fn lookup(&self, strokes: &[Stroke]) -> Option<Vec<Translation>> {
         // combine strokes with a `/` between them
         let mut combined = strokes
             .into_iter()
@@ -22,6 +29,10 @@ impl Dictionary {
         combined.pop();
 
         self.strokes.get(&Stroke::new(&combined)).cloned()
+    }
+
+    pub(super) fn translate(&self, strokes: &Vec<Stroke>) -> Vec<Translation> {
+        translate::translate_strokes(self, strokes)
     }
 }
 
