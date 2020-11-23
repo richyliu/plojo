@@ -7,9 +7,8 @@ users may need to install libxdo-dev.
 
 These todos are not as important as the ones directly in the code
 
-- restructure Plojo
-  - add integration tests
-    - also test: undo stroke
+- add integration tests
+  - also test: undo stroke
 - BUG: consecutive `S-P` produces 2 spaces
 - BUG: word + suffix + punctuation separates the word
 - BUG: `UPB/HRES/-T` gives "un lessthe" instead of "unless the"
@@ -32,7 +31,6 @@ These todos are not as important as the ones directly in the code
 - stroke that resets `prev_stroke` (similar in function to `{}` in Plover)
 - actually implement carrying capitalization
 - fix retrospective add/remove space to work on the previous stroke, not word
-- organize imports better
 - escape sequences (especially for brackets) in dictionary
 - ignore dictionary unknown special actions
 - upper/lower casing entire words
@@ -44,3 +42,4 @@ These todos are not as important as the ones directly in the code
 - limit number of strokes sent to `translate_strokes`
 - check for stroke validity with a regex
 - add option for inserting spaces after instead of before
+- refactor machine to use more traits
