@@ -41,6 +41,9 @@ fn parse_external_command(command: ExternalCommand) -> Vec<ControllerAction> {
                 actions.push(ControllerAction::TypeWithDelay(add_text, KEY_DELAY));
             }
         }
+        ExternalCommand::PrintHello => {
+            println!("Hello!");
+        }
     }
 
     actions
