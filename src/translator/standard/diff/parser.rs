@@ -116,6 +116,12 @@ fn merge_translations(translations: Vec<Text>) -> Vec<TextInternal> {
         |mut state, cur| {
             // check for attached text first
             if let Text::Attached(attached) = cur {
+                // push any text actions first
+                if let Some(actions) = state.actions {
+                    state.acc.push(TextInternal::Actions(actions));
+                    state.actions = None;
+                }
+
                 if let Some(mut prev_words) = state.words {
                     prev_words.push(attached);
                     state.words = Some(prev_words);
@@ -133,6 +139,7 @@ fn merge_translations(translations: Vec<Text>) -> Vec<TextInternal> {
 
                 match cur {
                     Text::Lit(text) => {
+                        // push any text actions first
                         if let Some(actions) = state.actions {
                             state.acc.push(TextInternal::Actions(actions));
                             state.actions = None;
@@ -141,6 +148,7 @@ fn merge_translations(translations: Vec<Text>) -> Vec<TextInternal> {
                         state.words = Some(vec![text]);
                     }
                     Text::UnknownStroke(stroke) => {
+                        // push any text actions first
                         if let Some(actions) = state.actions {
                             state.acc.push(TextInternal::Actions(actions));
                             state.actions = None;
@@ -393,6 +401,30 @@ mod tests {
                 TextInternal::Lit("bitings".to_string()),
                 TextInternal::Actions(HashMap::from_iter(vec![(TextActionType::CaseNext, true),])),
                 TextInternal::Lit("ed".to_string()),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_merge_spaces() {
+        let translated = merge_translations(vec![
+            Text::Attached(" ".to_string()),
+            Text::TextAction(vec![TextAction::space(true, false)]),
+            Text::Attached(" ".to_string()),
+            Text::TextAction(vec![TextAction::space(true, false)]),
+        ]);
+
+        assert_eq!(
+            translated,
+            vec![
+                TextInternal::Lit(" ".to_string()),
+                TextInternal::Actions(HashMap::from_iter(
+                    vec![(TextActionType::SpaceNext, false),]
+                )),
+                TextInternal::Lit(" ".to_string()),
+                TextInternal::Actions(HashMap::from_iter(
+                    vec![(TextActionType::SpaceNext, false),]
+                )),
             ]
         );
     }

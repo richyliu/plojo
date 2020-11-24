@@ -3,16 +3,20 @@ use plojo::{
     Translator,
 };
 
+/// Black box for testing the entire translator
 struct Blackbox {
-    translator: StandardTranslator,
     output: String,
+    translator: StandardTranslator,
 }
 
 impl Blackbox {
+    /// Create a new black box from with dictionary definitions
+    ///
+    /// raw_dict should be in a JSON string format. The outermost brackets should be omitted
     fn new(raw_dict: &str) -> Self {
-        let translator =
-            StandardTranslator::new(StandardTranslatorConfig::new(raw_dict.to_string(), vec![]))
-                .expect("Unable to create translator");
+        let json_str: String = "{".to_string() + raw_dict + "}";
+        let translator = StandardTranslator::new(StandardTranslatorConfig::new(json_str, vec![]))
+            .expect("Unable to create translator");
 
         Self {
             translator,
@@ -20,24 +24,31 @@ impl Blackbox {
         }
     }
 
-    fn expect(&mut self, next_stroke: &str, total_output: &str) {
-        let stroke = Stroke::new(next_stroke);
-        if !stroke.is_valid() {
-            panic!("{:?} is not a valid stroke", stroke);
-        }
+    /// Expect that pressing stroke(s) causes a certain output
+    ///
+    /// The stroke (or multiple strokes separated by '/') creates a command which is performed
+    ///
+    /// The entire output (not just the added text) is matched against the total_output
+    fn expect(&mut self, strokes: &str, total_output: &str) {
+        for s in strokes.split('/') {
+            let stroke = Stroke::new(s);
+            if !stroke.is_valid() {
+                panic!("{:?} is not a valid stroke", stroke);
+            }
 
-        let command = if stroke.is_undo() {
-            self.translator.undo()
-        } else {
-            self.translator.translate(stroke)
-        };
+            let command = if stroke.is_undo() {
+                self.translator.undo()
+            } else {
+                self.translator.translate(stroke)
+            };
 
-        let actions = parse_command(command);
-        for action in actions {
-            match action {
-                ControllerAction::TypeWithDelay(new_str, _) => self.output.push_str(&new_str),
-                ControllerAction::BackspaceWithDelay(backspace_num, _) => {
-                    self.output.truncate(self.output.len() - backspace_num)
+            let actions = parse_command(command);
+            for action in actions {
+                match action {
+                    ControllerAction::TypeWithDelay(new_str, _) => self.output.push_str(&new_str),
+                    ControllerAction::BackspaceWithDelay(backspace_num, _) => {
+                        self.output.truncate(self.output.len() - backspace_num)
+                    }
                 }
             }
         }
@@ -47,33 +58,51 @@ impl Blackbox {
 }
 
 #[test]
-fn test_basic_translation() {
+fn basic_translation() {
     let mut b = Blackbox::new(
         r#"
-            {
-                "H-L": "hello",
-                "WORLD": "world"
-            }
+            "H-L": "hello",
+            "WORLD": "world"
         "#,
     );
-
-    b.expect("H-L", " hello");
-    b.expect("WORLD", " hello world");
+    b.expect("H-L/WORLD", " hello world");
 }
 
 #[test]
-fn test_undo() {
+fn basic_undo() {
     let mut b = Blackbox::new(
         r#"
-            {
-                "H-L": "hello",
-                "WORLD": "world"
-            }
+            "H-L": "hello",
+            "WORLD": "world"
         "#,
     );
-
     b.expect("H-L", " hello");
     b.expect("WORLD", " hello world");
     b.expect("*", " hello");
     b.expect("*", "");
 }
+
+#[test]
+fn basic_correction() {
+    let mut b = Blackbox::new(
+        r#"
+            "H-L": "hello",
+            "H-L/WORLD": "hi"
+        "#,
+    );
+    b.expect("H-L", " hello");
+    b.expect("WORLD", " hi");
+}
+
+#[test]
+fn double_space() {
+    let mut b = Blackbox::new(
+        r#"
+            "S-P": "{^ ^}",
+            "H-L": "hello"
+        "#,
+    );
+    b.expect("H-L/S-P/S-P", " hello  ");
+}
+
+// see plover blackbox tests: https://github.com/openstenoproject/plover/blob/master/test/test_blackbox.py
