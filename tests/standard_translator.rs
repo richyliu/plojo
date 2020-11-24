@@ -126,4 +126,25 @@ fn first_attached() {
     b.expect("EURB", "ishish");
 }
 
+#[test]
+fn punctuation_with_attached() {
+    let mut b = Blackbox::new(
+        r#"
+            "TP-PL": "{.}",
+            "KR-GS": "{^~|\"}"
+        "#,
+    );
+    b.expect("TP-PL/KR-GS", ".\"");
+}
+
+#[test]
+fn unknown_with_attached() {
+    let mut b = Blackbox::new(
+        r#"
+            "-D": "{^ed}"
+        "#,
+    );
+    b.expect("STPW/-D", " STPWed");
+}
+
 // see plover blackbox tests: https://github.com/openstenoproject/plover/blob/master/test/test_blackbox.py

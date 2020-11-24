@@ -7,9 +7,6 @@ users may need to install libxdo-dev.
 
 These todos are not as important as the ones directly in the code
 
-- BUG: `SEUT/H-PB/TPH/-S` makes "sit-s in"
-  - not a bug...just a dictionary entry
-- BUG: `TP-PL/KR-GS` makes "`. "`" instead of "`."`"
 - BUG: `SHEUFR/-G` gives "shiverring"; need to use a dictionary for orthography
   - or maybe don't and write a warning for that
   - "summitting" also got the consonant doubled (it should be "summiting")
