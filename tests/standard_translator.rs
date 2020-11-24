@@ -105,4 +105,25 @@ fn double_space() {
     b.expect("H-L/S-P/S-P", " hello  ");
 }
 
+#[test]
+fn first_punctuation() {
+    let mut b = Blackbox::new(
+        r#"
+            "TP-PL": "{.}"
+        "#,
+    );
+    b.expect("TP-PL", ".");
+}
+
+#[test]
+fn first_attached() {
+    let mut b = Blackbox::new(
+        r#"
+            "EURB": "{^ish}"
+        "#,
+    );
+    b.expect("EURB", "ish");
+    b.expect("EURB", "ishish");
+}
+
 // see plover blackbox tests: https://github.com/openstenoproject/plover/blob/master/test/test_blackbox.py

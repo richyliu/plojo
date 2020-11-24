@@ -1,6 +1,7 @@
 use crate::translator::standard::{Text, TextActionType};
 use orthography::apply_orthography;
 use std::collections::HashMap;
+use std::iter::FromIterator;
 
 mod orthography;
 
@@ -96,6 +97,11 @@ pub(super) fn parse_translation(translations: Vec<Text>) -> String {
 
 /// Simplifies a series of translations by merging consecutive text actions into a hashset
 fn merge_translations(translations: Vec<Text>) -> Vec<TextInternal> {
+    // merging 0 translations results in 0 text internals
+    if translations.len() == 0 {
+        return vec![];
+    }
+
     // tracks the state for the merging the text actions
     struct IterState {
         // accumulated text literals and text actions
@@ -105,6 +111,12 @@ fn merge_translations(translations: Vec<Text>) -> Vec<TextInternal> {
         // consecutive attached words after a word are added to this
         words: Option<Vec<String>>,
     }
+
+    // whether the first text in words was an attached (in which case to suppress space)
+    let first_word_attached = match &translations[0] {
+        Text::Attached(_) => true,
+        _ => false,
+    };
 
     // merge all consecutive text actions into a set
     let results = translations.into_iter().fold(
@@ -194,6 +206,15 @@ fn merge_translations(translations: Vec<Text>) -> Vec<TextInternal> {
     if let Some(words) = results.words {
         acc.push(TextInternal::Lit(apply_orthography(words)));
     }
+
+    // suppress space if the first in the words was an attached stroke
+    if first_word_attached {
+        acc.insert(
+            0,
+            TextInternal::Actions(HashMap::from_iter(vec![(TextActionType::SpaceNext, false)])),
+        )
+    }
+
     acc
 }
 
@@ -224,7 +245,6 @@ mod tests {
     use super::*;
     use crate::stroke::Stroke;
     use crate::translator::standard::TextAction;
-    use std::iter::FromIterator;
 
     #[test]
     fn test_parse_empty() {
@@ -417,6 +437,9 @@ mod tests {
         assert_eq!(
             translated,
             vec![
+                TextInternal::Actions(HashMap::from_iter(
+                    vec![(TextActionType::SpaceNext, false),]
+                )),
                 TextInternal::Lit(" ".to_string()),
                 TextInternal::Actions(HashMap::from_iter(
                     vec![(TextActionType::SpaceNext, false),]

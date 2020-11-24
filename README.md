@@ -8,6 +8,7 @@ users may need to install libxdo-dev.
 These todos are not as important as the ones directly in the code
 
 - BUG: `SEUT/H-PB/TPH/-S` makes "sit-s in"
+  - not a bug...just a dictionary entry
 - BUG: `TP-PL/KR-GS` makes "`. "`" instead of "`."`"
 - BUG: `SHEUFR/-G` gives "shiverring"; need to use a dictionary for orthography
   - or maybe don't and write a warning for that
@@ -30,6 +31,7 @@ These todos are not as important as the ones directly in the code
 - ignore dictionary unknown special actions
 - upper/lower casing entire words
 - store prev_strokes in a VecDeque instead of a Vec
+  - only diff the last 15 or something strokes instead of all the strokes
 - find out what text was deleted to allow for delete by word optimization
 - add orthography rules aliases
 - for translation, check if 1 old command is replaced by 2 new commands
@@ -38,3 +40,8 @@ These todos are not as important as the ones directly in the code
 - check for stroke validity with a regex
 - add option for inserting spaces after instead of before
 - refactor machine to use more traits
+- potential bug: uppercase the next word (without specifying space) and then
+  stroking an attached word results in that word *not* being attached (space is
+  not suppressed)
+  - this is because an attached stroke (by itself) is only attached to the
+    previous word if it is the first word
