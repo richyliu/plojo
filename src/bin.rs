@@ -3,6 +3,7 @@ use plojo::{
     StandardTranslatorConfig, Translator,
 };
 use std::env;
+use std::path::Path;
 
 pub fn main() {
     let args: Vec<String> = env::args().collect();
@@ -16,11 +17,20 @@ pub fn main() {
     println!("\nStarting plojo...");
     SerialMachine::print_available_ports();
 
-    let raw_dict =
-        std::fs::read_to_string("runtime_files/dict.json").expect("Unable to load the dictionary");
+    let path_base = Path::new(env!("CARGO_MANIFEST_DIR")).join("runtime_files");
+    let raw_dict_names = ["dict.json", "fingerspelling.json", "user.json"];
+    let raw_dicts = raw_dict_names
+        .iter()
+        .map(|p| path_base.join(p))
+        .map(|p| match std::fs::read_to_string(&p) {
+            Ok(s) => s,
+            Err(e) => panic!("Unable to read dictionary {:?}: {:?}", p, e),
+        })
+        .collect();
     let initial_translator =
-        StandardTranslator::new(StandardTranslatorConfig::new(raw_dict, vec![]))
+        StandardTranslator::new(StandardTranslatorConfig::new(raw_dicts, vec![]))
             .expect("Unable to create translator");
+    println!("Loaded dictionaries: {:?}", raw_dict_names);
 
     if let Some(port) = SerialMachine::get_georgi_port() {
         let machine = SerialMachine::new(port);

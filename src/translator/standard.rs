@@ -91,18 +91,20 @@ const MAX_STROKE_BUFFER: usize = 100;
 
 /// The configuration for the standard translator
 ///
-/// Creating the translator will take a raw dictionary string (read from a JSON file) and try to
-/// parse it. The starting strokes will be added to the stroke list when the translator is created
+/// Creating the translator will take the raw dictionary string from one or more dictionaries. The
+/// dictionaries further down in the list can override the earlier dictionaries.
+///
+/// The starting strokes will be added to the stroke list when the translator is created.
 pub struct Config {
-    raw_dict: String,
+    raw_dicts: Vec<String>,
     starting_strokes: Vec<Stroke>,
 }
 
 impl Config {
     /// Creates a config for creating a standard translator.
-    pub fn new(raw_dict: String, starting_strokes: Vec<Stroke>) -> Self {
+    pub fn new(raw_dicts: Vec<String>, starting_strokes: Vec<Stroke>) -> Self {
         Self {
-            raw_dict,
+            raw_dicts,
             starting_strokes,
         }
     }
@@ -112,7 +114,7 @@ impl Translator for StandardTranslator {
     type T = Config;
 
     fn new(config: Config) -> Result<Self, Box<dyn Error>> {
-        let dict = Dictionary::new(&config.raw_dict)?;
+        let dict = Dictionary::new(config.raw_dicts)?;
         Ok(Self {
             prev_strokes: config.starting_strokes,
             dict,

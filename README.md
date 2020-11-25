@@ -16,7 +16,6 @@ These todos are not as important as the ones directly in the code
   - is `{^}` even supported (or even the same as `{^^}`)?
 
 - instead of `{}` to clear formatting, add custom stroke to also reset buffer
-- ability to load multiple dictionaries
 - external key presses (arrows, control, command, etc)
 - glue operator (for fingerspelling, number keys)
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)

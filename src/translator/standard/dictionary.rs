@@ -15,8 +15,15 @@ pub struct Dictionary {
 }
 
 impl Dictionary {
-    pub fn new(raw: &str) -> Result<Self, Box<dyn Error>> {
-        load::load(raw).map_err(|e| e.into())
+    /// Create a new dictionary from raw JSON strings. Each string represents a dictionary, with
+    /// each dictionaries being able to overwrite any dictionary entry before it
+    pub fn new(raw_dicts: Vec<String>) -> Result<Self, Box<dyn Error>> {
+        let mut entries = vec![];
+        for raw_dict in raw_dicts {
+            entries.append(&mut load::load_dicts(&raw_dict)?);
+        }
+
+        Ok(entries.into_iter().collect())
     }
 
     pub(super) fn lookup(&self, strokes: &[Stroke]) -> Option<Vec<Translation>> {
@@ -44,5 +51,34 @@ impl FromIterator<DictEntry> for Dictionary {
         }
 
         Dictionary { strokes: hashmap }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::translator::standard::{Text, Translation};
+
+    #[test]
+    fn dictionary_overwrite() {
+        let raw_dict1 = r#"
+            {
+                "H-L": "hello",
+                "WORLD": "world"
+            }
+        "#
+        .to_string();
+        let raw_dict2 = r#"
+            {
+                "WORLD": "something else"
+            }
+        "#
+        .to_string();
+
+        let dict = Dictionary::new(vec![raw_dict1, raw_dict2]).unwrap();
+        assert_eq!(
+            dict.lookup(&[Stroke::new("WORLD")]).unwrap(),
+            vec![Translation::Text(Text::Lit("something else".to_string()))]
+        );
     }
 }
