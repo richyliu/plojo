@@ -148,4 +148,16 @@ fn unknown_with_attached() {
     b.expect("STPW/-D", " STPWed");
 }
 
+#[test]
+fn suppress_space_should_lowercase() {
+    let mut b = Blackbox::new(
+        r#"
+            "H-L": "hello",
+            "TK-LS": "{^^}",
+            "KPA*": "{^}{-|}"
+        "#,
+    );
+    b.expect("H-L/KPA*/TK-LS/H-L", " hellohello");
+}
+
 // see plover blackbox tests: https://github.com/openstenoproject/plover/blob/master/test/test_blackbox.py

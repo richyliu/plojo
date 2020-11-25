@@ -240,9 +240,15 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                 if &groups[1] == "^" {
                     // nothing in the text section, just a simple suppress space stroke
                     if groups[2].len() == 0 {
-                        return Ok(vec![Translation::Text(Text::TextAction(vec![
-                            TextAction::space(true, false),
-                        ]))]);
+                        return Ok(vec![
+                            Translation::Text(Text::TextAction(vec![TextAction::space(
+                                true, false,
+                            )])),
+                            Translation::Text(Text::Lit("".to_string())),
+                            Translation::Text(Text::TextAction(vec![TextAction::space(
+                                true, false,
+                            )])),
+                        ]);
                     }
 
                     // simply ignore the `~|` in carrying capitalization for now
@@ -343,22 +349,28 @@ mod tests {
         // `{^}` should suppress space
         assert_eq!(
             parse_translation("{^}").unwrap(),
-            vec![Translation::Text(Text::TextAction(vec![
-                TextAction::space(true, false)
-            ]))]
+            vec![
+                Translation::Text(Text::TextAction(vec![TextAction::space(true, false),])),
+                Translation::Text(Text::Lit("".to_string())),
+                Translation::Text(Text::TextAction(vec![TextAction::space(true, false),])),
+            ]
         );
         // `{^^}` should also suppress space
         assert_eq!(
             parse_translation("{^^}").unwrap(),
-            vec![Translation::Text(Text::TextAction(vec![
-                TextAction::space(true, false)
-            ]))]
+            vec![
+                Translation::Text(Text::TextAction(vec![TextAction::space(true, false),])),
+                Translation::Text(Text::Lit("".to_string())),
+                Translation::Text(Text::TextAction(vec![TextAction::space(true, false),])),
+            ]
         );
         // `{^}sh` should simply join "sh" to the previous word
         assert_eq!(
             parse_translation("{^}sh").unwrap(),
             vec![
-                Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+                Translation::Text(Text::TextAction(vec![TextAction::space(true, false),])),
+                Translation::Text(Text::Lit("".to_string())),
+                Translation::Text(Text::TextAction(vec![TextAction::space(true, false),])),
                 Translation::Text(Text::Lit("sh".to_string()))
             ]
         );
@@ -398,6 +410,8 @@ mod tests {
         assert_eq!(
             parse_translation("{^}{-|}").unwrap(),
             vec![
+                Translation::Text(Text::TextAction(vec![TextAction::space(true, false),])),
+                Translation::Text(Text::Lit("".to_string())),
                 Translation::Text(Text::TextAction(vec![TextAction::space(true, false),])),
                 Translation::Text(Text::TextAction(vec![TextAction::case(true, true)])),
             ]

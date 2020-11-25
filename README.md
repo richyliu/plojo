@@ -11,9 +11,6 @@ These todos are not as important as the ones directly in the code
   - or maybe don't and write a warning for that
   - "summitting" also got the consonant doubled (it should be "summiting")
   - maybe check with the dictionary a "simple" join first
-- BUG: suppress space should lowercase the next word as well
-  - maybe make `{^^}` as a join of empty string to clear formatting
-  - is `{^}` even supported (or even the same as `{^^}`)?
 
 - instead of `{}` to clear formatting, add custom stroke to also reset buffer
 - external key presses (arrows, control, command, etc)
