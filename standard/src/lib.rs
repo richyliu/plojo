@@ -98,6 +98,7 @@ const MAX_STROKE_BUFFER: usize = 100;
 /// dictionaries further down in the list can override the earlier dictionaries.
 ///
 /// The starting strokes will be added to the stroke list when the translator is created.
+#[derive(Default)]
 pub struct Config {
     raw_dicts: Vec<String>,
     starting_strokes: Vec<Stroke>,
@@ -105,10 +106,18 @@ pub struct Config {
 
 impl Config {
     /// Creates a config for creating a standard translator.
-    pub fn new(raw_dicts: Vec<String>, starting_strokes: Vec<Stroke>) -> Self {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_raw_dicts(self, raw_dicts: Vec<String>) -> Self {
+        Self { raw_dicts, ..self }
+    }
+
+    pub fn with_starting_strokes(self, starting_strokes: Vec<Stroke>) -> Self {
         Self {
-            raw_dicts,
             starting_strokes,
+            ..self
         }
     }
 }

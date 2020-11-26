@@ -28,9 +28,9 @@ impl SerialMachine {
         }
     }
 
-    pub fn listen<T, U>(&self, action: T, initial_state: U)
+    pub fn listen<T, U>(&self, on_stroke: T, state: &mut U)
     where
-        T: Fn(&Vec<u8>, U) -> U,
+        T: Fn(&Vec<u8>, &mut U),
         U: Any,
     {
         let port = serialport::open_with_settings(&self.port_name, &self.serialport_settings);
@@ -44,12 +44,11 @@ impl SerialMachine {
                     "Receiving data on {} at {} baud:",
                     &self.port_name, &self.serialport_settings.baud_rate
                 );
-                let mut state = initial_state;
 
                 loop {
                     match port.read_exact(serial_buf.as_mut_slice()) {
                         Ok(()) => {
-                            state = action(&serial_buf, state);
+                            on_stroke(&serial_buf, state);
                         }
                         Err(e) => match e.kind() {
                             ErrorKind::TimedOut => {

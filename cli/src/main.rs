@@ -32,42 +32,35 @@ pub fn main() {
             Err(e) => panic!("Unable to read dictionary {:?}: {:?}", p, e),
         })
         .collect();
-    let initial_translator =
-        StandardTranslator::new(StandardTranslatorConfig::new(raw_dicts, vec![]))
-            .expect("Unable to create translator");
+    let config = StandardTranslatorConfig::new().with_raw_dicts(raw_dicts);
+    let initial_translator = StandardTranslator::new(config).expect("Unable to create translator");
     println!("Loaded dictionaries: {:?}", raw_dict_names);
 
     if let Some(port) = SerialMachine::get_georgi_port() {
         let machine = SerialMachine::new(port);
 
+        struct State {
+            controller: Controller,
+            translator: StandardTranslator,
+        }
+
         machine.listen(
-            |raw,
-             AllState {
-                 controller,
-                 translator,
-             }| {
+            |raw, state| {
                 let stroke = RawStrokeGeminipr::parse_raw(raw).to_stroke();
                 print!("{:?} => ", stroke);
 
-                let mut new_translator = translator;
                 let command = if stroke.is_undo() {
-                    new_translator.undo()
+                    state.translator.undo()
                 } else {
-                    new_translator.translate(stroke)
+                    state.translator.translate(stroke)
                 };
                 println!("{:?}", command);
 
-                let mut new_controller = controller;
                 if do_output {
-                    new_controller.dispatch(command);
-                }
-
-                AllState {
-                    controller: new_controller,
-                    translator: new_translator,
+                    state.controller.dispatch(command);
                 }
             },
-            AllState {
+            &mut State {
                 controller: Controller::new(),
                 translator: initial_translator,
             },
@@ -75,9 +68,4 @@ pub fn main() {
     } else {
         eprintln!("Couldn't find the Georgi port");
     }
-}
-
-struct AllState {
-    controller: Controller,
-    translator: StandardTranslator,
 }
