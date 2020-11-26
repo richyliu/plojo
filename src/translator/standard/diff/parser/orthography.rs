@@ -83,7 +83,8 @@ fn apply(strs: &[String]) -> String {
     match strs.len() {
         0 => String::new(),
         1 => strs[0].clone(),
-        _ => merge(&strs[0], &strs[1]) + &apply(&strs[2..]),
+        2 => merge(&strs[0], &strs[1]),
+        _ => merge(&merge(&strs[0], &strs[1]), &apply(&strs[2..])),
     }
 }
 
@@ -177,7 +178,8 @@ mod tests {
 
     #[test]
     fn test_orthography_multiple() {
-        assert_eq!(orthog(vec!["artistic", "ly", "s"]), "artisticallys");
+        assert_eq!(orthog(vec!["artistic", "ly", "s"]), "artisticallies");
         assert_eq!(orthog(vec!["bite", "ing", "s"]), "bitings");
+        assert_eq!(orthog(vec!["combine", "ate", "or"]), "combinator");
     }
 }

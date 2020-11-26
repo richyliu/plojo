@@ -17,6 +17,7 @@ pub fn main() {
     println!("\nStarting plojo...");
     SerialMachine::print_available_ports();
 
+    println!("Loading dictionaries...");
     let path_base = Path::new(env!("CARGO_MANIFEST_DIR")).join("runtime_files");
     let raw_dict_names = ["dict.json", "fingerspelling.json", "user.json"];
     let raw_dicts = raw_dict_names
