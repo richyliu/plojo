@@ -5,10 +5,14 @@ use std::{thread, time::Duration};
 
 use enigo::KeyboardControllable;
 use enigo::{Enigo, Key};
+use translator::Command;
 
 pub struct Controller {
     enigo: Enigo,
 }
+
+const BACKSPACE_DELAY: u32 = 2;
+const KEY_DELAY: u32 = 5;
 
 impl Controller {
     pub fn new() -> Self {
@@ -17,12 +21,21 @@ impl Controller {
         }
     }
 
-    pub fn dispatch(&mut self, actions: Vec<ControllerAction>) {
-        for action in actions {
-            match action {
-                ControllerAction::TypeWithDelay(text, delay) => self.type_with_delay(&text, delay),
-                ControllerAction::BackspaceWithDelay(num, delay) => self.backspace(num, delay),
+    pub fn dispatch(&mut self, command: Command) {
+        match command {
+            Command::Replace(backspace_num, add_text) => {
+                if backspace_num > 0 {
+                    self.backspace(backspace_num, BACKSPACE_DELAY);
+                }
+
+                if add_text.len() > 0 {
+                    self.type_with_delay(&add_text, KEY_DELAY);
+                }
             }
+            Command::PrintHello => {
+                println!("Hello!");
+            }
+            Command::NoOp => {}
         }
     }
 
@@ -42,10 +55,4 @@ impl Controller {
             thread::sleep(duration);
         }
     }
-}
-
-#[derive(Debug, PartialEq)]
-pub enum ControllerAction {
-    TypeWithDelay(String, u32),
-    BackspaceWithDelay(usize, u32),
 }

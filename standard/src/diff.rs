@@ -82,7 +82,6 @@ fn text_diff(old: String, new: String) -> Command {
 mod tests {
     use super::*;
     use crate::{Text, TextAction};
-    use translator::ExternalCommand;
     use translator::Stroke;
 
     #[test]
@@ -120,14 +119,9 @@ mod tests {
 
     #[test]
     fn test_diff_one_command_empty() {
-        let command = translation_diff(
-            &vec![],
-            &vec![Translation::Command(Command::External(
-                ExternalCommand::PrintHello,
-            ))],
-        );
+        let command = translation_diff(&vec![], &vec![Translation::Command(Command::PrintHello)]);
 
-        assert_eq!(command, Command::External(ExternalCommand::PrintHello));
+        assert_eq!(command, Command::PrintHello);
     }
 
     #[test]
@@ -219,13 +213,13 @@ mod tests {
         let command = translation_diff(
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Command(Command::External(ExternalCommand::PrintHello)),
-                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+                Translation::Command(Command::PrintHello),
+                Translation::Command(Command::PrintHello),
             ],
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Command(Command::External(ExternalCommand::PrintHello)),
-                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+                Translation::Command(Command::PrintHello),
+                Translation::Command(Command::PrintHello),
             ],
         );
 
@@ -236,17 +230,17 @@ mod tests {
     fn test_diff_repeated_command() {
         let command = translation_diff(
             &vec![
-                Translation::Command(Command::External(ExternalCommand::PrintHello)),
-                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+                Translation::Command(Command::PrintHello),
+                Translation::Command(Command::PrintHello),
             ],
             &vec![
-                Translation::Command(Command::External(ExternalCommand::PrintHello)),
-                Translation::Command(Command::External(ExternalCommand::PrintHello)),
-                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+                Translation::Command(Command::PrintHello),
+                Translation::Command(Command::PrintHello),
+                Translation::Command(Command::PrintHello),
             ],
         );
 
-        assert_eq!(command, Command::External(ExternalCommand::PrintHello));
+        assert_eq!(command, Command::PrintHello);
     }
 
     #[test]
@@ -259,11 +253,11 @@ mod tests {
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Text(Text::Lit("world".to_string())),
-                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+                Translation::Command(Command::PrintHello),
             ],
         );
 
-        assert_eq!(command, Command::External(ExternalCommand::PrintHello));
+        assert_eq!(command, Command::PrintHello);
     }
 
     #[test]

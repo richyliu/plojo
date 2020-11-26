@@ -57,7 +57,7 @@ pub(super) fn translate_strokes(dict: &Dictionary, strokes: &Vec<Stroke>) -> Vec
 mod tests {
     use super::*;
     use crate::{Text, TextAction};
-    use translator::{Command, ExternalCommand};
+    use translator::Command;
 
     fn testing_dict() -> Dictionary {
         // handy helper function for making dictionary entries
@@ -99,15 +99,13 @@ mod tests {
             (row_ta("S-P", vec![TextAction::space(true, true)])),
             (
                 Stroke::new("H*L"),
-                vec![Translation::Command(Command::External(
-                    ExternalCommand::PrintHello,
-                ))],
+                vec![Translation::Command(Command::PrintHello)],
             ),
             (
                 Stroke::new("TKAO*ER"),
                 vec![
                     Translation::Text(Text::Lit("deer and printing hello".to_string())),
-                    Translation::Command(Command::External(ExternalCommand::PrintHello)),
+                    Translation::Command(Command::PrintHello),
                 ],
             ),
         ]
@@ -277,7 +275,7 @@ mod tests {
             vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Text(Text::Lit("deer and printing hello".to_string())),
-                Translation::Command(Command::External(ExternalCommand::PrintHello)),
+                Translation::Command(Command::PrintHello),
             ]
         );
     }

@@ -5,9 +5,9 @@ use translator::Translator;
 use std::env;
 use std::path::Path;
 
-mod dispatcher;
+mod controller;
 
-use dispatcher::{parse_command, Controller};
+use controller::Controller;
 
 pub fn main() {
     let args: Vec<String> = env::args().collect();
@@ -58,9 +58,8 @@ pub fn main() {
                 println!("{:?}", command);
 
                 let mut new_controller = controller;
-                let actions = parse_command(command);
                 if do_output {
-                    new_controller.dispatch(actions);
+                    new_controller.dispatch(command);
                 }
 
                 AllState {

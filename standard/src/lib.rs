@@ -114,7 +114,7 @@ impl Config {
 }
 
 impl Translator for StandardTranslator {
-    type T = Config;
+    type C = Config;
 
     fn new(config: Config) -> Result<Self, Box<dyn Error>> {
         let dict = Dictionary::new(config.raw_dicts)?;

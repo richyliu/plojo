@@ -1,5 +1,5 @@
 use standard::{Config as StandardTranslatorConfig, StandardTranslator};
-use translator::{Command, ExternalCommand, Stroke, Translator};
+use translator::{Command, Stroke, Translator};
 
 /// Black box for testing the entire translator
 struct Blackbox {
@@ -42,21 +42,18 @@ impl Blackbox {
             };
 
             match command {
-                Command::Internal(_) => {}
-                Command::External(external_command) => match external_command {
-                    ExternalCommand::Replace(backspace_num, add_text) => {
-                        if backspace_num > 0 {
-                            self.output.truncate(self.output.len() - backspace_num)
-                        }
+                Command::Replace(backspace_num, add_text) => {
+                    if backspace_num > 0 {
+                        self.output.truncate(self.output.len() - backspace_num)
+                    }
 
-                        if add_text.len() > 0 {
-                            self.output.push_str(&add_text);
-                        }
+                    if add_text.len() > 0 {
+                        self.output.push_str(&add_text);
                     }
-                    ExternalCommand::PrintHello => {
-                        println!("Hello!");
-                    }
-                },
+                }
+                Command::PrintHello => {
+                    panic!("Not expecting PrintHello to be outputted from the blackbox");
+                }
                 Command::NoOp => {}
             }
         }

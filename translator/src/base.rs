@@ -4,9 +4,10 @@ use std::marker::Sized;
 
 /// Translation from a stroke into a command
 pub trait Translator {
-    type T;
+    /// Config type
+    type C;
 
-    fn new(config: Self::T) -> Result<Self, Box<dyn Error>>
+    fn new(config: Self::C) -> Result<Self, Box<dyn Error>>
     where
         Self: Sized;
     fn translate(&mut self, stroke: Stroke) -> Command;
