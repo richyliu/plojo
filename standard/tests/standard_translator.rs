@@ -14,7 +14,7 @@ impl Blackbox {
     fn new(raw_dict: &str) -> Self {
         let json_str: String = "{".to_string() + raw_dict + "}";
         let translator =
-            StandardTranslator::new(StandardTranslatorConfig::new(vec![json_str], vec![]))
+            StandardTranslator::new(StandardTranslatorConfig::new().with_raw_dicts(vec![json_str]))
                 .expect("Unable to create translator");
 
         Self {
