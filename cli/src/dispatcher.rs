@@ -1,4 +1,4 @@
-use crate::{Command, ExternalCommand, InternalCommand};
+use translator::{Command, ExternalCommand, InternalCommand};
 
 mod controller;
 

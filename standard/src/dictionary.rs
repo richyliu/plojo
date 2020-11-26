@@ -1,8 +1,8 @@
-use crate::translator::standard::Translation;
-use crate::Stroke;
+use crate::Translation;
 use std::collections::HashMap;
 use std::error::Error;
 use std::iter::FromIterator;
+use translator::Stroke;
 
 mod load;
 mod translate;
@@ -57,7 +57,7 @@ impl FromIterator<DictEntry> for Dictionary {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::translator::standard::{Text, Translation};
+    use crate::{Text, Translation};
 
     #[test]
     fn dictionary_overwrite() {

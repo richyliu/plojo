@@ -1,7 +1,7 @@
 //! Looks up the stroke the dictionary, using a greedy algorithm to convert it into a translation
 use super::Dictionary;
-use crate::translator::standard::{Text, Translation};
-use crate::Stroke;
+use crate::{Text, Translation};
+use translator::Stroke;
 
 // Limit the max number of strokes per translation for performance reasons
 // Note: running the following command on the plover dictionary reveals that just 10 translations
@@ -56,8 +56,8 @@ pub(super) fn translate_strokes(dict: &Dictionary, strokes: &Vec<Stroke>) -> Vec
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::commands::{Command, ExternalCommand};
-    use crate::translator::standard::{Text, TextAction};
+    use crate::{Text, TextAction};
+    use translator::{Command, ExternalCommand};
 
     fn testing_dict() -> Dictionary {
         // handy helper function for making dictionary entries

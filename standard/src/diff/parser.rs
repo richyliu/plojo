@@ -1,4 +1,4 @@
-use crate::translator::standard::{Text, TextActionType};
+use crate::{Text, TextActionType};
 use orthography::apply_orthography;
 use std::collections::HashMap;
 use std::iter::FromIterator;
@@ -283,8 +283,8 @@ fn word_change_first_letter(word: String, uppercase: bool) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::stroke::Stroke;
-    use crate::translator::standard::TextAction;
+    use crate::TextAction;
+    use translator::Stroke;
 
     #[test]
     fn test_parse_empty() {

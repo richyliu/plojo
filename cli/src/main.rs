@@ -1,9 +1,13 @@
-use plojo::{
-    parse_command, Controller, RawStroke, RawStrokeGeminipr, SerialMachine, StandardTranslator,
-    StandardTranslatorConfig, Translator,
-};
+use input::{RawStroke, RawStrokeGeminipr, SerialMachine};
+use standard::{Config as StandardTranslatorConfig, StandardTranslator};
+use translator::Translator;
+
 use std::env;
 use std::path::Path;
+
+mod dispatcher;
+
+use dispatcher::{parse_command, Controller};
 
 pub fn main() {
     let args: Vec<String> = env::args().collect();

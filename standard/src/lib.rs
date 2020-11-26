@@ -1,7 +1,10 @@
-use crate::{Command, Stroke, Translator};
+#[macro_use]
+extern crate lazy_static;
+
 use dictionary::Dictionary;
 use diff::translation_diff;
 use std::error::Error;
+use translator::{Command, Stroke, Translator};
 
 mod dictionary;
 mod diff;

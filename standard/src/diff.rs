@@ -1,7 +1,7 @@
 //! Helper functions for finding the difference between 2 translations and turning that into a command.
-use crate::commands::Command;
-use crate::translator::standard::Translation;
+use crate::Translation;
 use std::cmp;
+use translator::Command;
 
 mod parser;
 
@@ -81,9 +81,9 @@ fn text_diff(old: String, new: String) -> Command {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::commands::ExternalCommand;
-    use crate::translator::standard::{Text, TextAction};
-    use crate::Stroke;
+    use crate::{Text, TextAction};
+    use translator::ExternalCommand;
+    use translator::Stroke;
 
     #[test]
     fn test_diff_same() {

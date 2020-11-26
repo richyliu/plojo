@@ -1,7 +1,5 @@
-use plojo::{
-    parse_command, ControllerAction, StandardTranslator, StandardTranslatorConfig, Stroke,
-    Translator,
-};
+use standard::{Config as StandardTranslatorConfig, StandardTranslator};
+use translator::{Command, ExternalCommand, Stroke, Translator};
 
 /// Black box for testing the entire translator
 struct Blackbox {
@@ -43,14 +41,23 @@ impl Blackbox {
                 self.translator.translate(stroke)
             };
 
-            let actions = parse_command(command);
-            for action in actions {
-                match action {
-                    ControllerAction::TypeWithDelay(new_str, _) => self.output.push_str(&new_str),
-                    ControllerAction::BackspaceWithDelay(backspace_num, _) => {
-                        self.output.truncate(self.output.len() - backspace_num)
+            match command {
+                Command::Internal(_) => {}
+                Command::External(external_command) => match external_command {
+                    ExternalCommand::Replace(backspace_num, add_text) => {
+                        if backspace_num > 0 {
+                            self.output.truncate(self.output.len() - backspace_num)
+                        }
+
+                        if add_text.len() > 0 {
+                            self.output.push_str(&add_text);
+                        }
                     }
-                }
+                    ExternalCommand::PrintHello => {
+                        println!("Hello!");
+                    }
+                },
+                Command::NoOp => {}
             }
         }
 

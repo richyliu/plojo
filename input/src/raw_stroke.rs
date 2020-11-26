@@ -1,4 +1,4 @@
-use crate::stroke::Stroke;
+use translator::Stroke;
 
 pub trait RawStroke {
     // left hand should not include S key

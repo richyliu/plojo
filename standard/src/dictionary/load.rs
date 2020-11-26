@@ -1,9 +1,9 @@
-use crate::translator::standard::{Text, TextAction, Translation};
-use crate::Stroke;
+use crate::{Text, TextAction, Translation};
 use regex::Regex;
 use serde_json;
 use std::error::Error;
 use std::fmt;
+use translator::Stroke;
 
 /// Loads the dictionary
 ///

@@ -1,8 +1,6 @@
 use serialport::{available_ports, SerialPortSettings, SerialPortType};
 use std::{any::Any, io::ErrorKind, thread, time::Duration};
 
-pub mod raw_stroke;
-
 pub struct SerialMachine {
     // how often to poll for reads
     read_rate: u64,

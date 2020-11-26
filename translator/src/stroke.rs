@@ -19,3 +19,4 @@ impl Stroke {
         self.0.len() > 0
     }
 }
+
