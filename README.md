@@ -15,10 +15,20 @@ users may need to install libxdo-dev.
 
 ## Todos
 
+- in command dispatching, check for
+  - 1 new (vec of) command replacing 2 commands
+  - 1 new command replacing 1 command + 1 text
+  - 1 new command replacing 1 text
+  - what to do if 1 new command "replaces" the same command?
+    - standard/src/diff.rs line 31
 - external key presses (arrows, control, command, etc)
-  - change dictionary format
+  - change dictionary format for commands only
+    - use serde: https://serde.rs/enum-representations.html
+  - things in curly braces should be called "text actions"
+    - add text action for a literal bracket
   - currently loading quite slowly
-- for translation, check if 1 old command is replaced by 2 new commands
+- rename crates to have plojo prefix to prevent name conflicts
+  - rename `translator` to `core` (or `plojo_core`)
 - instead of `{}` to clear formatting, add custom stroke to also reset buffer
   - stroke that resets `prev_stroke` (similar in function to `{}` in Plover)
 - glue operator (for fingerspelling, number keys)

@@ -55,7 +55,7 @@ impl TextAction {
 #[allow(dead_code)]
 enum Translation {
     Text(Text),
-    Command(Command),
+    Command(Vec<Command>),
 }
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
@@ -133,7 +133,7 @@ impl Translator for StandardTranslator {
         })
     }
 
-    fn translate(&mut self, stroke: Stroke) -> Command {
+    fn translate(&mut self, stroke: Stroke) -> Vec<Command> {
         if self.prev_strokes.len() > MAX_STROKE_BUFFER {
             self.prev_strokes.remove(0);
         }
@@ -145,7 +145,7 @@ impl Translator for StandardTranslator {
         translation_diff(&old_translations, &new_translations)
     }
 
-    fn undo(&mut self) -> Command {
+    fn undo(&mut self) -> Vec<Command> {
         let old_translations = self.dict.translate(&self.prev_strokes);
         self.prev_strokes.pop();
         let new_translations = self.dict.translate(&self.prev_strokes);

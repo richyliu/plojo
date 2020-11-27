@@ -15,6 +15,6 @@ pub trait Translator {
     fn new(config: Self::C) -> Result<Self, Box<dyn Error>>
     where
         Self: Sized;
-    fn translate(&mut self, stroke: Stroke) -> Command;
-    fn undo(&mut self) -> Command;
+    fn translate(&mut self, stroke: Stroke) -> Vec<Command>;
+    fn undo(&mut self) -> Vec<Command>;
 }

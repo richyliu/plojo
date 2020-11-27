@@ -49,15 +49,17 @@ pub fn main() {
                 let stroke = RawStrokeGeminipr::parse_raw(raw).to_stroke();
                 print!("{:?} => ", stroke);
 
-                let command = if stroke.is_undo() {
+                let commands = if stroke.is_undo() {
                     state.translator.undo()
                 } else {
                     state.translator.translate(stroke)
                 };
-                println!("{:?}", command);
+                println!("{:?}", commands);
 
                 if do_output {
-                    state.controller.dispatch(command);
+                    for command in commands {
+                        state.controller.dispatch(command);
+                    }
                 }
             },
             &mut State {

@@ -35,26 +35,28 @@ impl Blackbox {
                 panic!("{:?} is not a valid stroke", stroke);
             }
 
-            let command = if stroke.is_undo() {
+            let commands = if stroke.is_undo() {
                 self.translator.undo()
             } else {
                 self.translator.translate(stroke)
             };
 
-            match command {
-                Command::Replace(backspace_num, add_text) => {
-                    if backspace_num > 0 {
-                        self.output.truncate(self.output.len() - backspace_num)
-                    }
+            for command in commands {
+                match command {
+                    Command::Replace(backspace_num, add_text) => {
+                        if backspace_num > 0 {
+                            self.output.truncate(self.output.len() - backspace_num)
+                        }
 
-                    if add_text.len() > 0 {
-                        self.output.push_str(&add_text);
+                        if add_text.len() > 0 {
+                            self.output.push_str(&add_text);
+                        }
                     }
+                    Command::PrintHello => {
+                        panic!("Not expecting PrintHello to be outputted from the blackbox");
+                    }
+                    Command::NoOp => {}
                 }
-                Command::PrintHello => {
-                    panic!("Not expecting PrintHello to be outputted from the blackbox");
-                }
-                Command::NoOp => {}
             }
         }
 
