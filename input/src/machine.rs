@@ -2,7 +2,7 @@ use serialport::{available_ports, SerialPortSettings, SerialPortType};
 use std::{any::Any, io::ErrorKind, thread, time::Duration};
 
 pub struct SerialMachine {
-    // how often to poll for reads
+    /// How long to wait before trying to read from serial machine again
     read_rate: u64,
     buf_size: usize,
     port_name: String,
@@ -12,7 +12,7 @@ pub struct SerialMachine {
 impl Default for SerialMachine {
     fn default() -> Self {
         Self {
-            read_rate: 10,
+            read_rate: 50,
             buf_size: 6,
             port_name: String::from(""),
             serialport_settings: SerialPortSettings::default(),
@@ -45,6 +45,7 @@ impl SerialMachine {
                     &self.port_name, &self.serialport_settings.baud_rate
                 );
 
+                // keep on reading as long as there's more data
                 loop {
                     match port.read_exact(serial_buf.as_mut_slice()) {
                         Ok(()) => {
@@ -52,24 +53,23 @@ impl SerialMachine {
                         }
                         Err(e) => match e.kind() {
                             ErrorKind::TimedOut => {
-                                // just a timeout (no data to read), ignore it
+                                // no more data to read, wait before trying again
+                                thread::sleep(sleep_time);
                             }
                             ErrorKind::BrokenPipe => {
                                 // broken pipe usually means the serial port disconnected
-                                eprintln!("Machine disconnected. Exiting.");
-                                break;
+                                println!("Machine disconnected. Exiting.");
+                                return;
                             }
                             _ => {
-                                eprintln!("err: {:?}", e);
+                                panic!("error reading: {}", e);
                             }
                         },
                     }
-
-                    thread::sleep(sleep_time);
                 }
             }
             Err(e) => {
-                eprintln!("Failed to open \"{}\". Error: {}", self.port_name, e);
+                panic!("Failed to open \"{}\". Error: {}", self.port_name, e);
             }
         }
     }
