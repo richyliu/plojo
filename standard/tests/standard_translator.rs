@@ -1,10 +1,11 @@
 use standard::{Config as StandardTranslatorConfig, StandardTranslator};
-use translator::{Command, Stroke, Translator};
+use translator::{Command, Key, Stroke, Translator};
 
 /// Black box for testing the entire translator
 struct Blackbox {
     output: String,
     translator: StandardTranslator,
+    output_keys: Vec<Key>,
 }
 
 impl Blackbox {
@@ -20,6 +21,7 @@ impl Blackbox {
         Self {
             translator,
             output: String::new(),
+            output_keys: vec![],
         }
     }
 
@@ -29,6 +31,19 @@ impl Blackbox {
     ///
     /// The entire output (not just the added text) is matched against the total_output
     fn expect(&mut self, strokes: &str, total_output: &str) {
+        self.lookup_and_dispatch(strokes);
+        assert_eq!(self.output, total_output);
+    }
+
+    /// Expect that pressing stroke(s) causes certain key commands
+    /// Similar to expect
+    /// All of the keys produced are matched against total_keys
+    fn expect_keys(&mut self, strokes: &str, total_keys: Vec<Key>) {
+        self.lookup_and_dispatch(strokes);
+        assert_eq!(self.output_keys, total_keys);
+    }
+
+    fn lookup_and_dispatch(&mut self, strokes: &str) {
         for s in strokes.split('/') {
             let stroke = Stroke::new(s);
             if !stroke.is_valid() {
@@ -56,11 +71,12 @@ impl Blackbox {
                         panic!("Not expecting PrintHello to be outputted from the blackbox");
                     }
                     Command::NoOp => {}
+                    Command::Keys(mut keys) => {
+                        self.output_keys.append(&mut keys);
+                    }
                 }
             }
         }
-
-        assert_eq!(self.output, total_output);
     }
 }
 
@@ -166,4 +182,33 @@ fn suppress_space_should_lowercase() {
     b.expect("H-L/KPA*/TK-LS/H-L", " hellohello");
 }
 
-// see plover blackbox tests: https://github.com/openstenoproject/plover/blob/master/test/test_blackbox.py
+#[test]
+fn commands_correction() {
+    let mut b = Blackbox::new(
+        r#"
+            "H-L": [{ "Keys": ["UpArrow"] }],
+            "H-L/WORLD": [{ "Keys": ["UpArrow"] }],
+            "H-L/WORLD/H-L": "hi"
+        "#,
+    );
+    b.expect_keys("H-L", vec![Key::UpArrow]);
+    b.expect_keys("WORLD", vec![Key::UpArrow]);
+    b.expect("H-L", " hi");
+}
+
+#[test]
+fn commands_undo() {
+    let mut b = Blackbox::new(
+        r#"
+            "H-L": [{ "Keys": ["UpArrow"] }],
+            "H-L/WORLD": "hello",
+            "TP": [{ "Keys": ["Meta"] }]
+        "#,
+    );
+    b.expect_keys("H-L", vec![Key::UpArrow]);
+    b.expect("WORLD", " hello");
+    b.expect_keys("TP", vec![Key::UpArrow, Key::Meta]);
+    b.expect("*", " hello");
+    b.expect("*", "");
+    b.expect_keys("*", vec![Key::UpArrow, Key::Meta]);
+}

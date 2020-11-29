@@ -23,7 +23,14 @@ pub fn main() {
 
     println!("Loading dictionaries...");
     let path_base = Path::new(env!("CARGO_MANIFEST_DIR")).join("runtime_files");
-    let raw_dict_names = ["dict.json", "fingerspelling.json", "user.json"];
+    let raw_dict_names = [
+        "dict.json",
+        "fingerspelling.json",
+        "thumb_numbers.json",
+        "nav.json",
+        "modifiers-single-stroke.json",
+        "user.json",
+    ];
     let raw_dicts = raw_dict_names
         .iter()
         .map(|p| path_base.join(p))

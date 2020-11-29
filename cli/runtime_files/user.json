@@ -2,5 +2,11 @@
 "AFPS": "{*?}",
 "TK-FPS": "{*!}",
 "-RB": "{^^}",
-"KA*PD": "{*-|}"
+"KA*PD": "{*-|}",
+
+"R-R": [{"Keys": ["Return"]}],
+"TA*B": [{"Keys": ["Tab"]}],
+"STA*B": [{"Keys": ["Shift", "Tab"]}],
+"-FRL": [{"Keys": ["Meta", "Space"]}],
+"SK*": [{"Keys": ["Escape"]}]
 }

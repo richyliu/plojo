@@ -5,6 +5,7 @@ mod commands;
 mod stroke;
 
 pub use commands::Command;
+pub use commands::Key;
 pub use stroke::Stroke;
 
 /// Translation from a stroke into a command

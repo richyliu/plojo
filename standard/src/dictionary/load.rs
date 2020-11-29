@@ -1,9 +1,9 @@
 use crate::{Text, TextAction, Translation};
 use regex::Regex;
-use serde_json;
+use serde_json::{from_str, from_value, Error as JsonError, Value};
 use std::error::Error;
 use std::fmt;
-use translator::Stroke;
+use translator::{Command, Stroke};
 
 /// Loads the dictionary
 ///
@@ -53,6 +53,10 @@ use translator::Stroke;
 /// - `{*?}`: retrospectivly add space before the previous translated word
 /// - `{*!}`: retrospectivly add space before the previous translated word
 ///
+/// ### Literal symbols
+/// - `{bracketleft}`: inserts a literal opening bracket (`{`)
+/// - `{bracketright}`: inserts a literal closing bracket (`}`)
+///
 ///
 /// ## Differences from plover
 ///
@@ -60,7 +64,7 @@ use translator::Stroke;
 ///   formatting of the next word.
 /// - Retrospective space adding/removing works on the previous word, not the previous stroke
 pub(super) fn load_dicts(contents: &str) -> Result<Entries, ParseError> {
-    let value: serde_json::Value = serde_json::from_str(&contents)?;
+    let value: Value = from_str(&contents)?;
 
     let object_entries = value.as_object().ok_or(ParseError::NotEntries)?;
 
@@ -68,11 +72,19 @@ pub(super) fn load_dicts(contents: &str) -> Result<Entries, ParseError> {
 
     for (stroke, translation) in object_entries {
         let stroke = parse_stroke(stroke)?;
-        let translation_str = translation
-            .as_str()
-            .ok_or(ParseError::NonStringTranslation(translation.to_string()))?;
-        let parsed = parse_translation(translation_str)?;
-        result_entries.push((stroke, parsed));
+        match translation {
+            Value::String(translation_str) => {
+                let parsed = parse_translation(translation_str)?;
+                result_entries.push((stroke, parsed));
+            }
+            Value::Array(commands) => {
+                let parsed = parse_commands(commands.clone())?;
+                result_entries.push((stroke, vec![Translation::Command(parsed)]));
+            }
+            _ => {
+                return Err(ParseError::UnknownTranslation(translation.to_string()));
+            }
+        }
     }
 
     Ok(result_entries)
@@ -83,8 +95,7 @@ pub enum ParseError {
     // if the JSON file does not exclusively contain an object with entries
     NotEntries,
     InvalidStroke(String),
-    // currently, a translation must be a string
-    NonStringTranslation(String),
+    UnknownTranslation(String),
     EmptyTranslation,
     InvalidTranslation(String),
     // a special action is one that is wrapped in brackets in the translation
@@ -100,8 +111,8 @@ impl fmt::Display for ParseError {
 
 impl Error for ParseError {}
 
-impl From<serde_json::Error> for ParseError {
-    fn from(e: serde_json::Error) -> Self {
+impl From<JsonError> for ParseError {
+    fn from(e: JsonError) -> Self {
         ParseError::JsonError(e.to_string())
     }
 }
@@ -231,6 +242,9 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
         "*!" => Ok(vec![Translation::Text(Text::TextAction(vec![
             TextAction::space(false, false),
         ]))]),
+        // insert literal bracket
+        "bracketleft" => Ok(vec![Translation::Text(Text::Lit("{".to_string()))]),
+        "bracketright" => Ok(vec![Translation::Text(Text::Lit("}".to_string()))]),
         _t => {
             // check for prefix/suffix action (attach operator)
             let matched = SUFFIX_REGEX.captures(_t);
@@ -303,11 +317,22 @@ fn parse_as_text(t: &str) -> Translation {
     Translation::Text(Text::Lit(t.to_string()))
 }
 
+fn parse_commands(values: Vec<Value>) -> Result<Vec<Command>, ParseError> {
+    let mut result = Vec::with_capacity(values.len());
+    for v in values {
+        let parsed: Command = from_value(v)?;
+        result.push(parsed);
+    }
+
+    Ok(result)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::collections::HashSet;
     use std::iter::FromIterator;
+    use translator::Key;
 
     type Entry = (Stroke, Vec<Translation>);
 
@@ -439,6 +464,18 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_translation_literal_bracket() {
+        assert_eq!(
+            parse_translation("{bracketleft}").unwrap(),
+            vec![Translation::Text(Text::Lit("{".to_string())),]
+        );
+        assert_eq!(
+            parse_translation("{bracketright}").unwrap(),
+            vec![Translation::Text(Text::Lit("}".to_string())),]
+        );
+    }
+
     // only testing parsing for now
     #[test]
     fn test_translation_carrying_capitalization() {
@@ -508,5 +545,37 @@ mod tests {
             parse_translation("").unwrap_err(),
             ParseError::EmptyTranslation
         );
+    }
+
+    #[test]
+    fn test_commands_parse_dictionary() {
+        let contents = r#"
+{
+"UP": [{ "Keys": ["UpArrow", {"Layout": "a"}] }],
+"TEGT": [{ "Keys": ["UpArrow", {"Layout": "a"}] }]
+}
+        "#;
+        let parsed = load_dicts(contents).unwrap();
+        let parsed: HashSet<Entry> = HashSet::from_iter(parsed.iter().cloned());
+
+        let expect = vec![
+            (
+                Stroke::new("UP"),
+                vec![Translation::Command(vec![Command::Keys(vec![
+                    Key::UpArrow,
+                    Key::Layout('a'),
+                ])])],
+            ),
+            (
+                Stroke::new("TEGT"),
+                vec![Translation::Command(vec![Command::Keys(vec![
+                    Key::UpArrow,
+                    Key::Layout('a'),
+                ])])],
+            ),
+        ];
+        let expect: HashSet<Entry> = HashSet::from_iter(expect.iter().cloned());
+
+        assert_eq!(parsed, expect);
     }
 }

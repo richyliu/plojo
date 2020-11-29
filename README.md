@@ -15,24 +15,17 @@ users may need to install libxdo-dev.
 
 ## Todos
 
-- in command dispatching, check for
-  - 1 new (vec of) command replacing 2 commands
-  - 1 new command replacing 1 command + 1 text
-  - 1 new command replacing 1 text
-  - what to do if 1 new command "replaces" the same command?
-    - standard/src/diff.rs line 31
 - external key presses (arrows, control, command, etc)
-  - change dictionary format for commands only
-    - use serde: https://serde.rs/enum-representations.html
-  - things in curly braces should be called "text actions"
-    - add text action for a literal bracket
-  - currently loading quite slowly
+    - add option for text actions to be appended after the command
+- issue where I can't use some keyboard shortcuts after pressing command+arrow
 - rename crates to have plojo prefix to prevent name conflicts
   - rename `translator` to `core` (or `plojo_core`)
-- instead of `{}` to clear formatting, add custom stroke to also reset buffer
-  - stroke that resets `prev_stroke` (similar in function to `{}` in Plover)
+- add custom stroke/command to also reset `prev_stroke`
 - glue operator (for fingerspelling, number keys)
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
+- use an english dictionary lookup to fix orthography errors
+- implement `{}` to clear formatting
+
 - undo should remove all the text actions if there are any
 - actually implement carrying capitalization
 - fix retrospective add/remove space to work on the previous stroke, not word
@@ -53,3 +46,9 @@ users may need to install libxdo-dev.
   not suppressed)
   - this is because an attached stroke (by itself) is only attached to the
     previous word if it is the first word
+- write somewhere about how commands are dispatched without modifying any text
+  - even if a correction is required, it will not press any backspaces
+  - **command will only be dispatched if it has been newly added**
+  - write a script to convert plover shortcut keys to plojo keys
+- document the keys available for pressing and how raw key codes are allowed
+- consider changing commands format back to one that is plover compatible
