@@ -1,3 +1,4 @@
+use chrono::prelude::Local;
 use input::{RawStroke, RawStrokeGeminipr, SerialMachine};
 use standard::{Config as StandardTranslatorConfig, StandardTranslator};
 use translator::Translator;
@@ -18,7 +19,7 @@ pub fn main() {
         println!("You have not passed in any arguments, so output is DISABLED");
     }
 
-    println!("\nStarting plojo...");
+    println!("Starting plojo...");
     SerialMachine::print_available_ports();
 
     println!("Loading dictionaries...");
@@ -54,6 +55,8 @@ pub fn main() {
 
         machine.listen(
             |raw, state| {
+                let now = Local::now();
+                print!("{} ", now.format("%+"));
                 let stroke = RawStrokeGeminipr::parse_raw(raw).to_stroke();
                 print!("{:?} => ", stroke);
 

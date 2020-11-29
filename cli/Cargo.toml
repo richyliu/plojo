@@ -11,3 +11,4 @@ input = { path = "../input" }
 translator = { path = "../translator" }
 standard = { path = "../standard" }
 enigo = "0.0.14"
+chrono = "0.4.19"

@@ -8,8 +8,9 @@ users may need to install libxdo-dev.
 - issue where I can't use some keyboard shortcuts after pressing arrow
 - rename crates to have plojo prefix to prevent name conflicts
   - rename `translator` to `core` (or `plojo_core`)
-- suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
 - glue operator (for fingerspelling, number keys)
+- add option for text actions to be appended after a command
+- suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
 - implement `{}` to clear formatting
 - use an english dictionary lookup to fix orthography errors
   - BUG: `SHEUFR/-G` gives "shiverring"; need to use a dictionary for orthography
@@ -27,8 +28,7 @@ users may need to install libxdo-dev.
 - fix retrospective add/remove space to work on the previous stroke, not word
 - upper/lower casing entire words
 - clear `prev_stroke` after a command?
-- log strokes
-- add option for text actions to be appended after a command
+- run shell commands with stroke
 
 - escape sequences (especially for brackets) in dictionary
 - ignore dictionary unknown special actions
@@ -53,3 +53,4 @@ users may need to install libxdo-dev.
 - document the keys available for pressing and how raw key codes are allowed
 - consider changing commands format back to one that is plover compatible
 - grep for all the NOTEs and document them
+- initialize vecs and hashmaps with capacity to improve performance

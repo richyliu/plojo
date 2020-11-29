@@ -128,5 +128,26 @@
 "W*RPBL": [{ "Keys": ["Control", "Shift", {"Layout": "w"}] }],
 "KP*RPBL": [{ "Keys": ["Control", "Shift", {"Layout": "x"}] }],
 "KWR*RPBL": [{ "Keys": ["Control", "Shift", {"Layout": "y"}] }],
-"STKPW*RPBL": [{ "Keys": ["Control", "Shift", {"Layout": "z"}] }]
+"STKPW*RPBL": [{ "Keys": ["Control", "Shift", {"Layout": "z"}] }],
+
+
+"1*RB89": [{ "Keys": ["Meta", "Alt", {"Layout": "1"}] }],
+"2*RB89": [{ "Keys": ["Meta", "Alt", {"Layout": "2"}] }],
+"3*RB89": [{ "Keys": ["Meta", "Alt", {"Layout": "3"}] }],
+"4*RB89": [{ "Keys": ["Meta", "Alt", {"Layout": "4"}] }],
+"5*RB89": [{ "Keys": ["Meta", "Alt", {"Layout": "5"}] }],
+"1*URB89": [{ "Keys": ["Meta", "Alt", {"Layout": "6"}] }],
+"2*URB89": [{ "Keys": ["Meta", "Alt", {"Layout": "7"}] }],
+"3*URB89": [{ "Keys": ["Meta", "Alt", {"Layout": "8"}] }],
+"4*URB89": [{ "Keys": ["Meta", "Alt", {"Layout": "9"}] }],
+
+"1*R789": [{ "Keys": ["Meta", {"Layout": "1"}] }],
+"2*R789": [{ "Keys": ["Meta", {"Layout": "2"}] }],
+"3*R789": [{ "Keys": ["Meta", {"Layout": "3"}] }],
+"4*R789": [{ "Keys": ["Meta", {"Layout": "4"}] }],
+"5*R789": [{ "Keys": ["Meta", {"Layout": "5"}] }],
+"1*UR789": [{ "Keys": ["Meta", {"Layout": "6"}] }],
+"2*UR789": [{ "Keys": ["Meta", {"Layout": "7"}] }],
+"3*UR789": [{ "Keys": ["Meta", {"Layout": "8"}] }],
+"4*UR789": [{ "Keys": ["Meta", {"Layout": "9"}] }]
 }
