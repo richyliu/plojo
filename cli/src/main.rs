@@ -7,7 +7,7 @@ use std::path::Path;
 
 mod controller;
 
-use controller::Controller;
+use controller::{Controller, EnigoController};
 
 pub fn main() {
     let args: Vec<String> = env::args().collect();
@@ -26,6 +26,7 @@ pub fn main() {
     let raw_dict_names = [
         "dict.json",
         "fingerspelling.json",
+        "fingerspelling-RBGS.json",
         "thumb_numbers.json",
         "nav.json",
         "modifiers-single-stroke.json",
@@ -47,7 +48,7 @@ pub fn main() {
         let machine = SerialMachine::new(port);
 
         struct State {
-            controller: Controller,
+            controller: Box<dyn Controller>,
             translator: StandardTranslator,
         }
 
@@ -70,7 +71,7 @@ pub fn main() {
                 }
             },
             &mut State {
-                controller: Controller::new(),
+                controller: Box::new(EnigoController::new()),
                 translator: initial_translator,
             },
         );
