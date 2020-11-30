@@ -5,12 +5,18 @@ users may need to install libxdo-dev.
 
 ## Todos
 
-- issue where I can't use some keyboard shortcuts after pressing arrow
+- BUG: I can't use some keyboard shortcuts after pressing arrow
   - command + shortcut sometimes doesn't work either
+  - maybe try using autopilot again
+  - https://github.com/autopilot-rs/autopilot-rs/blob/master/src/key.rs#L365
+  - https://github.com/openstenoproject/plover/blob/master/plover/oslayer/osxkeyboardcontrol.py#L131
+  - https://github.com/enigo-rs/enigo/blob/master/src/macos/macos_impl.rs#L221
+  - https://developer.apple.com/documentation/coregraphics/cgeventsourcestateid
 
+- run shell commands with stroke
+  - https://doc.rust-lang.org/std/process/struct.Command.html#method.spawn
 - add option for text actions to be appended after a command
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
-- run shell commands with stroke
 - undo should remove all the text actions if there are any
   - it should also remove all the commands
 
@@ -24,6 +30,7 @@ users may need to install libxdo-dev.
     - the issue is primarily with consonant doubling
 - add custom stroke/command to also reset `prev_stroke`
 - implement `{}` to clear formatting
+  - implement it as a suppress space followed by an empty string
 - actually implement carrying capitalization
 - fix retrospective add/remove space to work on the previous stroke, not word
 - upper/lower casing entire words
@@ -53,3 +60,6 @@ users may need to install libxdo-dev.
 - consider changing commands format back to one that is plover compatible
 - grep for all the NOTEs and document them
 - initialize vecs and hashmaps with capacity to improve performance
+- note that numbers in a stroke must have a dash where necessary
+  - if 0/5 not present and there are digits 6-9
+- note that translations with only numbers will be interpreted as glued

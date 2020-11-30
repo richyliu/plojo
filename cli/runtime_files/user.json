@@ -1,4 +1,9 @@
 {
+"TW-S/PWEU": "TWSBI",
+"TKPWAOU/HRAEU": "Goulet",
+"TPHAO*RLD": "Noodler's",
+"HRAO": "lmao",
+
 "AFPS": "{*?}",
 "TK-FPS": "{*!}",
 "-RB": "{^^}",
@@ -8,5 +13,8 @@
 "TA*B": [{"Keys": ["Tab"]}],
 "STA*B": [{"Keys": ["Shift", "Tab"]}],
 "-FRL": [{"Keys": ["Meta", "Space"]}],
-"SK*": [{"Keys": ["Escape"]}]
+"SK*": [{"Keys": ["Escape"]}],
+"R-RB": [{"Keys": ["Shift", "Return"]}],
+
+"TKPWAO*LG": [{"Keys": ["Meta", "LeftArrow"]}, {"Replace": [0, "!g "]}]
 }

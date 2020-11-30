@@ -243,19 +243,13 @@ impl RawStroke for RawStrokeGeminipr {
 fn to_number(stroke: &str) -> String {
     fn is_center_key(key: char) -> bool {
         match key {
-            'A' => true,
-            'O' => true,
-            'E' => true,
-            'U' => true,
-            '*' => true,
-            '-' => true,
+            'A' | 'O' | 'E' | 'U' | '*' | '-' => true,
             _ => false,
         }
     }
 
+    // map keys to their corresponding number
     let mut result = String::from("");
-
-    let mut numbers_only = true;
     let mut first_half = true;
     for key in stroke.chars() {
         if is_center_key(key) {
@@ -268,10 +262,7 @@ fn to_number(stroke: &str) -> String {
                 'T' => '2',
                 'P' => '3',
                 'H' => '4',
-                _k => {
-                    numbers_only = false;
-                    _k
-                }
+                _k => _k,
             }
         } else {
             match key {
@@ -281,28 +272,13 @@ fn to_number(stroke: &str) -> String {
                 'P' => '7',
                 'L' => '8',
                 'T' => '9',
-                // a dash still means its only numbers
                 '-' => '-',
-                _k => {
-                    numbers_only = false;
-                    _k
-                }
+                _k => _k,
             }
         });
     }
 
-    if !numbers_only {
-        result
-    } else {
-        // if there are only numbers, remove the dash if there is one
-        let mut new_result = String::new();
-        for key in result.chars() {
-            if key != '-' {
-                new_result.push(key);
-            }
-        }
-        new_result
-    }
+    result
 }
 
 #[cfg(test)]
@@ -352,11 +328,15 @@ mod tests {
         );
         assert_eq!(
             RawStrokeGeminipr::parse_raw(&vec![128, 1, 0, 2, 0, 64]).to_stroke(),
-            Stroke::new("46")
+            Stroke::new("4-6")
+        );
+        assert_eq!(
+            RawStrokeGeminipr::parse_raw(&vec![128, 1, 32, 2, 0, 64]).to_stroke(),
+            Stroke::new("456")
         );
         assert_eq!(
             RawStrokeGeminipr::parse_raw(&vec![128, 68, 0, 0, 4, 64]).to_stroke(),
-            Stroke::new("139")
+            Stroke::new("13-9")
         );
     }
 

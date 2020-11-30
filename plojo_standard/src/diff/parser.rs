@@ -7,8 +7,11 @@ use std::iter::FromIterator;
 mod orthography;
 
 lazy_static! {
-    // whether a translation contains only digits
-    static ref NUMBER_REGEX: Regex = Regex::new(r"^[0-9]+$").unwrap();
+    // whether a translation contains only digits or the center dash
+    // although the regex will mark "-" as a number, such a stroke is not possible
+    static ref NUMBER_TRANSLATION_REGEX: Regex = Regex::new(r"^[0-9\-]+$").unwrap();
+    // whether a translation contains only digits, in which case it will be glued
+    static ref NUMBERS_ONLY_REGEX: Regex = Regex::new(r"^[0-9]+$").unwrap();
 }
 
 /// For the translation_to_string function
@@ -198,7 +201,12 @@ fn merge_translations(translations: Vec<Text>) -> Vec<TextInternal> {
                                 state.actions = None;
                             }
 
-                            state.words = Some(vec![text]);
+                            // for number-only translations, push is as glued
+                            if NUMBERS_ONLY_REGEX.is_match(&text) {
+                                state.acc.push(TextInternal::Glued(text));
+                            } else {
+                                state.words = Some(vec![text]);
+                            }
                             state.first_word_attached = false;
                         }
                         Text::UnknownStroke(stroke) => {
@@ -288,8 +296,10 @@ fn merge_translations(translations: Vec<Text>) -> Vec<TextInternal> {
         .map(|t| {
             if let TextInternal::Unknown(ref num) = t {
                 // turn a number ("unknown") into glued if it contains only digits
-                if NUMBER_REGEX.is_match(num) {
-                    return TextInternal::Glued(num.to_string());
+                if NUMBER_TRANSLATION_REGEX.is_match(num) {
+                    // remove center dash
+                    let without_dash = num.replace("-", "");
+                    return TextInternal::Glued(without_dash);
                 }
             }
 

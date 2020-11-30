@@ -235,7 +235,20 @@ fn numbers_are_glued() {
         "#,
     );
     b.expect("TK*", " d");
-    b.expect("123/18", " d12318");
+    b.expect("123/1-8", " d12318");
     b.expect("H-L", " d12318 hello");
     b.expect("123", " d12318 hello 123");
+}
+
+#[test]
+fn number_translation() {
+    let mut b = Blackbox::new(
+        r#"
+            "H-L": "{&hi}",
+            "2-8D": "2800"
+        "#,
+    );
+    b.expect("H-L", " hi");
+    b.expect("12", " hi12");
+    b.expect("2-8D", " hi122800");
 }

@@ -28,6 +28,7 @@ pub fn main() {
         "dict.json",
         "fingerspelling.json",
         "fingerspelling-RBGS.json",
+        "numbers.json",
         "thumb_numbers.json",
         "nav.json",
         "modifiers-single-stroke.json",
