@@ -284,7 +284,7 @@ fn word_change_first_letter(word: String, uppercase: bool) -> String {
 mod tests {
     use super::*;
     use crate::TextAction;
-    use translator::Stroke;
+    use plojo_core::Stroke;
 
     #[test]
     fn test_parse_empty() {

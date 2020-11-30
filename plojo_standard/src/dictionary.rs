@@ -1,8 +1,8 @@
 use crate::Translation;
+use plojo_core::Stroke;
 use std::collections::HashMap;
 use std::error::Error;
 use std::iter::FromIterator;
-use translator::Stroke;
 
 mod load;
 mod translate;

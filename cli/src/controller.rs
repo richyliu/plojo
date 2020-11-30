@@ -1,4 +1,4 @@
-use translator::Command;
+use plojo_core::Command;
 
 mod enigo;
 

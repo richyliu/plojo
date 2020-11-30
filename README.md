@@ -6,12 +6,14 @@ users may need to install libxdo-dev.
 ## Todos
 
 - issue where I can't use some keyboard shortcuts after pressing arrow
-- rename crates to have plojo prefix to prevent name conflicts
-  - rename `translator` to `core` (or `plojo_core`)
+  - command + shortcut sometimes doesn't work either
 - glue operator (for fingerspelling, number keys)
 - add option for text actions to be appended after a command
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
-- implement `{}` to clear formatting
+- run shell commands with stroke
+- undo should remove all the text actions if there are any
+  - it should also remove all the commands
+
 - use an english dictionary lookup to fix orthography errors
   - BUG: `SHEUFR/-G` gives "shiverring"; need to use a dictionary for orthography
     - or maybe don't and write a warning for that
@@ -21,14 +23,12 @@ users may need to install libxdo-dev.
     - https://github.com/openstenoproject/plover/blob/master/plover/orthography.py
     - the issue is primarily with consonant doubling
 - add custom stroke/command to also reset `prev_stroke`
-
-- undo should remove all the text actions if there are any
-  - it should also skip all the commands
+- implement `{}` to clear formatting
 - actually implement carrying capitalization
 - fix retrospective add/remove space to work on the previous stroke, not word
 - upper/lower casing entire words
 - clear `prev_stroke` after a command?
-- run shell commands with stroke
+- write a script to convert plover shortcut keys to plojo keys
 
 - escape sequences (especially for brackets) in dictionary
 - ignore dictionary unknown special actions
@@ -48,8 +48,7 @@ users may need to install libxdo-dev.
     previous word if it is the first word
 - write somewhere about how commands are dispatched without modifying any text
   - even if a correction is required, it will not press any backspaces
-  - **command will only be dispatched if it has been newly added**
-  - write a script to convert plover shortcut keys to plojo keys
+  - command will only be dispatched if it has been newly added
 - document the keys available for pressing and how raw key codes are allowed
 - consider changing commands format back to one that is plover compatible
 - grep for all the NOTEs and document them

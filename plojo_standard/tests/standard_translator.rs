@@ -1,5 +1,5 @@
-use standard::{Config as StandardTranslatorConfig, StandardTranslator};
-use translator::{Command, Key, Stroke, Translator};
+use plojo_core::{Command, Key, Stroke, Translator};
+use plojo_standard::{Config as StandardTranslatorConfig, StandardTranslator};
 
 /// Black box for testing the entire translator
 struct Blackbox {

@@ -1,7 +1,7 @@
 use chrono::prelude::Local;
-use input::{RawStroke, RawStrokeGeminipr, SerialMachine};
-use standard::{Config as StandardTranslatorConfig, StandardTranslator};
-use translator::Translator;
+use plojo_core::Translator;
+use plojo_input::{RawStroke, RawStrokeGeminipr, SerialMachine};
+use plojo_standard::{Config as StandardTranslatorConfig, StandardTranslator};
 
 use std::env;
 use std::path::Path;

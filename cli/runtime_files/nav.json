@@ -50,7 +50,7 @@
 "KPW": [{ "Keys": ["Meta", {"Layout": "x"}] }],
 "KPWR": [{ "Keys": ["Meta", {"Layout": "c"}] }],
 "KPWR*": [{ "Keys": ["Meta", "Alt", {"Layout": "c"}] }],
-"P*FT": [{ "Keys": ["Meta", {"Layout": "v"}] }],
+"P*FT": [{ "Keys": ["Meta", "Alt", "Shift", {"Layout": "v"}] }],
 "PWR": [{ "Keys": ["Meta", {"Layout": "v"}] }],
 "S*F": [{ "Keys": ["Meta", {"Layout": "s"}] }],
 "SA*EF": [{ "Keys": ["Meta", "Alt", {"Layout": "s"}] }],

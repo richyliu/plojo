@@ -1,9 +1,9 @@
 use crate::{Text, TextAction, Translation};
+use plojo_core::{Command, Stroke};
 use regex::Regex;
 use serde_json::{from_str, from_value, Error as JsonError, Value};
 use std::error::Error;
 use std::fmt;
-use translator::{Command, Stroke};
 
 /// Loads the dictionary
 ///
@@ -330,9 +330,9 @@ fn parse_commands(values: Vec<Value>) -> Result<Vec<Command>, ParseError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use plojo_core::Key;
     use std::collections::HashSet;
     use std::iter::FromIterator;
-    use translator::Key;
 
     type Entry = (Stroke, Vec<Translation>);
 

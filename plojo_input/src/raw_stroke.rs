@@ -1,4 +1,4 @@
-use translator::Stroke;
+use plojo_core::Stroke;
 
 pub trait RawStroke {
     // left hand should not include S key

@@ -1,45 +1,41 @@
 use super::Controller;
 use enigo::KeyboardControllable;
 use enigo::{Enigo, Key};
+use plojo_core::{Command, Key as InternalKey};
 use std::{thread, time::Duration};
-use translator::{Command, Key as InternalKey};
 
 pub struct EnigoController {
     enigo: Enigo,
 }
 
+// NOTE: these are irrelevant because enigo imposes a delay of 20 milliseconds for every key press
 // Delay between pressing backspace (for corrections)
-const BACKSPACE_DELAY: u32 = 2;
+const BACKSPACE_DELAY: u64 = 2;
 // Delay between pressing keys for typing normal text
-const KEY_DELAY: u32 = 5;
+const KEY_DELAY: u64 = 5;
 // Delay between starting to hold down keys for keyboard shortcuts
-const KEY_HOLD_DELAY: u32 = 2;
-
-// NOTE: currently enigo imposes a delay of 20 milliseconds for every key press
+const KEY_HOLD_DELAY: u64 = 2;
 
 impl EnigoController {
-    fn type_with_delay(&mut self, text: &str, delay: u32) {
-        let duration = Duration::from_millis(delay.into());
+    fn type_with_delay(&mut self, text: &str, delay: u64) {
         for c in text.chars() {
             self.enigo.key_sequence(&c.to_string());
-            thread::sleep(duration);
+            thread::sleep(Duration::from_millis(delay));
         }
     }
 
     /// Press the backspace key with specified delay in milliseconds between each press
-    fn backspace(&mut self, num: usize, delay: u32) {
-        let duration = Duration::from_millis(delay.into());
+    fn backspace(&mut self, num: usize, delay: u64) {
         for _ in 0..num {
             self.enigo.key_click(Key::Backspace);
-            thread::sleep(duration);
+            thread::sleep(Duration::from_millis(delay));
         }
     }
 
-    fn key_combo(&mut self, keys: Vec<Key>, delay: u32) {
-        let duration = Duration::from_millis(delay.into());
+    fn key_combo(&mut self, keys: Vec<Key>, delay: u64) {
         for k in &keys {
             self.enigo.key_down(*k);
-            thread::sleep(duration);
+            thread::sleep(Duration::from_millis(delay));
         }
 
         for k in &keys {

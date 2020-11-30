@@ -1,8 +1,8 @@
 [workspace]
 
 members = [
-    "input",
-    "translator",
-    "standard",
+    "plojo_input",
+    "plojo_core",
+    "plojo_standard",
     "cli",
 ]

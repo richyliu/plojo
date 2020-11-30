@@ -1,7 +1,7 @@
 //! Helper functions for finding the difference between 2 translations and turning that into a command.
 use crate::Translation;
+use plojo_core::Command;
 use std::cmp;
-use translator::Command;
 
 mod parser;
 
@@ -82,7 +82,7 @@ fn text_diff(old: String, new: String) -> Command {
 mod tests {
     use super::*;
     use crate::{Text, TextAction};
-    use translator::Stroke;
+    use plojo_core::Stroke;
 
     #[test]
     fn test_diff_same() {

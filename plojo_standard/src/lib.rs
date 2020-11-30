@@ -3,8 +3,8 @@ extern crate lazy_static;
 
 use dictionary::Dictionary;
 use diff::translation_diff;
+use plojo_core::{Command, Stroke, Translator};
 use std::error::Error;
-use translator::{Command, Stroke, Translator};
 
 mod dictionary;
 mod diff;
