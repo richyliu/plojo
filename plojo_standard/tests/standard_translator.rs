@@ -212,3 +212,30 @@ fn commands_undo() {
     b.expect("*", "");
     b.expect_keys("*", vec![Key::UpArrow, Key::Meta]);
 }
+
+#[test]
+fn glued_strokes() {
+    let mut b = Blackbox::new(
+        r#"
+            "TK*": "{&d}",
+            "H-L": "hello"
+        "#,
+    );
+    b.expect("H-L/TK*", " hello d");
+    b.expect("TK*", " hello dd");
+    b.expect("H-L", " hello dd hello");
+}
+
+#[test]
+fn numbers_are_glued() {
+    let mut b = Blackbox::new(
+        r#"
+            "TK*": "{&d}",
+            "H-L": "hello"
+        "#,
+    );
+    b.expect("TK*", " d");
+    b.expect("123/18", " d12318");
+    b.expect("H-L", " d12318 hello");
+    b.expect("123", " d12318 hello 123");
+}

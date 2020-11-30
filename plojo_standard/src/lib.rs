@@ -66,6 +66,8 @@ enum Text {
     UnknownStroke(Stroke),
     // an attached string that gets orthographic rules applied
     Attached(String),
+    // glued strokes only attach to other glued strokes
+    Glued(String),
     // actions like no space, uppercase; apply to adjacent Texts
     TextAction(Vec<TextAction>),
 }

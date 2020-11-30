@@ -7,7 +7,7 @@ users may need to install libxdo-dev.
 
 - issue where I can't use some keyboard shortcuts after pressing arrow
   - command + shortcut sometimes doesn't work either
-- glue operator (for fingerspelling, number keys)
+
 - add option for text actions to be appended after a command
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
 - run shell commands with stroke

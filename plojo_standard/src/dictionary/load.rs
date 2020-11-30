@@ -31,7 +31,12 @@ use std::fmt;
 /// after the caret sign, in which case it will apply orthography rules
 ///
 /// ### Glue operator
-/// Not yet implemented
+/// The glue operator allows text to be attached (space suppressed) to other glued strokes.
+/// - `{&a}`, `{&b}`, `{&c}`, etc. make up the fingerspelling dictionary
+/// - `{&th}`: multi letter text is allowed as well
+///
+/// Number strokes (strokes that use the number bar containing only numbers, and are not in the
+/// dictionary) are glued by default
 ///
 /// ### Capitalizing
 /// The first letter of the next (or previous) translation can be capitalized
@@ -182,8 +187,8 @@ lazy_static! {
     // 1st capturing group: possible caret (^)
     // 2nd capturing group: possible text to apply orthography to
     // 3rd capturing group: possible caret (^)
-    static ref SUFFIX_REGEX: Regex = Regex::new(r"^(\^?)([^\^]*)(\^?)$").unwrap();
-    // part of the suffix_regex (which checks for attach operator)
+    static ref ATTACHED_REGEX: Regex = Regex::new(r"^(\^?)([^\^]*)(\^?)$").unwrap();
+    // part of the attached_regex (which checks for attach operator)
     // checks if the content of the suffix starts with `~|`, to carry the capitalization
     static ref CARRYING_CAP: Regex = Regex::new(r"^~\|(.+)$").unwrap();
 }
@@ -247,7 +252,7 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
         "bracketright" => Ok(vec![Translation::Text(Text::Lit("}".to_string()))]),
         _t => {
             // check for prefix/suffix action (attach operator)
-            let matched = SUFFIX_REGEX.captures(_t);
+            let matched = ATTACHED_REGEX.captures(_t);
             if let Some(groups) = matched {
                 // all regexes have 1 as the first capturing group
                 // a caret in front means its either a suppress space or apply orthography
@@ -304,6 +309,13 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                     let content = carrying_cap[1].to_string();
 
                     return Ok(vec![Translation::Text(Text::Lit(content))]);
+                }
+            }
+
+            // check for glued operator
+            if _t.len() >= 2 && _t.get(0..1) == Some(&"&") {
+                if let Some(text) = _t.get(1..) {
+                    return Ok(vec![Translation::Text(Text::Glued(text.to_string()))]);
                 }
             }
 

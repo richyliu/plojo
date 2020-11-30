@@ -1,15 +1,23 @@
 use crate::{Text, TextActionType};
 use orthography::apply_orthography;
+use regex::Regex;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 
 mod orthography;
+
+lazy_static! {
+    // whether a translation contains only digits
+    static ref NUMBER_REGEX: Regex = Regex::new(r"^[0-9]+$").unwrap();
+}
 
 /// For the translation_to_string function
 #[derive(Debug, PartialEq)]
 enum TextInternal {
     // text literal, such as from a translation or joining attached words via orthography rules
     Lit(String),
+    // glued strokes are "glued" to each other
+    Glued(String),
     // string representation of an unknown stroke; upper/lowercase actions do not apply to them
     Unknown(String),
     // actions that could apply to the previous or the next word and its boolean value (upper/lower, no/space)
@@ -38,6 +46,13 @@ pub(super) fn parse_translation(translations: Vec<Text>) -> String {
         let mut force_space = true;
         let mut uppercase: Option<bool> = None;
 
+        // suppress space if previous stroke was a glued and this stroke is glued too
+        if let Some(TextInternal::Glued(_)) = &prev {
+            if let Some(TextInternal::Glued(_)) = &cur {
+                force_space = false;
+            }
+        }
+
         // looking backwards first for text actions
         if let Some(TextInternal::Actions(actions)) = &prev {
             if let Some(is_force_space) = actions.get(&TextActionType::SpaceNext) {
@@ -60,6 +75,9 @@ pub(super) fn parse_translation(translations: Vec<Text>) -> String {
 
         match &cur {
             Some(TextInternal::Lit(lit)) => {
+                str = lit;
+            }
+            Some(TextInternal::Glued(lit)) => {
                 str = lit;
             }
             Some(TextInternal::Unknown(unknown)) => {
@@ -213,6 +231,16 @@ fn merge_translations(translations: Vec<Text>) -> Vec<TextInternal> {
                             // already handled above; shouldn't be here
                             panic!("this shouldn't be possible");
                         }
+                        Text::Glued(text) => {
+                            // push any text actions first
+                            if let Some(actions) = state.actions {
+                                state.acc.push(TextInternal::Actions(actions));
+                                state.actions = None;
+                            }
+
+                            state.acc.push(TextInternal::Glued(text));
+                            state.first_word_attached = false;
+                        }
                     };
                 }
                 state
@@ -254,6 +282,20 @@ fn merge_translations(translations: Vec<Text>) -> Vec<TextInternal> {
 
         acc.push(TextInternal::Lit(apply_orthography(words)));
     }
+
+    acc = acc
+        .into_iter()
+        .map(|t| {
+            if let TextInternal::Unknown(ref num) = t {
+                // turn a number ("unknown") into glued if it contains only digits
+                if NUMBER_REGEX.is_match(num) {
+                    return TextInternal::Glued(num.to_string());
+                }
+            }
+
+            t
+        })
+        .collect();
 
     acc
 }
@@ -381,6 +423,21 @@ mod tests {
         ]);
 
         assert_eq!(translated, "Hello hi");
+    }
+
+    #[test]
+    fn test_parse_glued() {
+        let translated = parse_translation(vec![
+            Text::Lit("hello".to_string()),
+            Text::Glued("hi".to_string()),
+            Text::Glued("hi".to_string()),
+            Text::Lit("foo".to_string()),
+            Text::Glued("two".to_string()),
+            Text::Glued("three".to_string()),
+            Text::TextAction(vec![TextAction::space(false, true)]),
+        ]);
+
+        assert_eq!(translated, " hello hihi foo two three");
     }
 
     #[test]
