@@ -8,7 +8,7 @@ use std::path::Path;
 
 mod controller;
 
-use controller::{Controller, EnigoController};
+use controller::{ApplescriptController, Controller};
 
 pub fn main() {
     let args: Vec<String> = env::args().collect();
@@ -75,7 +75,7 @@ pub fn main() {
                 }
             },
             &mut State {
-                controller: Box::new(EnigoController::new()),
+                controller: Box::new(ApplescriptController::new()),
                 translator: initial_translator,
             },
         );

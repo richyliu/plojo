@@ -5,17 +5,6 @@ users may need to install libxdo-dev.
 
 ## Todos
 
-- BUG: I can't use some keyboard shortcuts after pressing arrow
-  - command + shortcut sometimes doesn't work either
-  - maybe try using autopilot again
-  - maybe try using applescript
-    - make another controller to dispatch with applescript
-    - `osascript -e 'tell application "System Events" to keystroke "v" using {shift down, command down}'`
-    - https://en.wikibooks.org/wiki/AppleScript_Programming/System_Events
-    - https://eastmanreference.com/complete-list-of-applescript-key-codes
-  - controlling volume
-    - https://coolaj86.com/articles/how-to-control-os-x-system-volume-with-applescript/
-
 - run shell commands with stroke
   - https://doc.rust-lang.org/std/process/struct.Command.html#method.spawn
 - add option for text actions to be appended after a command

@@ -17,12 +17,12 @@
 "TP-P": "{~|'^}",
 "TP-L": "{^~|'}",
 
-"R-R": [{"Keys": ["Return"]}],
-"TA*B": [{"Keys": ["Tab"]}],
-"STA*B": [{"Keys": ["Shift", "Tab"]}],
-"-FRL": [{"Keys": ["Meta", "Space"]}],
-"SK*": [{"Keys": ["Escape"]}],
-"R-RB": [{"Keys": ["Shift", "Return"]}],
+"R-R": [{ "Keys": [{ "Special": "Return" }, []] }],
+"TA*B": [{ "Keys": [{ "Special": "Tab" }, []] }],
+"STA*B": [{ "Keys": [{ "Special": "Tab" }, ["Shift"]] }],
+"-FRL": [{ "Keys": [{ "Special": "Space" }, ["Meta"]] }],
+"SK*": [{ "Keys": [{ "Special": "Escape" }, []] }],
+"R-RB": [{ "Keys": [{ "Special": "Return" }, ["Shift"]] }],
 
-"TKPWAO*LG": [{"Keys": ["Meta", "LeftArrow"]}, {"Replace": [0, "!g "]}]
+"TKPWAO*LG": [{ "Keys": [{ "Special": "LeftArrow" }, ["Meta"]]}, {"Replace": [0, "!g "] }]
 }

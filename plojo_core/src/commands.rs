@@ -7,16 +7,22 @@ pub enum Command {
     Replace(usize, String),
     PrintHello,
     NoOp,
-    /// Press and hold down the keys in order, then releas them all at once
-    Keys(Vec<Key>),
+    /// Press a key with some modifier keys
+    Keys(Key, Vec<Modifier>),
+    /// Send a raw keystroke with key code, true = down, up = false
+    Raw(u16, bool),
 }
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize)]
 pub enum Key {
-    Alt,
+    Special(SpecialKey),
+    Layout(char), // literal key (ex: "a", "b", etc.)
+}
+
+#[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize)]
+pub enum SpecialKey {
     Backspace,
     CapsLock,
-    Control,
     Delete,
     DownArrow,
     End,
@@ -35,18 +41,22 @@ pub enum Key {
     F9,
     Home,
     LeftArrow,
-    Meta,
-    Option,
     PageDown,
     PageUp,
     Return,
     RightArrow,
-    Shift,
     Space,
     Tab,
     UpArrow,
-    Layout(char),
-    Raw(u16),
+}
+
+#[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize, Copy)]
+pub enum Modifier {
+    Alt,
+    Control,
+    Meta,
+    Option, // for MacOS
+    Shift,
 }
 
 impl Command {

@@ -1,11 +1,11 @@
-use plojo_core::{Command, Key, Stroke, Translator};
+use plojo_core::{Command, Key, Modifier, SpecialKey, Stroke, Translator};
 use plojo_standard::{Config as StandardTranslatorConfig, StandardTranslator};
 
 /// Black box for testing the entire translator
 struct Blackbox {
     output: String,
     translator: StandardTranslator,
-    output_keys: Vec<Key>,
+    output_keys: Vec<(Key, Vec<Modifier>)>,
 }
 
 impl Blackbox {
@@ -38,7 +38,7 @@ impl Blackbox {
     /// Expect that pressing stroke(s) causes certain key commands
     /// Similar to expect
     /// All of the keys produced are matched against total_keys
-    fn expect_keys(&mut self, strokes: &str, total_keys: Vec<Key>) {
+    fn expect_keys(&mut self, strokes: &str, total_keys: Vec<(Key, Vec<Modifier>)>) {
         self.lookup_and_dispatch(strokes);
         assert_eq!(self.output_keys, total_keys);
     }
@@ -71,8 +71,11 @@ impl Blackbox {
                         panic!("Not expecting PrintHello to be outputted from the blackbox");
                     }
                     Command::NoOp => {}
-                    Command::Keys(mut keys) => {
-                        self.output_keys.append(&mut keys);
+                    Command::Keys(key, modifiers) => {
+                        self.output_keys.push((key, modifiers));
+                    }
+                    Command::Raw(_raw, _is_down) => {
+                        panic!("Cannot handle raw keycodes");
                     }
                 }
             }
@@ -186,13 +189,13 @@ fn suppress_space_should_lowercase() {
 fn commands_correction() {
     let mut b = Blackbox::new(
         r#"
-            "H-L": [{ "Keys": ["UpArrow"] }],
-            "H-L/WORLD": [{ "Keys": ["UpArrow"] }],
+            "H-L": [{ "Keys": [{"Special": "UpArrow"}, []] }],
+            "H-L/WORLD": [{ "Keys": [{"Special": "UpArrow"}, []] }],
             "H-L/WORLD/H-L": "hi"
         "#,
     );
-    b.expect_keys("H-L", vec![Key::UpArrow]);
-    b.expect_keys("WORLD", vec![Key::UpArrow]);
+    b.expect_keys("H-L", vec![(Key::Special(SpecialKey::UpArrow), vec![])]);
+    b.expect_keys("WORLD", vec![(Key::Special(SpecialKey::UpArrow), vec![])]);
     b.expect("H-L", " hi");
 }
 
@@ -200,17 +203,29 @@ fn commands_correction() {
 fn commands_undo() {
     let mut b = Blackbox::new(
         r#"
-            "H-L": [{ "Keys": ["UpArrow"] }],
+            "H-L": [{ "Keys": [{"Special": "UpArrow"}, []] }],
             "H-L/WORLD": "hello",
-            "TP": [{ "Keys": ["Meta"] }]
+            "TP": [{ "Keys": [{"Layout": "a"}, ["Meta"]] }]
         "#,
     );
-    b.expect_keys("H-L", vec![Key::UpArrow]);
+    b.expect_keys("H-L", vec![(Key::Special(SpecialKey::UpArrow), vec![])]);
     b.expect("WORLD", " hello");
-    b.expect_keys("TP", vec![Key::UpArrow, Key::Meta]);
+    b.expect_keys(
+        "TP",
+        vec![
+            (Key::Special(SpecialKey::UpArrow), vec![]),
+            (Key::Layout('a'), vec![Modifier::Meta]),
+        ],
+    );
     b.expect("*", " hello");
     b.expect("*", "");
-    b.expect_keys("*", vec![Key::UpArrow, Key::Meta]);
+    b.expect_keys(
+        "*",
+        vec![
+            (Key::Special(SpecialKey::UpArrow), vec![]),
+            (Key::Layout('a'), vec![Modifier::Meta]),
+        ],
+    );
 }
 
 #[test]

@@ -342,7 +342,7 @@ fn parse_commands(values: Vec<Value>) -> Result<Vec<Command>, ParseError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use plojo_core::Key;
+    use plojo_core::{Key, Modifier, SpecialKey};
     use std::collections::HashSet;
     use std::iter::FromIterator;
 
@@ -563,8 +563,8 @@ mod tests {
     fn test_commands_parse_dictionary() {
         let contents = r#"
 {
-"UP": [{ "Keys": ["UpArrow", {"Layout": "a"}] }],
-"TEGT": [{ "Keys": ["UpArrow", {"Layout": "a"}] }]
+"UP": [{ "Keys": [{"Special": "UpArrow"}, []] }],
+"TEGT": [{ "Keys": [{"Layout": "a"}, ["Meta"]] }]
 }
         "#;
         let parsed = load_dicts(contents).unwrap();
@@ -573,17 +573,17 @@ mod tests {
         let expect = vec![
             (
                 Stroke::new("UP"),
-                vec![Translation::Command(vec![Command::Keys(vec![
-                    Key::UpArrow,
-                    Key::Layout('a'),
-                ])])],
+                vec![Translation::Command(vec![Command::Keys(
+                    Key::Special(SpecialKey::UpArrow),
+                    vec![],
+                )])],
             ),
             (
                 Stroke::new("TEGT"),
-                vec![Translation::Command(vec![Command::Keys(vec![
-                    Key::UpArrow,
+                vec![Translation::Command(vec![Command::Keys(
                     Key::Layout('a'),
-                ])])],
+                    vec![Modifier::Meta],
+                )])],
             ),
         ];
         let expect: HashSet<Entry> = HashSet::from_iter(expect.iter().cloned());

@@ -6,6 +6,8 @@ mod stroke;
 
 pub use commands::Command;
 pub use commands::Key;
+pub use commands::Modifier;
+pub use commands::SpecialKey;
 pub use stroke::Stroke;
 
 /// Translation from a stroke into a command

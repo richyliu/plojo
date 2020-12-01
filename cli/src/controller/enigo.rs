@@ -1,7 +1,7 @@
 use super::Controller;
 use enigo::KeyboardControllable;
 use enigo::{Enigo, Key};
-use plojo_core::{Command, Key as InternalKey};
+use plojo_core::{Command, Key as InternalKey, Modifier, SpecialKey};
 use std::{thread, time::Duration};
 
 pub struct EnigoController {
@@ -66,49 +66,66 @@ impl Controller for EnigoController {
                 println!("Hello!");
             }
             Command::NoOp => {}
-            Command::Keys(keys) => self.key_combo(
-                keys.iter().map(|k| from_internal_key(k)).collect(),
-                KEY_HOLD_DELAY,
-            ),
+            Command::Keys(key, modifiers) => {
+                let mut keys = Vec::with_capacity(modifiers.len() + 1);
+                for m in modifiers {
+                    keys.push(from_modifier(m));
+                }
+                keys.push(from_internal_key(key));
+                self.key_combo(keys, KEY_HOLD_DELAY);
+            }
+            Command::Raw(code, is_down) => {
+                if is_down {
+                    self.enigo.key_down(Key::Raw(code));
+                } else {
+                    self.enigo.key_up(Key::Raw(code));
+                }
+            }
         }
     }
 }
 
-fn from_internal_key(key: &InternalKey) -> Key {
-    match *key {
-        InternalKey::Alt => Key::Alt,
-        InternalKey::Backspace => Key::Backspace,
-        InternalKey::CapsLock => Key::CapsLock,
-        InternalKey::Control => Key::Control,
-        InternalKey::Delete => Key::Delete,
-        InternalKey::DownArrow => Key::DownArrow,
-        InternalKey::End => Key::End,
-        InternalKey::Escape => Key::Escape,
-        InternalKey::F1 => Key::F1,
-        InternalKey::F10 => Key::F10,
-        InternalKey::F11 => Key::F11,
-        InternalKey::F12 => Key::F12,
-        InternalKey::F2 => Key::F2,
-        InternalKey::F3 => Key::F3,
-        InternalKey::F4 => Key::F4,
-        InternalKey::F5 => Key::F5,
-        InternalKey::F6 => Key::F6,
-        InternalKey::F7 => Key::F7,
-        InternalKey::F8 => Key::F8,
-        InternalKey::F9 => Key::F9,
-        InternalKey::Home => Key::Home,
-        InternalKey::LeftArrow => Key::LeftArrow,
-        InternalKey::Meta => Key::Meta,
-        InternalKey::Option => Key::Option,
-        InternalKey::PageDown => Key::PageDown,
-        InternalKey::PageUp => Key::PageUp,
-        InternalKey::Return => Key::Return,
-        InternalKey::RightArrow => Key::RightArrow,
-        InternalKey::Shift => Key::Shift,
-        InternalKey::Space => Key::Space,
-        InternalKey::Tab => Key::Tab,
-        InternalKey::UpArrow => Key::Raw(0x7e), // NOTE: fixes a bug in enigo
+fn from_internal_key(key: InternalKey) -> Key {
+    match key {
+        InternalKey::Special(special_key) => match special_key {
+            SpecialKey::Backspace => Key::Backspace,
+            SpecialKey::CapsLock => Key::CapsLock,
+            SpecialKey::Delete => Key::Delete,
+            SpecialKey::DownArrow => Key::DownArrow,
+            SpecialKey::End => Key::End,
+            SpecialKey::Escape => Key::Escape,
+            SpecialKey::F1 => Key::F1,
+            SpecialKey::F10 => Key::F10,
+            SpecialKey::F11 => Key::F11,
+            SpecialKey::F12 => Key::F12,
+            SpecialKey::F2 => Key::F2,
+            SpecialKey::F3 => Key::F3,
+            SpecialKey::F4 => Key::F4,
+            SpecialKey::F5 => Key::F5,
+            SpecialKey::F6 => Key::F6,
+            SpecialKey::F7 => Key::F7,
+            SpecialKey::F8 => Key::F8,
+            SpecialKey::F9 => Key::F9,
+            SpecialKey::Home => Key::Home,
+            SpecialKey::LeftArrow => Key::LeftArrow,
+            SpecialKey::PageDown => Key::PageDown,
+            SpecialKey::PageUp => Key::PageUp,
+            SpecialKey::Return => Key::Return,
+            SpecialKey::RightArrow => Key::RightArrow,
+            SpecialKey::Space => Key::Space,
+            SpecialKey::Tab => Key::Tab,
+            SpecialKey::UpArrow => Key::Raw(0x7e), // NOTE: fixes a bug in enigo
+        },
         InternalKey::Layout(c) => Key::Layout(c),
-        InternalKey::Raw(raw) => Key::Raw(raw),
+    }
+}
+
+fn from_modifier(modifier: Modifier) -> Key {
+    match modifier {
+        Modifier::Alt => Key::Alt,
+        Modifier::Control => Key::Control,
+        Modifier::Meta => Key::Meta,
+        Modifier::Option => Key::Option,
+        Modifier::Shift => Key::Shift,
     }
 }
