@@ -12,3 +12,4 @@ plojo_core = { path = "../plojo_core" }
 plojo_standard = { path = "../plojo_standard" }
 enigo = "0.0.14"
 chrono = "0.4.19"
+autopilot = "0.4.0"

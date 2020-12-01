@@ -8,10 +8,13 @@ users may need to install libxdo-dev.
 - BUG: I can't use some keyboard shortcuts after pressing arrow
   - command + shortcut sometimes doesn't work either
   - maybe try using autopilot again
-  - https://github.com/autopilot-rs/autopilot-rs/blob/master/src/key.rs#L365
-  - https://github.com/openstenoproject/plover/blob/master/plover/oslayer/osxkeyboardcontrol.py#L131
-  - https://github.com/enigo-rs/enigo/blob/master/src/macos/macos_impl.rs#L221
-  - https://developer.apple.com/documentation/coregraphics/cgeventsourcestateid
+  - maybe try using applescript
+    - make another controller to dispatch with applescript
+    - `osascript -e 'tell application "System Events" to keystroke "v" using {shift down, command down}'`
+    - https://en.wikibooks.org/wiki/AppleScript_Programming/System_Events
+    - https://eastmanreference.com/complete-list-of-applescript-key-codes
+  - controlling volume
+    - https://coolaj86.com/articles/how-to-control-os-x-system-volume-with-applescript/
 
 - run shell commands with stroke
   - https://doc.rust-lang.org/std/process/struct.Command.html#method.spawn
@@ -22,12 +25,9 @@ users may need to install libxdo-dev.
 
 - use an english dictionary lookup to fix orthography errors
   - BUG: `SHEUFR/-G` gives "shiverring"; need to use a dictionary for orthography
-    - or maybe don't and write a warning for that
-    - "summitting" also got the consonant doubled (it should be "summiting")
-    - maybe check with the dictionary a "simple" join first
-    - also "victorry"
-    - https://github.com/openstenoproject/plover/blob/master/plover/orthography.py
     - the issue is primarily with consonant doubling
+    - check with a dictionary for a "simple" join first
+    - https://github.com/openstenoproject/plover/blob/master/plover/orthography.py
 - add custom stroke/command to also reset `prev_stroke`
 - implement `{}` to clear formatting
   - implement it as a suppress space followed by an empty string
@@ -63,3 +63,4 @@ users may need to install libxdo-dev.
 - note that numbers in a stroke must have a dash where necessary
   - if 0/5 not present and there are digits 6-9
 - note that translations with only numbers will be interpreted as glued
+- use macros for raw stokes parsing

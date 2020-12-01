@@ -3,11 +3,19 @@
 "TKPWAOU/HRAEU": "Goulet",
 "TPHAO*RLD": "Noodler's",
 "HRAO": "lmao",
+"R*L": "rliu429",
+"R*L/KWRAT": "rliu429@student.fuhsd.org",
+
+"SRAOEUS/PREZ": "vice president",
+"KPHAPBD/HRAOEUPB": "command line",
 
 "AFPS": "{*?}",
 "TK-FPS": "{*!}",
 "-RB": "{^^}",
 "KA*PD": "{*-|}",
+
+"TP-P": "{~|'^}",
+"TP-L": "{^~|'}",
 
 "R-R": [{"Keys": ["Return"]}],
 "TA*B": [{"Keys": ["Tab"]}],
