@@ -26,7 +26,7 @@ impl Dictionary {
         Ok(entries.into_iter().collect())
     }
 
-    pub(super) fn lookup(&self, strokes: &[Stroke]) -> Option<Vec<Translation>> {
+    fn lookup(&self, strokes: &[Stroke]) -> Option<Vec<Translation>> {
         // combine strokes with a `/` between them
         let mut combined = strokes
             .into_iter()

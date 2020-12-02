@@ -123,6 +123,33 @@ impl Config {
     }
 }
 
+impl StandardTranslator {
+    /// Remove all strokes that cannot be undone (currently Commands and text actions)
+    fn remove_non_undoable_strokes(&mut self) {
+        while let Some(stroke) = self.prev_strokes.pop() {
+            let translated = self.dict.translate(&vec![stroke]);
+            for t in translated {
+                match t {
+                    Translation::Command(_) => {
+                        // keep on removing
+                    }
+                    Translation::Text(text) => {
+                        match text {
+                            Text::TextAction(_) => {
+                                // keep on removing
+                            }
+                            _ => {
+                                // stop removing and add this stroke back
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 impl Translator for StandardTranslator {
     type C = Config;
 
@@ -148,7 +175,7 @@ impl Translator for StandardTranslator {
 
     fn undo(&mut self) -> Vec<Command> {
         let old_translations = self.dict.translate(&self.prev_strokes);
-        self.prev_strokes.pop();
+        self.remove_non_undoable_strokes();
         let new_translations = self.dict.translate(&self.prev_strokes);
 
         translation_diff(&old_translations, &new_translations)

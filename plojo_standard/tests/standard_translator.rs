@@ -211,7 +211,8 @@ fn commands_undo() {
         r#"
             "H-L": [{ "Keys": [{"Special": "UpArrow"}, []] }],
             "H-L/WORLD": "hello",
-            "TP": [{ "Keys": [{"Layout": "a"}, ["Meta"]] }]
+            "TP": [{ "Keys": [{"Layout": "a"}, ["Meta"]] }],
+            "TPAO": "foo"
         "#,
     );
     b.expect_keys("H-L", vec![(Key::Special(SpecialKey::UpArrow), vec![])]);
@@ -223,15 +224,9 @@ fn commands_undo() {
             (Key::Layout('a'), vec![Modifier::Meta]),
         ],
     );
+    b.expect("TPAO", " hello foo");
     b.expect("*", " hello");
     b.expect("*", "");
-    b.expect_keys(
-        "*",
-        vec![
-            (Key::Special(SpecialKey::UpArrow), vec![]),
-            (Key::Layout('a'), vec![Modifier::Meta]),
-        ],
-    );
 }
 
 #[test]

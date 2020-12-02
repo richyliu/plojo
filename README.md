@@ -7,8 +7,6 @@ users may need to install libxdo-dev.
 
 - add option for text actions to be appended after a command
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
-- undo should remove all the text actions if there are any
-  - it should also remove all the commands
 - use an english dictionary lookup to fix orthography errors
   - BUG: `SHEUFR/-G` gives "shiverring"; need to use a dictionary for orthography
     - the issue is primarily with consonant doubling
@@ -27,6 +25,7 @@ users may need to install libxdo-dev.
 
 - escape sequences (especially for brackets) in dictionary
 - ignore dictionary unknown special actions
+- add support for multiple dictionaries that can have their order changed
 - store prev_strokes in a VecDeque instead of a Vec
   - only diff the last 15 or something strokes instead of all the strokes
 - find out what text was deleted to allow for delete by word optimization
@@ -52,3 +51,5 @@ users may need to install libxdo-dev.
   - if 0/5 not present and there are digits 6-9
 - note that translations with only numbers will be interpreted as glued
 - use macros for raw stokes parsing
+- possibly optimize hashmap lookup by turning steno keys into a u32
+- document how undo removes all strokes that only have text actions and commands
