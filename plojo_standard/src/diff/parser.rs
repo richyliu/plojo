@@ -123,149 +123,131 @@ fn merge_translations(translations: Vec<Text>) -> Vec<TextInternal> {
         return vec![];
     }
 
-    // tracks the state for the merging the text actions
-    struct IterState {
-        // accumulated text literals and text actions
-        acc: Vec<TextInternal>,
-        // consecutive actions are added to this
-        actions: Option<HashMap<TextActionType, bool>>,
-        // consecutive attached words after a word are added to this
-        words: Option<Vec<String>>,
-        // whether the first text in words was an attached (in which case to suppress space)
-        first_word_attached: bool,
-    }
+    // accumulated text literals and text actions
+    let mut acc: Vec<TextInternal> = Vec::with_capacity(translations.len());
+    // consecutive actions are added to this
+    let mut actions: Option<HashMap<TextActionType, bool>> = None;
+    // consecutive attached words after a word are added to this
+    let mut words: Option<Vec<String>> = None;
+    // whether the first text in words was an attached (in which case to suppress space)
+    let mut first_word_attached: bool = false;
 
     // merge all consecutive text actions into a set
-    let results =
-        translations.into_iter().fold(
-            IterState {
-                acc: vec![],
-                actions: None,
-                words: None,
-                first_word_attached: false,
-            },
-            |mut state, cur| {
-                // check for attached text first
-                if let Text::Attached(attached) = cur {
-                    // push any text actions first
-                    if let Some(actions) = state.actions {
-                        state.acc.push(TextInternal::Actions(actions));
-                        state.actions = None;
-                    }
+    for cur in translations {
+        // check for attached text first
+        if let Text::Attached(attached) = cur {
+            // push any text actions first
+            if let Some(text_actions) = actions {
+                acc.push(TextInternal::Actions(text_actions));
+                actions = None;
+            }
 
-                    if let Some(mut prev_words) = state.words {
-                        prev_words.push(attached);
-                        state.words = Some(prev_words);
+            if let Some(mut prev_words) = words {
+                prev_words.push(attached);
+                words = Some(prev_words);
+            } else {
+                words = Some(vec![attached]);
+                first_word_attached = true;
+            }
+        } else {
+            // not an attached text, so if there are attached words, apply orthography and push to acc
+            if let Some(attached) = words {
+                // suppress space also if the first in words was an attached
+                if first_word_attached {
+                    let prev = acc.pop();
+                    if let Some(prev) = prev {
+                        // add the suppress space to previous actions if there are any
+                        if let TextInternal::Actions(mut prev_actions) = prev {
+                            prev_actions.insert(TextActionType::SpaceNext, false);
+                            acc.push(TextInternal::Actions(prev_actions));
+                        } else {
+                            // previous was not an action
+                            acc.push(prev);
+                            acc.push(TextInternal::Actions(HashMap::from_iter(vec![(
+                                TextActionType::SpaceNext,
+                                false,
+                            )])));
+                        }
                     } else {
-                        state.words = Some(vec![attached]);
-                        state.first_word_attached = true;
+                        acc.push(TextInternal::Actions(HashMap::from_iter(vec![(
+                            TextActionType::SpaceNext,
+                            false,
+                        )])));
                     }
-                } else {
-                    // not an attached text, so if there are attached words, apply orthography and push to acc
-                    if let Some(attached) = state.words {
-                        // suppress space also if the first in words was an attached
-                        if state.first_word_attached {
-                            let prev = state.acc.pop();
-                            if let Some(prev) = prev {
-                                // add the suppress space to previous actions if there are any
-                                if let TextInternal::Actions(mut prev_actions) = prev {
-                                    prev_actions.insert(TextActionType::SpaceNext, false);
-                                    state.acc.push(TextInternal::Actions(prev_actions));
-                                } else {
-                                    // previous was not an action
-                                    state.acc.push(prev);
-                                    state.acc.push(TextInternal::Actions(HashMap::from_iter(
-                                        vec![(TextActionType::SpaceNext, false)],
-                                    )));
-                                }
-                            } else {
-                                state
-                                    .acc
-                                    .push(TextInternal::Actions(HashMap::from_iter(vec![(
-                                        TextActionType::SpaceNext,
-                                        false,
-                                    )])));
-                            }
-                        }
-                        state
-                            .acc
-                            .push(TextInternal::Lit(apply_orthography(attached)));
-                        state.words = None;
+                }
+                acc.push(TextInternal::Lit(apply_orthography(attached)));
+                words = None;
+            }
+
+            match cur {
+                Text::Lit(text) => {
+                    // push any text actions first
+                    if let Some(text_actions) = actions {
+                        acc.push(TextInternal::Actions(text_actions));
+                        actions = None;
                     }
 
-                    match cur {
-                        Text::Lit(text) => {
-                            // push any text actions first
-                            if let Some(actions) = state.actions {
-                                state.acc.push(TextInternal::Actions(actions));
-                                state.actions = None;
-                            }
+                    // for number-only translations, push is as glued
+                    if NUMBERS_ONLY_REGEX.is_match(&text) {
+                        acc.push(TextInternal::Glued(text));
+                    } else {
+                        words = Some(vec![text]);
+                    }
+                    first_word_attached = false;
+                }
+                Text::UnknownStroke(stroke) => {
+                    // push any text actions first
+                    if let Some(text_actions) = actions {
+                        acc.push(TextInternal::Actions(text_actions));
+                        actions = None;
+                    }
 
-                            // for number-only translations, push is as glued
-                            if NUMBERS_ONLY_REGEX.is_match(&text) {
-                                state.acc.push(TextInternal::Glued(text));
-                            } else {
-                                state.words = Some(vec![text]);
+                    acc.push(TextInternal::Unknown(stroke.to_raw()));
+                }
+                Text::TextAction(text_actions) => {
+                    match actions {
+                        Some(mut prev_actions) => {
+                            for a in text_actions {
+                                prev_actions.insert(a.action_type, a.val);
                             }
-                            state.first_word_attached = false;
+                            actions = Some(prev_actions);
                         }
-                        Text::UnknownStroke(stroke) => {
-                            // push any text actions first
-                            if let Some(actions) = state.actions {
-                                state.acc.push(TextInternal::Actions(actions));
-                                state.actions = None;
+                        None => {
+                            let mut new_actions = HashMap::new();
+                            for a in text_actions {
+                                new_actions.insert(a.action_type, a.val);
                             }
-
-                            state.acc.push(TextInternal::Unknown(stroke.to_raw()));
-                        }
-                        Text::TextAction(actions) => {
-                            match state.actions {
-                                Some(mut prev_actions) => {
-                                    for a in actions {
-                                        prev_actions.insert(a.action_type, a.val);
-                                    }
-                                    state.actions = Some(prev_actions);
-                                }
-                                None => {
-                                    let mut new_actions = HashMap::new();
-                                    for a in actions {
-                                        new_actions.insert(a.action_type, a.val);
-                                    }
-                                    state.actions = Some(new_actions);
-                                }
-                            };
-                        }
-                        Text::Attached(_) => {
-                            // already handled above; shouldn't be here
-                            panic!("this shouldn't be possible");
-                        }
-                        Text::Glued(text) => {
-                            // push any text actions first
-                            if let Some(actions) = state.actions {
-                                state.acc.push(TextInternal::Actions(actions));
-                                state.actions = None;
-                            }
-
-                            state.acc.push(TextInternal::Glued(text));
-                            state.first_word_attached = false;
+                            actions = Some(new_actions);
                         }
                     };
                 }
-                state
-            },
-        );
+                Text::Attached(_) => {
+                    // already handled above; shouldn't be here
+                    panic!("this shouldn't be possible");
+                }
+                Text::Glued(text) => {
+                    // push any text actions first
+                    if let Some(text_actions) = actions {
+                        acc.push(TextInternal::Actions(text_actions));
+                        actions = None;
+                    }
 
-    let mut acc = results.acc;
+                    acc.push(TextInternal::Glued(text));
+                    first_word_attached = false;
+                }
+            };
+        }
+    }
 
     // push remaining actions
-    if let Some(a) = results.actions {
+    if let Some(a) = actions {
         acc.push(TextInternal::Actions(a));
     }
 
     // apply orthography and push remaining words
-    if let Some(words) = results.words {
+    if let Some(words) = words {
         // suppress space also if the first in words was an attached
-        if results.first_word_attached {
+        if first_word_attached {
             let prev = acc.pop();
             if let Some(prev) = prev {
                 // add the suppress space to previous actions if there are any
