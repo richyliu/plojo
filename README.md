@@ -5,8 +5,8 @@ users may need to install libxdo-dev.
 
 ## Todos
 
-- run shell commands with stroke
-  - https://doc.rust-lang.org/std/process/struct.Command.html#method.spawn
+- fix bug
+- split controllers/"dispatchers" out into their own crate
 - add option for text actions to be appended after a command
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
 - undo should remove all the text actions if there are any

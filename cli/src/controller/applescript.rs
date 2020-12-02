@@ -1,6 +1,6 @@
 use super::Controller;
-use plojo_core::{Command as InternalCommand, Key, Modifier, SpecialKey};
-use std::process::Command;
+use plojo_core::{Command, Key, Modifier, SpecialKey};
+use std::process::Command as ProcessCommand;
 
 pub struct ApplescriptController {}
 
@@ -12,7 +12,7 @@ struct Cmd(String);
 /// Panics if the osascript command failed
 fn osascript_cmd(cmd: Cmd) {
     let applescript_cmd = format!(r#"tell application "System Events" to {}"#, cmd.0);
-    let status = Command::new("osascript")
+    let status = ProcessCommand::new("osascript")
         .arg("-e")
         .arg(applescript_cmd)
         .status()
@@ -53,7 +53,7 @@ fn type_raw(code: u16) -> Cmd {
 
 /// Trigger backspace n times using a loop in applescript
 fn backspace(n: usize) {
-    let status = Command::new("osascript")
+    let status = ProcessCommand::new("osascript")
         .arg("-e")
         .arg(format!("repeat {} times", n))
         .arg("-e")
@@ -69,26 +69,35 @@ fn backspace(n: usize) {
     }
 }
 
+fn dispatch_shell(cmd: String, args: Vec<String>) {
+    let result = ProcessCommand::new(cmd).args(args).spawn();
+    match result {
+        Ok(_) => {}
+        Err(e) => eprintln!("Could not execute shell command: {}", e),
+    }
+}
+
 impl Controller for ApplescriptController {
     fn new() -> Self {
         Self {}
     }
 
-    fn dispatch(&mut self, command: InternalCommand) {
+    fn dispatch(&mut self, command: Command) {
         match command {
-            InternalCommand::Replace(backspace_num, add_text) => {
+            Command::Replace(backspace_num, add_text) => {
                 backspace(backspace_num);
 
                 if add_text.len() > 0 {
                     osascript_cmd(type_string(&add_text));
                 }
             }
-            InternalCommand::PrintHello => {
+            Command::PrintHello => {
                 println!("Hello!");
             }
-            InternalCommand::NoOp => {}
-            InternalCommand::Keys(key, modifiers) => osascript_cmd(type_key(key, modifiers)),
-            InternalCommand::Raw(code) => osascript_cmd(type_raw(code)),
+            Command::NoOp => {}
+            Command::Keys(key, modifiers) => osascript_cmd(type_key(key, modifiers)),
+            Command::Raw(code) => osascript_cmd(type_raw(code)),
+            Command::Shell(cmd, args) => dispatch_shell(cmd, args),
         }
     }
 }

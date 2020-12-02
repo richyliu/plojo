@@ -4,11 +4,20 @@ use super::Controller;
 use autopilot::key;
 use autopilot::key::{Code, KeyCode};
 use plojo_core::Command;
+use std::process::Command as ProcessCommand;
 
 const BACKSPACE_DELAY: u64 = 5;
 const TYPE_SPEED: f64 = 400.0;
 
 pub struct AutopilotController {}
+
+fn dispatch_shell(cmd: String, args: Vec<String>) {
+    let result = ProcessCommand::new(cmd).args(args).spawn();
+    match result {
+        Ok(_) => {}
+        Err(e) => eprintln!("Could not execute shell command: {}", e),
+    }
+}
 
 impl Controller for AutopilotController {
     fn new() -> Self {
@@ -41,6 +50,7 @@ impl Controller for AutopilotController {
                 eprintln!("Warning: autopilot controller does not support dispatching raw keys");
                 eprintln!("Unable to dispatch key code: {:?}", key);
             }
+            Command::Shell(cmd, args) => dispatch_shell(cmd, args),
         }
     }
 }

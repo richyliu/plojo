@@ -77,6 +77,12 @@ impl Blackbox {
                     Command::Raw(code) => {
                         panic!("Cannot handle raw keycodes. Raw key code: {}", code);
                     }
+                    Command::Shell(cmd, args) => {
+                        panic!(
+                            "Cannot handle shell commands. Command: {:?} with args: {:?}",
+                            cmd, args
+                        );
+                    }
                 }
             }
         }

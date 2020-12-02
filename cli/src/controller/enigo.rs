@@ -2,7 +2,7 @@ use super::Controller;
 use enigo::KeyboardControllable;
 use enigo::{Enigo, Key};
 use plojo_core::{Command, Key as InternalKey, Modifier, SpecialKey};
-use std::{thread, time::Duration};
+use std::{process::Command as ProcessCommand, thread, time::Duration};
 
 pub struct EnigoController {
     enigo: Enigo,
@@ -77,6 +77,7 @@ impl Controller for EnigoController {
             Command::Raw(code) => {
                 self.enigo.key_click(Key::Raw(code));
             }
+            Command::Shell(cmd, args) => dispatch_shell(cmd, args),
         }
     }
 }
@@ -123,5 +124,13 @@ fn from_modifier(modifier: Modifier) -> Key {
         Modifier::Meta => Key::Meta,
         Modifier::Option => Key::Option,
         Modifier::Shift => Key::Shift,
+    }
+}
+
+fn dispatch_shell(cmd: String, args: Vec<String>) {
+    let result = ProcessCommand::new(cmd).args(args).spawn();
+    match result {
+        Ok(_) => {}
+        Err(e) => eprintln!("Could not execute shell command: {}", e),
     }
 }

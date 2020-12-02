@@ -11,6 +11,8 @@ pub enum Command {
     Keys(Key, Vec<Modifier>),
     /// Send a raw keystroke with key code
     Raw(u16),
+    /// Dispatch a shell command with arguments
+    Shell(String, Vec<String>),
 }
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize)]

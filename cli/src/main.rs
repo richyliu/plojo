@@ -1,4 +1,4 @@
-use chrono::prelude::Local;
+use chrono::prelude::{Local, SecondsFormat};
 use plojo_core::Translator;
 use plojo_input::{RawStroke, RawStrokeGeminipr, SerialMachine};
 use plojo_standard::{Config as StandardTranslatorConfig, StandardTranslator};
@@ -32,7 +32,7 @@ pub fn main() {
         "thumb_numbers.json",
         "nav.json",
         "modifiers-single-stroke.json",
-        "user.json",
+        args.get(1).map_or("empty.json", |s| &s),
     ];
     let raw_dicts = raw_dict_names
         .iter()
@@ -57,7 +57,8 @@ pub fn main() {
         machine.listen(
             |raw, state| {
                 let now = Local::now();
-                print!("{} ", now.format("%+"));
+                print!("{} ", now.to_rfc3339_opts(SecondsFormat::Millis, false),);
+
                 let stroke = RawStrokeGeminipr::parse_raw(raw).to_stroke();
                 print!("{:?} => ", stroke);
 
