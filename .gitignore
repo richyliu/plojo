@@ -1,5 +1,5 @@
 target/
-.idea/workspace.xml
+.idea/
 
 log
 cli/runtime_files/plojo_user.json
