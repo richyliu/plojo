@@ -273,3 +273,28 @@ fn number_translation() {
     b.expect("12", " hi12");
     b.expect("2-8D", " hi122800");
 }
+
+#[test]
+fn capitalize_word_after_command() {
+    let mut b = Blackbox::new(
+        r#"
+            "KPA*": "{^}{-|}",
+            "TKOUPB": [{ "Keys": [{"Special": "DownArrow"}, []] }],
+            "UP": [{ "Keys": [{"Special": "UpArrow"}, []] }],
+            "-T": "the"
+        "#,
+    );
+    b.expect("-T", " the");
+    b.expect_keys(
+        "KPA*/TKOUPB",
+        vec![(Key::Special(SpecialKey::DownArrow), vec![])],
+    );
+    b.expect_keys(
+        "UP",
+        vec![
+            (Key::Special(SpecialKey::DownArrow), vec![]),
+            (Key::Special(SpecialKey::UpArrow), vec![]),
+        ],
+    );
+    b.expect("-T", " theThe");
+}

@@ -8,6 +8,17 @@ mod parser;
 /// Finds the difference between two translations, converts them to their string representations,
 /// and diffs the strings to create a command
 pub(super) fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -> Vec<Command> {
+    // if added a command, return that directly
+    if old.len() + 1 == new.len() {
+        if let Some(Translation::Command(ref cmd)) = new.last() {
+            return cmd.clone();
+        }
+    }
+
+    // only diff translations starting from where they differ and ignore commands
+    let old: Vec<_> = old.iter().filter_map(Translation::as_text).collect();
+    let new: Vec<_> = new.iter().filter_map(Translation::as_text).collect();
+
     // find where the new translations differ from the old
     let mut i = 0;
     let loop_size = cmp::min(old.len(), new.len());
@@ -27,21 +38,14 @@ pub(super) fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -
         i = 0;
     }
 
-    // if added a command, return that directly
-    if old.len() + 1 == new.len() {
-        if let Some(Translation::Command(ref cmd)) = new.last() {
-            return cmd.clone();
-        }
-    }
-
-    // only diff translations starting from where they differ and ignore commands
-    let old_no_command: Vec<_> = old[i..].iter().filter_map(Translation::as_text).collect();
-    let new_no_command: Vec<_> = new[i..].iter().filter_map(Translation::as_text).collect();
+    // only consider the translations after where they differ
+    let old = old[i..].to_vec();
+    let new = new[i..].to_vec();
 
     // compare the two and return the result
     vec![text_diff(
-        parser::parse_translation(old_no_command),
-        parser::parse_translation(new_no_command),
+        parser::parse_translation(old),
+        parser::parse_translation(new),
     )]
 }
 

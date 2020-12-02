@@ -5,22 +5,21 @@ users may need to install libxdo-dev.
 
 ## Todos
 
-- fix bug
-- split controllers/"dispatchers" out into their own crate
 - add option for text actions to be appended after a command
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
 - undo should remove all the text actions if there are any
   - it should also remove all the commands
-
 - use an english dictionary lookup to fix orthography errors
   - BUG: `SHEUFR/-G` gives "shiverring"; need to use a dictionary for orthography
     - the issue is primarily with consonant doubling
     - check with a dictionary for a "simple" join first
     - https://github.com/openstenoproject/plover/blob/master/plover/orthography.py
+- split controllers/"dispatchers" out into their own crate
+
+- actually implement carrying capitalization
 - add custom stroke/command to also reset `prev_stroke`
 - implement `{}` to clear formatting
   - implement it as a suppress space followed by an empty string
-- actually implement carrying capitalization
 - fix retrospective add/remove space to work on the previous stroke, not word
 - upper/lower casing entire words
 - clear `prev_stroke` after a command?
