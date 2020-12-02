@@ -74,12 +74,8 @@ impl Controller for EnigoController {
                 keys.push(from_internal_key(key));
                 self.key_combo(keys, KEY_HOLD_DELAY);
             }
-            Command::Raw(code, is_down) => {
-                if is_down {
-                    self.enigo.key_down(Key::Raw(code));
-                } else {
-                    self.enigo.key_up(Key::Raw(code));
-                }
+            Command::Raw(code) => {
+                self.enigo.key_click(Key::Raw(code));
             }
         }
     }

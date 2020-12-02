@@ -24,6 +24,8 @@ fn osascript_cmd(cmd: Cmd) {
 }
 
 fn type_string(text: &str) -> Cmd {
+    let text = text.replace(r#"\"#, r#"\\"#); // escape backslashes
+    let text = text.replace(r#"""#, r#"\""#); // escape quotes
     Cmd(format!(r#"keystroke "{}""#, text))
 }
 
@@ -43,6 +45,10 @@ fn type_key(key: Key, modifiers: Vec<Modifier>) -> Cmd {
     });
 
     Cmd(cmd_str)
+}
+
+fn type_raw(code: u16) -> Cmd {
+    Cmd(format!(r#"key code {}"#, code))
 }
 
 /// Trigger backspace n times using a loop in applescript
@@ -82,7 +88,7 @@ impl Controller for ApplescriptController {
             }
             InternalCommand::NoOp => {}
             InternalCommand::Keys(key, modifiers) => osascript_cmd(type_key(key, modifiers)),
-            InternalCommand::Raw(code, is_down) => todo!("raw: {:?} {:?}", code, is_down),
+            InternalCommand::Raw(code) => osascript_cmd(type_raw(code)),
         }
     }
 }
@@ -122,7 +128,8 @@ fn key_to_string(key: Key) -> String {
                 SpecialKey::UpArrow => 126,
             }
         ),
-        Key::Layout(c) => format!(r#"keystroke "{}""#, c),
+        // use type_string to properly escape symbols
+        Key::Layout(c) => type_string(&c.to_string()).0,
     }
 }
 
@@ -157,6 +164,19 @@ mod tests {
         assert_eq!(
             type_key(Key::Special(SpecialKey::PageDown), vec![]),
             Cmd(r#"key code 121"#.to_string())
+        );
+    }
+
+    #[test]
+    fn test_escaping() {
+        assert_eq!(type_string(r#" ""#), Cmd(r#"keystroke " \"""#.to_string()));
+        assert_eq!(
+            type_key(Key::Layout('\\'), vec![]),
+            Cmd(r#"keystroke "\\""#.to_string())
+        );
+        assert_eq!(
+            type_key(Key::Layout('"'), vec![]),
+            Cmd(r#"keystroke "\"""#.to_string())
         );
     }
 }

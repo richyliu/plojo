@@ -9,8 +9,8 @@ pub enum Command {
     NoOp,
     /// Press a key with some modifier keys
     Keys(Key, Vec<Modifier>),
-    /// Send a raw keystroke with key code, true = down, up = false
-    Raw(u16, bool),
+    /// Send a raw keystroke with key code
+    Raw(u16),
 }
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize)]

@@ -37,12 +37,9 @@ impl Controller for AutopilotController {
                     key, modifiers
                 );
             }
-            Command::Raw(key, is_down) => {
+            Command::Raw(key) => {
                 eprintln!("Warning: autopilot controller does not support dispatching raw keys");
-                eprintln!(
-                    "Unable to dispatch key code: {:?} for key down?: {:?}",
-                    key, is_down
-                );
+                eprintln!("Unable to dispatch key code: {:?}", key);
             }
         }
     }

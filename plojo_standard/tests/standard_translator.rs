@@ -74,8 +74,8 @@ impl Blackbox {
                     Command::Keys(key, modifiers) => {
                         self.output_keys.push((key, modifiers));
                     }
-                    Command::Raw(_raw, _is_down) => {
-                        panic!("Cannot handle raw keycodes");
+                    Command::Raw(code) => {
+                        panic!("Cannot handle raw keycodes. Raw key code: {}", code);
                     }
                 }
             }
