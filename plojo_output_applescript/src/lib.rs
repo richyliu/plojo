@@ -1,5 +1,4 @@
-use super::Controller;
-use plojo_core::{Command, Key, Modifier, SpecialKey};
+use plojo_core::{Command, Controller, Key, Modifier, SpecialKey};
 use std::process::Command as ProcessCommand;
 
 pub struct ApplescriptController {}

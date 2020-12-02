@@ -4,5 +4,8 @@ members = [
     "plojo_input",
     "plojo_core",
     "plojo_standard",
+    "plojo_output_enigo",
+    "plojo_output_autopilot",
+    "plojo_output_applescript",
     "cli",
 ]

@@ -1,9 +1,8 @@
 //! Dispatch commands with autopilot crate. Currently keyboard shortcut commands are not supported
 
-use super::Controller;
 use autopilot::key;
 use autopilot::key::{Code, KeyCode};
-use plojo_core::Command;
+use plojo_core::{Command, Controller};
 use std::process::Command as ProcessCommand;
 
 const BACKSPACE_DELAY: u64 = 5;

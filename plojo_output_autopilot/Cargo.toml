@@ -1,5 +1,5 @@
 [package]
-name = "cli"
+name = "plojo_output_autopilot"
 version = "0.1.0"
 authors = ["Richard Liu <richy.liu.2002@gmail.com>"]
 edition = "2018"
@@ -7,8 +7,5 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-plojo_input = { path = "../plojo_input" }
 plojo_core = { path = "../plojo_core" }
-plojo_standard = { path = "../plojo_standard" }
-plojo_output_applescript = { path = "../plojo_output_applescript" }
-chrono = "0.4.19"
+autopilot = "0.4.0"

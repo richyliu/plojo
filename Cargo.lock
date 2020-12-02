@@ -113,11 +113,10 @@ dependencies = [
 name = "cli"
 version = "0.1.0"
 dependencies = [
- "autopilot",
  "chrono",
- "enigo",
  "plojo_core",
  "plojo_input",
+ "plojo_output_applescript",
  "plojo_standard",
 ]
 
@@ -559,6 +558,29 @@ version = "0.1.0"
 dependencies = [
  "plojo_core",
  "serialport",
+]
+
+[[package]]
+name = "plojo_output_applescript"
+version = "0.1.0"
+dependencies = [
+ "plojo_core",
+]
+
+[[package]]
+name = "plojo_output_autopilot"
+version = "0.1.0"
+dependencies = [
+ "autopilot",
+ "plojo_core",
+]
+
+[[package]]
+name = "plojo_output_enigo"
+version = "0.1.0"
+dependencies = [
+ "enigo",
+ "plojo_core",
 ]
 
 [[package]]

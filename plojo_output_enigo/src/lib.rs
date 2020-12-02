@@ -1,7 +1,6 @@
-use super::Controller;
 use enigo::KeyboardControllable;
 use enigo::{Enigo, Key};
-use plojo_core::{Command, Key as InternalKey, Modifier, SpecialKey};
+use plojo_core::{Command, Controller, Key as InternalKey, Modifier, SpecialKey};
 use std::{process::Command as ProcessCommand, thread, time::Duration};
 
 pub struct EnigoController {

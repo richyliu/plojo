@@ -1,14 +1,11 @@
 use chrono::prelude::{Local, SecondsFormat};
-use plojo_core::Translator;
+use plojo_core::{Controller, Translator};
 use plojo_input::{RawStroke, RawStrokeGeminipr, SerialMachine};
+use plojo_output_applescript::ApplescriptController;
 use plojo_standard::{Config as StandardTranslatorConfig, StandardTranslator};
 
 use std::env;
 use std::path::Path;
-
-mod controller;
-
-use controller::{ApplescriptController, Controller};
 
 pub fn main() {
     let args: Vec<String> = env::args().collect();
