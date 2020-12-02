@@ -38,7 +38,7 @@ impl Dictionary {
         self.strokes.get(&Stroke::new(&combined)).cloned()
     }
 
-    pub(super) fn translate(&self, strokes: &Vec<Stroke>) -> Vec<Translation> {
+    pub(super) fn translate(&self, strokes: &[Stroke]) -> Vec<Translation> {
         translate::translate_strokes(self, strokes)
     }
 }

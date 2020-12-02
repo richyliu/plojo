@@ -91,7 +91,9 @@ pub struct StandardTranslator {
 }
 
 // most number of strokes to stroke in prev_strokes; limits undo to this many strokes
-const MAX_STROKE_BUFFER: usize = 100;
+const MAX_STROKE_BUFFER: usize = 50;
+// only pass a certain number of strokes to be translated
+const MAX_TRANSLATION_STROKE_LEN: usize = 10;
 
 /// The configuration for the standard translator
 ///
@@ -166,9 +168,16 @@ impl Translator for StandardTranslator {
             self.prev_strokes.remove(0);
         }
 
-        let old_translations = self.dict.translate(&self.prev_strokes);
+        // translate only latest strokes
+        let start = if self.prev_strokes.len() > MAX_TRANSLATION_STROKE_LEN {
+            self.prev_strokes.len() - MAX_TRANSLATION_STROKE_LEN
+        } else {
+            0
+        };
+
+        let old_translations = self.dict.translate(&self.prev_strokes[start..]);
         self.prev_strokes.push(stroke);
-        let new_translations = self.dict.translate(&self.prev_strokes);
+        let new_translations = self.dict.translate(&self.prev_strokes[start..]);
 
         translation_diff(&old_translations, &new_translations)
     }

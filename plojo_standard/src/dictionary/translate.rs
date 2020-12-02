@@ -9,12 +9,12 @@ use plojo_core::Stroke;
 // ```
 // sed 's/[^\/]//g' plover.json | awk '{ print length }' | sort -nr | head -30
 // ```
-const MAX_TRANSLATION_STROKE_LEN: usize = 15;
+const MAX_TRANSLATION_STROKE_LEN: usize = 10;
 
 /// Looks up the definition of strokes in the dictionary, converting them into a Translation. Since
 /// multiple strokes could map to one dictionary translation, a greedy algorithm is used starting
 /// from the oldest strokes
-pub(super) fn translate_strokes(dict: &Dictionary, strokes: &Vec<Stroke>) -> Vec<Translation> {
+pub(super) fn translate_strokes(dict: &Dictionary, strokes: &[Stroke]) -> Vec<Translation> {
     let mut all_translations: Vec<Translation> = vec![];
 
     // limit how far to look forward
