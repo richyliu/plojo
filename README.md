@@ -5,6 +5,9 @@ users may need to install libxdo-dev.
 
 ## Todos
 
+- use option for command JSON parsing for Keys and Shell
+- add an input machine that takes strokes from the command line (for debugging)
+  - make input machine more generic
 - add option for text actions to be appended after a command
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
 - use an english dictionary lookup to fix orthography errors
@@ -28,6 +31,7 @@ users may need to install libxdo-dev.
 - add support for multiple dictionaries that can have their order changed
 - store prev_strokes in a VecDeque instead of a Vec
   - only diff the last 15 or something strokes instead of all the strokes
+- allow comments to be added to the dictionary
 - find out what text was deleted to allow for delete by word optimization
 - add orthography rules aliases
 - sort orthography rules in the order of most to least used
@@ -53,3 +57,5 @@ users may need to install libxdo-dev.
 - use macros for raw stokes parsing
 - possibly optimize hashmap lookup by turning steno keys into a u32
 - document how undo removes all strokes that only have text actions and commands
+  - also removes text (attached, glued) that is empty
+- implement feature flag for serde deserializing in plojo_core

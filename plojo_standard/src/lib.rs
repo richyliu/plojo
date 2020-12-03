@@ -131,6 +131,8 @@ impl StandardTranslator {
         while let Some(stroke) = self.prev_strokes.pop() {
             let translated = self.dict.translate(&vec![stroke]);
             for t in translated {
+                // if any stroke contains text (length > 0), stop removing
+                // otherwise keep on removing
                 match t {
                     Translation::Command(_) => {
                         // keep on removing
@@ -140,8 +142,22 @@ impl StandardTranslator {
                             Text::TextAction(_) => {
                                 // keep on removing
                             }
-                            _ => {
-                                // stop removing and add this stroke back
+                            Text::Attached(t) => {
+                                if t.len() > 0 {
+                                    return;
+                                }
+                            }
+                            Text::Glued(t) => {
+                                if t.len() > 0 {
+                                    return;
+                                }
+                            }
+                            Text::Lit(t) => {
+                                if t.len() > 0 {
+                                    return;
+                                }
+                            }
+                            Text::UnknownStroke(_) => {
                                 return;
                             }
                         }

@@ -293,3 +293,18 @@ fn capitalize_word_after_command() {
     );
     b.expect("-T", " theThe");
 }
+
+#[test]
+fn undo_suppress_space() {
+    let mut b = Blackbox::new(
+        r#"
+            "H-L": "hello",
+            "TK-LS": "{^^}",
+            "KPA*": "{^}{-|}",
+            "TPAO": "foo"
+        "#,
+    );
+    b.expect("H-L/TK-LS/KPA*/TPAO", " helloFoo");
+    b.expect("*", " hello");
+    b.expect("*", "");
+}
