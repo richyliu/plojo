@@ -5,24 +5,57 @@ use plojo_input_geminipr::GeminiprMachine;
 use plojo_output_applescript::ApplescriptController;
 use plojo_standard::{Config as StandardTranslatorConfig, StandardTranslator};
 
+use clap::{App, Arg};
+
 use std::env;
 use std::path::Path;
 
 pub fn main() {
-    let args: Vec<String> = env::args().collect();
-    let do_output = args.len() == 2;
-    if do_output {
-        println!("You have passed in an argument, so output is ENABLED");
-    } else {
-        println!("You have not passed in any arguments, so output is DISABLED");
+    let matches = App::new("Plojo")
+        .version("0.1.0")
+        .author("Richard L. <richy.liu.2002@gmail.com>")
+        .about("Stenography translator and computer controller")
+        .arg(
+            Arg::with_name("print-only")
+                .short("p")
+                .help("Print the commands to stdout instead of dispatch them"),
+        )
+        .arg(
+            Arg::with_name("print-ports")
+                .short("t")
+                .help("Print the serial ports that are available then exit"),
+        )
+        .arg(
+            Arg::with_name("add-dictionary")
+                .short("a")
+                .takes_value(true)
+                .help("Add an user dictionary"),
+        )
+        .arg(
+            Arg::with_name("serial-port")
+                .short("s")
+                .takes_value(true)
+                .required_unless("print-ports")
+                .help("Serial port the machine is connected to"),
+        )
+        .get_matches();
+
+    if matches.is_present("print-ports") {
+        geminipr::print_available_ports();
+        return;
+    }
+
+    let print_only = matches.is_present("print-only");
+    if print_only {
+        println!("Only printing output.");
     }
 
     println!("Starting plojo...");
-    geminipr::print_available_ports();
 
     println!("Loading dictionaries...");
+
     let path_base = Path::new(env!("CARGO_MANIFEST_DIR")).join("runtime_files");
-    let raw_dict_names = [
+    let mut raw_dict_names = vec![
         "dict.json",
         "fingerspelling.json",
         "fingerspelling-RBGS.json",
@@ -30,8 +63,13 @@ pub fn main() {
         "thumb_numbers.json",
         "nav.json",
         "modifiers-single-stroke.json",
-        args.get(1).map_or("empty.json", |s| &s),
     ];
+
+    if let Some(dict) = matches.value_of("add-dictionary") {
+        println!("Loading dictionary {} as requested", dict);
+        raw_dict_names.push(dict);
+    }
+
     let raw_dicts = raw_dict_names
         .iter()
         .map(|p| path_base.join(p))
@@ -44,8 +82,9 @@ pub fn main() {
     let initial_translator = StandardTranslator::new(config).expect("Unable to create translator");
     println!("Loaded dictionaries: {:?}", raw_dict_names);
 
-    let port = geminipr::get_georgi_port().expect("Couldn't find the Georgi port");
-    let machine = GeminiprMachine::new(port);
+    // unwrap is safe here because serial-port is required
+    let port = matches.value_of("serial-port").unwrap();
+    let machine = GeminiprMachine::new(port.to_string());
 
     println!("\nReady.\n");
 
@@ -72,7 +111,7 @@ pub fn main() {
             };
             log.push_str(&format!("{:?}", commands));
 
-            if do_output {
+            if !print_only {
                 for command in commands {
                     state.controller.dispatch(command);
                 }

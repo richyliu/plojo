@@ -12,3 +12,4 @@ plojo_core = { path = "../plojo_core" }
 plojo_standard = { path = "../plojo_standard" }
 plojo_output_applescript = { path = "../plojo_output_applescript" }
 chrono = "0.4.19"
+clap = "2.33.3"
