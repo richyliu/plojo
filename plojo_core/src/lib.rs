@@ -1,4 +1,4 @@
-use std::{any::Any, error::Error, marker::Sized};
+use std::{error::Error, marker::Sized};
 
 mod commands;
 mod stroke;
@@ -31,15 +31,6 @@ pub trait Controller {
 
 /// A stenography machine (or equivalent)
 pub trait Machine {
-    /// Config type
-    type C;
-
-    fn new(config: Self::C) -> Self
-    where
-        Self: Sized;
-    /// Respond to a new stroke being pressed
-    fn listen<T, U>(&self, on_stroke: T, state: &mut U)
-    where
-        T: Fn(Stroke, &mut U),
-        U: Any;
+    /// Waits until a new stroke is read
+    fn read(&mut self) -> Result<Stroke, Box<dyn Error>>;
 }

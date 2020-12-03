@@ -1,6 +1,6 @@
 use plojo_core::{Machine, Stroke};
 use serialport::{available_ports, SerialPortType};
-use std::any::Any;
+use std::error::Error;
 
 mod machine;
 mod raw_stroke;
@@ -12,27 +12,18 @@ pub struct GeminiprMachine {
     machine: SerialMachine,
 }
 
-impl Machine for GeminiprMachine {
-    type C = String;
-
-    fn new(config_port: Self::C) -> Self {
-        Self {
-            machine: SerialMachine::new(config_port),
-        }
+impl GeminiprMachine {
+    pub fn new(config_port: String) -> Result<Self, Box<dyn Error>> {
+        let machine = SerialMachine::new(config_port)?;
+        Ok(Self { machine })
     }
+}
 
-    fn listen<T, U>(&self, on_stroke: T, initial_state: &mut U)
-    where
-        T: Fn(Stroke, &mut U),
-        U: Any,
-    {
-        self.machine.listen(
-            |raw, state| {
-                let stroke = RawStrokeGeminipr::parse_raw(raw).to_stroke();
-                on_stroke(stroke, state);
-            },
-            initial_state,
-        )
+impl Machine for GeminiprMachine {
+    fn read(&mut self) -> Result<Stroke, Box<dyn Error>> {
+        self.machine
+            .read()
+            .map(|raw| RawStrokeGeminipr::parse_raw(&raw).to_stroke())
     }
 }
 

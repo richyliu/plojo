@@ -2,6 +2,7 @@
 
 members = [
     "plojo_input_geminipr",
+    "plojo_input_stdin",
     "plojo_core",
     "plojo_standard",
     "plojo_output_enigo",

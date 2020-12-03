@@ -152,6 +152,7 @@ dependencies = [
  "clap",
  "plojo_core",
  "plojo_input_geminipr",
+ "plojo_input_stdin",
  "plojo_output_applescript",
  "plojo_standard",
 ]
@@ -594,6 +595,13 @@ version = "0.1.0"
 dependencies = [
  "plojo_core",
  "serialport",
+]
+
+[[package]]
+name = "plojo_input_stdin"
+version = "0.1.0"
+dependencies = [
+ "plojo_core",
 ]
 
 [[package]]
