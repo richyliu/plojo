@@ -1,6 +1,7 @@
 use chrono::prelude::{Local, SecondsFormat};
-use plojo_core::{Controller, Translator};
-use plojo_input::{RawStroke, RawStrokeGeminipr, SerialMachine};
+use plojo_core::{Controller, Machine, Translator};
+use plojo_input_geminipr as geminipr;
+use plojo_input_geminipr::GeminiprMachine;
 use plojo_output_applescript::ApplescriptController;
 use plojo_standard::{Config as StandardTranslatorConfig, StandardTranslator};
 
@@ -17,7 +18,7 @@ pub fn main() {
     }
 
     println!("Starting plojo...");
-    SerialMachine::print_available_ports();
+    geminipr::print_available_ports();
 
     println!("Loading dictionaries...");
     let path_base = Path::new(env!("CARGO_MANIFEST_DIR")).join("runtime_files");
@@ -43,41 +44,45 @@ pub fn main() {
     let initial_translator = StandardTranslator::new(config).expect("Unable to create translator");
     println!("Loaded dictionaries: {:?}", raw_dict_names);
 
-    if let Some(port) = SerialMachine::get_georgi_port() {
-        let machine = SerialMachine::new(port);
+    let port = geminipr::get_georgi_port().expect("Couldn't find the Georgi port");
+    let machine = GeminiprMachine::new(port);
 
-        struct State {
-            controller: Box<dyn Controller>,
-            translator: StandardTranslator,
-        }
+    println!("\nReady.\n");
 
-        machine.listen(
-            |raw, state| {
-                let now = Local::now();
-                print!("{} ", now.to_rfc3339_opts(SecondsFormat::Millis, false),);
-
-                let stroke = RawStrokeGeminipr::parse_raw(raw).to_stroke();
-                print!("{:?} => ", stroke);
-
-                let commands = if stroke.is_undo() {
-                    state.translator.undo()
-                } else {
-                    state.translator.translate(stroke)
-                };
-                println!("{:?}", commands);
-
-                if do_output {
-                    for command in commands {
-                        state.controller.dispatch(command);
-                    }
-                }
-            },
-            &mut State {
-                controller: Box::new(ApplescriptController::new()),
-                translator: initial_translator,
-            },
-        );
-    } else {
-        eprintln!("Couldn't find the Georgi port");
+    struct State {
+        controller: Box<dyn Controller>,
+        translator: StandardTranslator,
     }
+
+    machine.listen(
+        |stroke, state| {
+            let mut log = String::new();
+            let now = Local::now();
+            log.push_str(&format!(
+                "{} ",
+                now.to_rfc3339_opts(SecondsFormat::Millis, false)
+            ));
+
+            log.push_str(&format!("{:?} => ", stroke));
+
+            let commands = if stroke.is_undo() {
+                state.translator.undo()
+            } else {
+                state.translator.translate(stroke)
+            };
+            log.push_str(&format!("{:?}", commands));
+
+            if do_output {
+                for command in commands {
+                    state.controller.dispatch(command);
+                }
+            }
+
+            println!("{}", log);
+        },
+        &mut State {
+            controller: Box::new(ApplescriptController::new()),
+            translator: initial_translator,
+        },
+    );
 }

@@ -1,5 +1,5 @@
 [package]
-name = "plojo_input"
+name = "plojo_input_geminipr"
 version = "0.1.0"
 authors = ["Richard Liu <richy.liu.2002@gmail.com>"]
 edition = "2018"

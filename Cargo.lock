@@ -115,7 +115,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "plojo_core",
- "plojo_input",
+ "plojo_input_geminipr",
  "plojo_output_applescript",
  "plojo_standard",
 ]
@@ -553,7 +553,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "plojo_input"
+name = "plojo_input_geminipr"
 version = "0.1.0"
 dependencies = [
  "plojo_core",

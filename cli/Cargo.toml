@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-plojo_input = { path = "../plojo_input" }
+plojo_input_geminipr = { path = "../plojo_input_geminipr" }
 plojo_core = { path = "../plojo_core" }
 plojo_standard = { path = "../plojo_standard" }
 plojo_output_applescript = { path = "../plojo_output_applescript" }

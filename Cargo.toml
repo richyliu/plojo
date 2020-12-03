@@ -1,7 +1,7 @@
 [workspace]
 
 members = [
-    "plojo_input",
+    "plojo_input_geminipr",
     "plojo_core",
     "plojo_standard",
     "plojo_output_enigo",
