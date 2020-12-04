@@ -25,7 +25,8 @@ pub fn main() {
     }
 
     /* Load machine */
-    let mut machine: Box<dyn Machine> = if matches.is_present("stdin") {
+    let is_stdin_machine = matches.is_present("stdin");
+    let mut machine: Box<dyn Machine> = if is_stdin_machine {
         Box::new(StdinMachine::new()) as Box<dyn Machine>
     } else {
         let port = match matches.value_of("serial-port") {
@@ -79,6 +80,11 @@ pub fn main() {
 
         // performing the command
         if !print_only {
+            // delay the dispatching if input is from stdin
+            if is_stdin_machine {
+                println!("Waiting 1 sec before performing the comand...");
+                std::thread::sleep(std::time::Duration::from_secs(1));
+            }
             for command in commands {
                 controller.dispatch(command);
             }

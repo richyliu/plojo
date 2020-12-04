@@ -5,10 +5,9 @@ users may need to install libxdo-dev.
 
 ## Todos
 
-- use option for command JSON parsing for Keys and Shell
-- add an input machine that takes strokes from the command line (for debugging)
-  - make input machine more generic
+- BUG: prefix + suffixes, followed by remove last space, does not work
 - add option for text actions to be appended after a command
+- rewrite dispatcher for autopilot
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
 - use an english dictionary lookup to fix orthography errors
   - BUG: `SHEUFR/-G` gives "shiverring"; need to use a dictionary for orthography
@@ -24,38 +23,49 @@ users may need to install libxdo-dev.
 - fix retrospective add/remove space to work on the previous stroke, not word
 - upper/lower casing entire words
 - clear `prev_stroke` after a command?
-- write a script to convert plover shortcut keys to plojo keys
-
-- escape sequences (especially for brackets) in dictionary
-- ignore dictionary unknown special actions
 - add support for multiple dictionaries that can have their order changed
+- allow comments to be added to the dictionary
+
+### Optimization
+- use a bloom filter to prevent need to lookup a long stroke
+  - instead of looking up 10, 9, 8, ... 1 strokes joined together
+  - 10..n (where n is around 4) could be looked up in a bloom filter
+    - could be done in parallel as well
 - store prev_strokes in a VecDeque instead of a Vec
   - only diff the last 15 or something strokes instead of all the strokes
-- allow comments to be added to the dictionary
 - find out what text was deleted to allow for delete by word optimization
-- add orthography rules aliases
 - sort orthography rules in the order of most to least used
 - limit number of strokes sent to `translate_strokes`
+- possibly optimize hashmap lookup by turning steno keys into a u32
+- initialize vecs and hashmaps with capacity to improve performance
+
+### Cleanup
 - check for stroke validity with a regex and warn if a stoke is invalid
-- add option for inserting spaces after instead of before
 - refactor machine to use more traits
+- use macros for raw stokes parsing
+- implement feature flag for serde deserializing in plojo_core
+
+### Plover compatible
+- write a script to convert plover shortcut keys to plojo keys
+- ignore dictionary unknown special actions
+- escape sequences (especially for brackets) in dictionary
+- add orthography rules aliases
 - potential bug: uppercase the next word (without specifying space) and then
+- add option for inserting spaces after instead of before
   stroking an attached word results in that word *not* being attached (space is
   not suppressed)
   - this is because an attached stroke (by itself) is only attached to the
     previous word if it is the first word
+- consider changing commands format back to one that is plover compatible
+
+### Documentation
 - write somewhere about how commands are dispatched without modifying any text
   - even if a correction is required, it will not press any backspaces
   - command will only be dispatched if it has been newly added
 - document the keys available for pressing and how raw key codes are allowed
-- consider changing commands format back to one that is plover compatible
 - grep for all the NOTEs and document them
-- initialize vecs and hashmaps with capacity to improve performance
 - note that numbers in a stroke must have a dash where necessary
   - if 0/5 not present and there are digits 6-9
 - note that translations with only numbers will be interpreted as glued
-- use macros for raw stokes parsing
-- possibly optimize hashmap lookup by turning steno keys into a u32
 - document how undo removes all strokes that only have text actions and commands
   - also removes text (attached, glued) that is empty
-- implement feature flag for serde deserializing in plojo_core
