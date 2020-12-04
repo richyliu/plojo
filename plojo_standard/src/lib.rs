@@ -76,10 +76,14 @@ enum Text {
 }
 
 impl Translation {
+    /// Convert translation into text, ignoring commands
     fn as_text(&self) -> Option<Text> {
         match self {
             Translation::Text(ref text) => Some(text.clone()),
-            _ => None,
+            Translation::Command {
+                cmds: _,
+                text_actions,
+            } => text_actions.clone().map(Text::TextAction),
         }
     }
 }

@@ -308,3 +308,21 @@ fn undo_suppress_space() {
     b.expect("*", " hello");
     b.expect("*", "");
 }
+
+#[test]
+fn text_action_after_command() {
+    let mut b = Blackbox::new(
+        r#"
+            "H-L": "hello",
+            "TKOUPB": {
+                "cmds": [{ "Keys": [{"Special": "DownArrow"}, []] }],
+                "text_actions": [
+                    { "action_type": "SpaceNext", "val": false },
+                    { "action_type": "CaseNext", "val": true }
+                ]
+            },
+            "TPAO": "foo"
+        "#,
+    );
+    b.expect("H-L/TKOUPB/TPAO", " helloFoo");
+}

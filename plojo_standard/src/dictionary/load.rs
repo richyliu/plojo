@@ -55,7 +55,7 @@ use std::{error::Error, fmt};
 ///
 /// ### Retrospective Space
 /// - `{*?}`: retrospectivly add space before the previous translated word
-/// - `{*!}`: retrospectivly add space before the previous translated word
+/// - `{*!}`: retrospectivly remove space before the previous translated word
 ///
 /// ### Literal symbols
 /// - `{bracketleft}`: inserts a literal opening bracket (`{`)

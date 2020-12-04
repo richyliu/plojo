@@ -15,7 +15,6 @@ pub(super) fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -
             text_actions: _,
         }) = new.last()
         {
-            // TODO: handle text_actions after the command
             return cmd.clone();
         }
     }

@@ -6,7 +6,6 @@ users may need to install libxdo-dev.
 ## Todos
 
 - BUG: prefix + suffixes, followed by remove last space, does not work
-- add option for text actions to be appended after a command
 - rewrite dispatcher for autopilot
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
 - use an english dictionary lookup to fix orthography errors
