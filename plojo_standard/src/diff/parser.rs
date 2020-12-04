@@ -223,7 +223,7 @@ fn merge_translations(translations: Vec<Text>) -> Vec<TextInternal> {
                 }
                 Text::Attached(_) => {
                     // already handled above; shouldn't be here
-                    panic!("this shouldn't be possible");
+                    unreachable!()
                 }
                 Text::Glued(text) => {
                     // push any text actions first

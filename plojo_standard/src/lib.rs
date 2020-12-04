@@ -4,18 +4,19 @@ extern crate lazy_static;
 use dictionary::Dictionary;
 use diff::translation_diff;
 use plojo_core::{Command, Stroke, Translator};
+use serde::Deserialize;
 use std::error::Error;
 
 mod dictionary;
 mod diff;
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Deserialize)]
 struct TextAction {
     action_type: TextActionType,
     // associated value for each text action (see TextActionType documentation)
     val: bool,
 }
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Deserialize)]
 enum TextActionType {
     // true to force a space, false for no space
     SpaceNext,
@@ -54,7 +55,10 @@ impl TextAction {
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
 enum Translation {
     Text(Text),
-    Command(Vec<Command>),
+    Command {
+        cmds: Vec<Command>,
+        text_actions: Option<Vec<TextAction>>,
+    },
 }
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
@@ -134,7 +138,10 @@ impl StandardTranslator {
                 // if any stroke contains text (length > 0), stop removing
                 // otherwise keep on removing
                 match t {
-                    Translation::Command(_) => {
+                    Translation::Command {
+                        cmds: _,
+                        text_actions: _,
+                    } => {
                         // keep on removing
                     }
                     Translation::Text(text) => {

@@ -195,8 +195,8 @@ fn suppress_space_should_lowercase() {
 fn commands_correction() {
     let mut b = Blackbox::new(
         r#"
-            "H-L": [{ "Keys": [{"Special": "UpArrow"}, []] }],
-            "H-L/WORLD": [{ "Keys": [{"Special": "UpArrow"}, []] }],
+            "H-L": {"cmds": [{ "Keys": [{"Special": "UpArrow"}, []] }]},
+            "H-L/WORLD": {"cmds": [{ "Keys": [{"Special": "UpArrow"}, []] }]},
             "H-L/WORLD/H-L": "hi"
         "#,
     );
@@ -209,9 +209,9 @@ fn commands_correction() {
 fn commands_undo() {
     let mut b = Blackbox::new(
         r#"
-            "H-L": [{ "Keys": [{"Special": "UpArrow"}, []] }],
+            "H-L": {"cmds": [{ "Keys": [{"Special": "UpArrow"}, []] }]},
             "H-L/WORLD": "hello",
-            "TP": [{ "Keys": [{"Layout": "a"}, ["Meta"]] }],
+            "TP": {"cmds": [{ "Keys": [{"Layout": "a"}, ["Meta"]] }]},
             "TPAO": "foo"
         "#,
     );
@@ -274,8 +274,8 @@ fn capitalize_word_after_command() {
     let mut b = Blackbox::new(
         r#"
             "KPA*": "{^}{-|}",
-            "TKOUPB": [{ "Keys": [{"Special": "DownArrow"}, []] }],
-            "UP": [{ "Keys": [{"Special": "UpArrow"}, []] }],
+            "TKOUPB": {"cmds": [{ "Keys": [{"Special": "DownArrow"}, []] }]},
+            "UP": {"cmds": [{ "Keys": [{"Special": "UpArrow"}, []] }]},
             "-T": "the"
         "#,
     );

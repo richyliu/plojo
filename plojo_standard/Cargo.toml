@@ -9,5 +9,6 @@ edition = "2018"
 [dependencies]
 plojo_core = { path = "../plojo_core" }
 serde_json = "1.0.59"
+serde = { version ="1.0", features = ["derive"] }
 regex = "1.4.2"
 lazy_static = "1.4.0"

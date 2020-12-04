@@ -99,13 +99,19 @@ mod tests {
             (row_ta("S-P", vec![TextAction::space(true, true)])),
             (
                 Stroke::new("H*L"),
-                vec![Translation::Command(vec![Command::PrintHello])],
+                vec![Translation::Command {
+                    cmds: vec![Command::PrintHello],
+                    text_actions: None,
+                }],
             ),
             (
                 Stroke::new("TKAO*ER"),
                 vec![
                     Translation::Text(Text::Lit("deer and printing hello".to_string())),
-                    Translation::Command(vec![Command::PrintHello]),
+                    Translation::Command {
+                        cmds: vec![Command::PrintHello],
+                        text_actions: None,
+                    },
                 ],
             ),
         ]
@@ -275,7 +281,10 @@ mod tests {
             vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Text(Text::Lit("deer and printing hello".to_string())),
-                Translation::Command(vec![Command::PrintHello]),
+                Translation::Command {
+                    cmds: vec![Command::PrintHello],
+                    text_actions: None
+                },
             ]
         );
     }

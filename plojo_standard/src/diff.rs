@@ -10,7 +10,12 @@ mod parser;
 pub(super) fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -> Vec<Command> {
     // if added a command, return that directly
     if old.len() + 1 == new.len() {
-        if let Some(Translation::Command(ref cmd)) = new.last() {
+        if let Some(Translation::Command {
+            cmds: ref cmd,
+            text_actions: _,
+        }) = new.last()
+        {
+            // TODO: handle text_actions after the command
             return cmd.clone();
         }
     }
@@ -125,7 +130,10 @@ mod tests {
     fn test_diff_one_command_empty() {
         let command = translation_diff(
             &vec![],
-            &vec![Translation::Command(vec![Command::PrintHello])],
+            &vec![Translation::Command {
+                cmds: vec![Command::PrintHello],
+                text_actions: None,
+            }],
         );
 
         assert_eq!(command, vec![Command::PrintHello]);
@@ -220,13 +228,25 @@ mod tests {
         let command = translation_diff(
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Command(vec![Command::PrintHello]),
-                Translation::Command(vec![Command::PrintHello]),
+                Translation::Command {
+                    cmds: vec![Command::PrintHello],
+                    text_actions: None,
+                },
+                Translation::Command {
+                    cmds: vec![Command::PrintHello],
+                    text_actions: None,
+                },
             ],
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Command(vec![Command::PrintHello]),
-                Translation::Command(vec![Command::PrintHello]),
+                Translation::Command {
+                    cmds: vec![Command::PrintHello],
+                    text_actions: None,
+                },
+                Translation::Command {
+                    cmds: vec![Command::PrintHello],
+                    text_actions: None,
+                },
             ],
         );
 
@@ -237,13 +257,28 @@ mod tests {
     fn test_diff_repeated_command() {
         let command = translation_diff(
             &vec![
-                Translation::Command(vec![Command::PrintHello]),
-                Translation::Command(vec![Command::PrintHello]),
+                Translation::Command {
+                    cmds: vec![Command::PrintHello],
+                    text_actions: None,
+                },
+                Translation::Command {
+                    cmds: vec![Command::PrintHello],
+                    text_actions: None,
+                },
             ],
             &vec![
-                Translation::Command(vec![Command::PrintHello]),
-                Translation::Command(vec![Command::PrintHello]),
-                Translation::Command(vec![Command::PrintHello]),
+                Translation::Command {
+                    cmds: vec![Command::PrintHello],
+                    text_actions: None,
+                },
+                Translation::Command {
+                    cmds: vec![Command::PrintHello],
+                    text_actions: None,
+                },
+                Translation::Command {
+                    cmds: vec![Command::PrintHello],
+                    text_actions: None,
+                },
             ],
         );
 
@@ -260,7 +295,10 @@ mod tests {
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Text(Text::Lit("world".to_string())),
-                Translation::Command(vec![Command::PrintHello]),
+                Translation::Command {
+                    cmds: vec![Command::PrintHello],
+                    text_actions: None,
+                },
             ],
         );
 

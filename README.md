@@ -40,6 +40,7 @@ users may need to install libxdo-dev.
 - initialize vecs and hashmaps with capacity to improve performance
 
 ### Cleanup
+- write dictionary parsing as a serde deserializer
 - check for stroke validity with a regex and warn if a stoke is invalid
 - refactor machine to use more traits
 - use macros for raw stokes parsing

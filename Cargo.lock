@@ -634,6 +634,7 @@ dependencies = [
  "lazy_static",
  "plojo_core",
  "regex",
+ "serde",
  "serde_json",
 ]
 

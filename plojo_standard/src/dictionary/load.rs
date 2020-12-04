@@ -1,9 +1,8 @@
 use crate::{Text, TextAction, Translation};
 use plojo_core::{Command, Stroke};
 use regex::Regex;
-use serde_json::{from_str, from_value, Error as JsonError, Value};
-use std::error::Error;
-use std::fmt;
+use serde_json::{self, Error as JsonError, Value};
+use std::{error::Error, fmt};
 
 /// Loads the dictionary
 ///
@@ -69,7 +68,7 @@ use std::fmt;
 ///   formatting of the next word.
 /// - Retrospective space adding/removing works on the previous word, not the previous stroke
 pub(super) fn load_dicts(contents: &str) -> Result<Entries, ParseError> {
-    let value: Value = from_str(&contents)?;
+    let value: Value = serde_json::from_str(&contents)?;
 
     let object_entries = value.as_object().ok_or(ParseError::NotEntries)?;
 
@@ -82,9 +81,22 @@ pub(super) fn load_dicts(contents: &str) -> Result<Entries, ParseError> {
                 let parsed = parse_translation(translation_str)?;
                 result_entries.push((stroke, parsed));
             }
-            Value::Array(commands) => {
-                let parsed = parse_commands(commands.clone())?;
-                result_entries.push((stroke, vec![Translation::Command(parsed)]));
+            Value::Object(obj) => {
+                let commands = obj.get("cmds").ok_or(ParseError::InvalidTranslation(
+                    "cmds key not found".to_string(),
+                ))?;
+                let parsed: Vec<Command> = serde_json::from_value(commands.clone())?;
+                let mut text_actions: Option<Vec<TextAction>> = None;
+                if let Some(raw_actions) = obj.get("text_actions") {
+                    text_actions = Some(serde_json::from_value(raw_actions.clone())?);
+                }
+                result_entries.push((
+                    stroke,
+                    vec![Translation::Command {
+                        cmds: parsed,
+                        text_actions,
+                    }],
+                ));
             }
             _ => {
                 return Err(ParseError::UnknownTranslation(translation.to_string()));
@@ -329,16 +341,6 @@ fn parse_as_text(t: &str) -> Translation {
     Translation::Text(Text::Lit(t.to_string()))
 }
 
-fn parse_commands(values: Vec<Value>) -> Result<Vec<Command>, ParseError> {
-    let mut result = Vec::with_capacity(values.len());
-    for v in values {
-        let parsed: Command = from_value(v)?;
-        result.push(parsed);
-    }
-
-    Ok(result)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -563,8 +565,8 @@ mod tests {
     fn test_commands_parse_dictionary() {
         let contents = r#"
 {
-"UP": [{ "Keys": [{"Special": "UpArrow"}, []] }],
-"TEGT": [{ "Keys": [{"Layout": "a"}, ["Meta"]] }]
+"UP": {"cmds": [{ "Keys": [{"Special": "UpArrow"}, []] }]},
+"TEGT": {"cmds": [{ "Keys": [{"Layout": "a"}, ["Meta"]] }]}
 }
         "#;
         let parsed = load_dicts(contents).unwrap();
@@ -573,17 +575,17 @@ mod tests {
         let expect = vec![
             (
                 Stroke::new("UP"),
-                vec![Translation::Command(vec![Command::Keys(
-                    Key::Special(SpecialKey::UpArrow),
-                    vec![],
-                )])],
+                vec![Translation::Command {
+                    cmds: vec![Command::Keys(Key::Special(SpecialKey::UpArrow), vec![])],
+                    text_actions: None,
+                }],
             ),
             (
                 Stroke::new("TEGT"),
-                vec![Translation::Command(vec![Command::Keys(
-                    Key::Layout('a'),
-                    vec![Modifier::Meta],
-                )])],
+                vec![Translation::Command {
+                    cmds: vec![Command::Keys(Key::Layout('a'), vec![Modifier::Meta])],
+                    text_actions: None,
+                }],
             ),
         ];
         let expect: HashSet<Entry> = HashSet::from_iter(expect.iter().cloned());

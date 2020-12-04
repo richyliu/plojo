@@ -16,7 +16,6 @@ impl Stroke {
     }
 
     pub fn is_valid(&self) -> bool {
-        // TODO: check for validity with regex; numbers should be in the form 12-89
         self.0.len() > 0
     }
 }
