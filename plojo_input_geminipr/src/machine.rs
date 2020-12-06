@@ -1,6 +1,8 @@
 use serialport::{SerialPort, SerialPortSettings};
 use std::{error::Error, io::ErrorKind, thread, time::Duration};
 
+const DEFAULT_READ_RATE: u64 = 10;
+
 pub struct SerialMachine {
     /// How long to wait before trying to read from serial machine again
     read_rate: u64,
@@ -14,7 +16,7 @@ impl SerialMachine {
         let port = serialport::open_with_settings(&port_name, &SerialPortSettings::default())?;
 
         Ok(Self {
-            read_rate: 50,
+            read_rate: DEFAULT_READ_RATE,
             buf_size: 6,
             port,
         })
