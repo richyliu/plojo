@@ -103,36 +103,6 @@ const MAX_STROKE_BUFFER: usize = 50;
 // only pass a certain number of strokes to be translated
 const MAX_TRANSLATION_STROKE_LEN: usize = 10;
 
-/// The configuration for the standard translator
-///
-/// Creating the translator will take the raw dictionary string from one or more dictionaries. The
-/// dictionaries further down in the list can override the earlier dictionaries.
-///
-/// The starting strokes will be added to the stroke list when the translator is created.
-#[derive(Default)]
-pub struct Config {
-    raw_dicts: Vec<String>,
-    starting_strokes: Vec<Stroke>,
-}
-
-impl Config {
-    /// Creates a config for creating a standard translator.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn with_raw_dicts(self, raw_dicts: Vec<String>) -> Self {
-        Self { raw_dicts, ..self }
-    }
-
-    pub fn with_starting_strokes(self, starting_strokes: Vec<Stroke>) -> Self {
-        Self {
-            starting_strokes,
-            ..self
-        }
-    }
-}
-
 impl StandardTranslator {
     /// Remove all strokes that cannot be undone (currently Commands and text actions)
     fn remove_non_undoable_strokes(&mut self) {
@@ -177,19 +147,24 @@ impl StandardTranslator {
             }
         }
     }
-}
 
-impl Translator for StandardTranslator {
-    type C = Config;
-
-    fn new(config: Config) -> Result<Self, Box<dyn Error>> {
-        let dict = Dictionary::new(config.raw_dicts)?;
+    /// Creats a translator that takes the raw dictionary string from one or more dictionaries. The
+    /// dictionaries further down in the list can override the earlier dictionaries.
+    ///
+    /// The starting strokes will be added to the stroke list when the translator is created.
+    pub fn new(
+        raw_dicts: Vec<String>,
+        starting_strokes: Vec<Stroke>,
+    ) -> Result<Self, Box<dyn Error>> {
+        let dict = Dictionary::new(raw_dicts)?;
         Ok(Self {
-            prev_strokes: config.starting_strokes,
+            prev_strokes: starting_strokes,
             dict,
         })
     }
+}
 
+impl Translator for StandardTranslator {
     fn translate(&mut self, stroke: Stroke) -> Vec<Command> {
         if self.prev_strokes.len() > MAX_STROKE_BUFFER {
             self.prev_strokes.remove(0);

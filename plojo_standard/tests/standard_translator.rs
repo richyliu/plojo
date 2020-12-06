@@ -1,5 +1,5 @@
 use plojo_core::{Command, Key, Modifier, SpecialKey, Stroke, Translator};
-use plojo_standard::{Config as StandardTranslatorConfig, StandardTranslator};
+use plojo_standard::StandardTranslator;
 
 /// Black box for testing the entire translator
 struct Blackbox {
@@ -15,8 +15,7 @@ impl Blackbox {
     fn new(raw_dict: &str) -> Self {
         let json_str: String = "{".to_string() + raw_dict + "}";
         let translator =
-            StandardTranslator::new(StandardTranslatorConfig::new().with_raw_dicts(vec![json_str]))
-                .expect("Unable to create translator");
+            StandardTranslator::new(vec![json_str], vec![]).expect("Unable to create translator");
 
         Self {
             translator,

@@ -4,7 +4,7 @@ use plojo_core::{Controller, Machine, Translator};
 use plojo_input_geminipr::{self as geminipr, GeminiprMachine};
 use plojo_input_stdin::StdinMachine;
 use plojo_output_applescript::ApplescriptController;
-use plojo_standard::{Config as StandardTranslatorConfig, StandardTranslator};
+use plojo_standard::StandardTranslator;
 use std::{env, path::Path};
 
 pub fn main() {
@@ -44,8 +44,8 @@ pub fn main() {
     println!("Loading dictionaries...");
     // this takes a few seconds
     let raw_dicts = load_dictionaries(matches.value_of("add-dictionary"));
-    let config = StandardTranslatorConfig::new().with_raw_dicts(raw_dicts);
-    let mut translator = StandardTranslator::new(config).expect("Unable to create translator");
+    let mut translator =
+        StandardTranslator::new(raw_dicts, vec![]).expect("Unable to create translator");
     println!("Loaded dictionaries");
 
     /* Load controller */
