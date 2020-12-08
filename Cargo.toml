@@ -8,5 +8,6 @@ members = [
     "plojo_output_enigo",
     "plojo_output_autopilot",
     "plojo_output_applescript",
+    "plojo_output_macos",
     "cli",
 ]

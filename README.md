@@ -6,14 +6,19 @@ users may need to install libxdo-dev.
 ## Todos
 
 - BUG: prefix + suffixes, followed by remove last space, does not work
-- rewrite dispatcher for autopilot
+  - criteria:
+    - may need to rethink the system for space next/previous
+    - delete last space needs to work even after a prefix
+    - remove space before a fingerspelled word
+    - add last space needs to add immediately between the last 2 strokes
+    - multiple add/suppress space need to work together
+    - carrying capitalization
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
 - use an english dictionary lookup to fix orthography errors
   - BUG: `SHEUFR/-G` gives "shiverring"; need to use a dictionary for orthography
     - the issue is primarily with consonant doubling
     - check with a dictionary for a "simple" join first
     - https://github.com/openstenoproject/plover/blob/master/plover/orthography.py
-- split controllers/"dispatchers" out into their own crate
 
 - actually implement carrying capitalization
 - add custom stroke/command to also reset `prev_stroke`

@@ -68,7 +68,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a2fd0359d0cd30b15419bcce7e6641a3cbe2046c612b3900216dc64bc989558"
 dependencies = [
- "cocoa",
+ "cocoa 0.20.2",
  "core-foundation 0.7.0",
  "core-graphics 0.19.2",
  "image",
@@ -153,7 +153,7 @@ dependencies = [
  "plojo_core",
  "plojo_input_geminipr",
  "plojo_input_stdin",
- "plojo_output_applescript",
+ "plojo_output_macos",
  "plojo_standard",
 ]
 
@@ -167,6 +167,37 @@ dependencies = [
  "block",
  "core-foundation 0.7.0",
  "core-graphics 0.19.2",
+ "foreign-types",
+ "libc",
+ "objc",
+]
+
+[[package]]
+name = "cocoa"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6f63902e9223530efb4e26ccd0cf55ec30d592d3b42e21a28defc42a9586e832"
+dependencies = [
+ "bitflags",
+ "block",
+ "cocoa-foundation",
+ "core-foundation 0.9.1",
+ "core-graphics 0.22.1",
+ "foreign-types",
+ "libc",
+ "objc",
+]
+
+[[package]]
+name = "cocoa-foundation"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7ade49b65d560ca58c403a479bb396592b155c0185eada742ee323d1d68d6318"
+dependencies = [
+ "bitflags",
+ "block",
+ "core-foundation 0.9.1",
+ "core-graphics-types",
  "foreign-types",
  "libc",
  "objc",
@@ -205,6 +236,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-foundation"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0a89e2ae426ea83155dccf10c0fa6b1463ef6d5fcb44cee0b224a408fa640a62"
+dependencies = [
+ "core-foundation-sys 0.8.2",
+ "libc",
+]
+
+[[package]]
 name = "core-foundation-sys"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -215,6 +256,12 @@ name = "core-foundation-sys"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b3a71ab494c0b5b860bdc8407ae08978052417070c2ced38573a9157ad75b8ac"
+
+[[package]]
+name = "core-foundation-sys"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea221b5284a47e40033bf9b66f35f984ec0ea2931eb03505246cd27a963f981b"
 
 [[package]]
 name = "core-graphics"
@@ -236,6 +283,31 @@ checksum = "b3889374e6ea6ab25dba90bb5d96202f61108058361f6dc72e8b03e6f8bbe923"
 dependencies = [
  "bitflags",
  "core-foundation 0.7.0",
+ "foreign-types",
+ "libc",
+]
+
+[[package]]
+name = "core-graphics"
+version = "0.22.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc239bba52bab96649441699533a68de294a101533b0270b2d65aa402b29a7f9"
+dependencies = [
+ "bitflags",
+ "core-foundation 0.9.1",
+ "core-graphics-types",
+ "foreign-types",
+ "libc",
+]
+
+[[package]]
+name = "core-graphics-types"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a68b68b3446082644c91ac778bf50cd4104bfb002b5a6a7c44cca5a2c70788b"
+dependencies = [
+ "bitflags",
+ "core-foundation 0.9.1",
  "foreign-types",
  "libc",
 ]
@@ -624,6 +696,17 @@ name = "plojo_output_enigo"
 version = "0.1.0"
 dependencies = [
  "enigo",
+ "plojo_core",
+]
+
+[[package]]
+name = "plojo_output_macos"
+version = "0.1.0"
+dependencies = [
+ "cocoa 0.24.0",
+ "core-graphics 0.22.1",
+ "foreign-types",
+ "libc",
  "plojo_core",
 ]
 

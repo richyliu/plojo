@@ -1,0 +1,14 @@
+[package]
+name = "plojo_output_macos"
+version = "0.1.0"
+authors = ["Richard Liu <richy.liu.2002@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+plojo_core = { path = "../plojo_core" }
+core-graphics = "0.22.1"
+libc = "0.2"
+foreign-types = "0.3.0"
+cocoa = "0.24.0"

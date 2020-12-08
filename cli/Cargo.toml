@@ -11,6 +11,6 @@ plojo_input_geminipr = { path = "../plojo_input_geminipr" }
 plojo_input_stdin = { path = "../plojo_input_stdin" }
 plojo_core = { path = "../plojo_core" }
 plojo_standard = { path = "../plojo_standard" }
-plojo_output_applescript = { path = "../plojo_output_applescript" }
+plojo_output_macos = { path = "../plojo_output_macos" }
 chrono = "0.4.19"
 clap = "2.33.3"

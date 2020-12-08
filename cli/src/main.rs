@@ -3,7 +3,7 @@ use clap::{App, Arg, ArgMatches};
 use plojo_core::{Controller, Machine, Translator};
 use plojo_input_geminipr::{self as geminipr, GeminiprMachine};
 use plojo_input_stdin::StdinMachine;
-use plojo_output_applescript::ApplescriptController;
+use plojo_output_macos::MacController;
 use plojo_standard::StandardTranslator;
 use std::{env, path::Path};
 
@@ -49,7 +49,7 @@ pub fn main() {
     println!("Loaded dictionaries");
 
     /* Load controller */
-    let mut controller = Box::new(ApplescriptController::new());
+    let mut controller = Box::new(MacController::new());
 
     println!("\nReady.\n");
 
