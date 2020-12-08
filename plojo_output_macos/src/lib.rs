@@ -1,6 +1,6 @@
 //! Dispatch commands natively using core graphics and core foundations.
 
-use core_graphics::event::{CGEvent, CGEventTapLocation, CGKeyCode, KeyCode};
+use core_graphics::event::{CGEvent, CGEventFlags, CGEventTapLocation, CGKeyCode, KeyCode};
 use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
 use plojo_core::{Command, Controller, Key, Modifier, SpecialKey};
 use std::{collections::HashMap, process, thread, time::Duration};
@@ -99,18 +99,67 @@ fn type_char(c: char, down: bool) {
 }
 
 /// Toggles a physical key with support for modifiers
+///
+/// Key down and key up for modifiers must be handled differently. This is the only way to prevent
+/// glitches in the modifier not being detected
 fn toggle_key(key: CGKeyCode, down: bool, modifiers: &[Modifier], modifier_delay: u64) {
-    for m in modifiers {
-        system_toggle_key(modifier_to_key(*m), down);
-        thread::sleep(Duration::from_millis(modifier_delay));
+    // key down must be triggered with modifiers as flags...
+    if down {
+        if modifiers == &[Modifier::Control] {
+            handle_keydown_control_and_arrow(key, modifier_delay);
+        }
+        let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
+        let event = CGEvent::new_keyboard_event(source, key, true).unwrap();
+        event.set_flags(modifiers_to_flags(modifiers));
+        event.post(CGEventTapLocation::HID);
+    } else {
+        // ... while keyup must release the modifiers individually as keys
+        for m in modifiers {
+            let modifier_key = modifier_to_key(*m);
+            let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
+            let event = CGEvent::new_keyboard_event(source, modifier_key, false).unwrap();
+            event.post(CGEventTapLocation::HID);
+            thread::sleep(Duration::from_millis(modifier_delay));
+        }
+        let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
+        let event = CGEvent::new_keyboard_event(source, key, false).unwrap();
+        event.post(CGEventTapLocation::HID);
     }
-    system_toggle_key(key, down);
 }
 
-fn system_toggle_key(key: CGKeyCode, down: bool) {
-    let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
-    let event = CGEvent::new_keyboard_event(source, key, down).unwrap();
-    event.post(CGEventTapLocation::HID);
+/// If key is an arrow key, it must be handled differently.
+///
+/// We need to do this because of a bug in the Carbon API
+fn handle_keydown_control_and_arrow(key: CGKeyCode, modifier_delay: u64) {
+    match key {
+        KeyCode::UP_ARROW | KeyCode::DOWN_ARROW | KeyCode::LEFT_ARROW | KeyCode::RIGHT_ARROW => {
+            // press the control separately instead of as a flag
+            let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
+            let event = CGEvent::new_keyboard_event(source, KeyCode::CONTROL, true).unwrap();
+            event.post(CGEventTapLocation::HID);
+
+            thread::sleep(Duration::from_millis(modifier_delay));
+
+            let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
+            let event = CGEvent::new_keyboard_event(source, key, true).unwrap();
+            event.post(CGEventTapLocation::HID);
+        }
+        _ => {}
+    }
+}
+
+fn modifiers_to_flags(modifiers: &[Modifier]) -> CGEventFlags {
+    let mut flags = CGEventFlags::CGEventFlagNull;
+    for m in modifiers {
+        flags |= match m {
+            Modifier::Alt => CGEventFlags::CGEventFlagAlternate,
+            Modifier::Control => CGEventFlags::CGEventFlagControl,
+            Modifier::Meta => CGEventFlags::CGEventFlagCommand,
+            Modifier::Option => CGEventFlags::CGEventFlagAlternate,
+            Modifier::Shift => CGEventFlags::CGEventFlagShift,
+        }
+    }
+    flags
 }
 
 fn modifier_to_key(modifier: Modifier) -> CGKeyCode {
@@ -127,7 +176,7 @@ fn key_to_keycode(key: SpecialKey) -> CGKeyCode {
     match key {
         SpecialKey::Backspace => KeyCode::DELETE,
         SpecialKey::CapsLock => KeyCode::CAPS_LOCK,
-        SpecialKey::Delete => KeyCode::DELETE,
+        SpecialKey::Delete => KeyCode::FORWARD_DELETE,
         SpecialKey::DownArrow => KeyCode::DOWN_ARROW,
         SpecialKey::End => KeyCode::END,
         SpecialKey::Escape => KeyCode::ESCAPE,

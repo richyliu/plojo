@@ -36,8 +36,8 @@
 "TW-LG": {"cmds": [{ "Keys": [{ "Special": "RightArrow" }, ["Meta"]] }]},
 "TW-B": {"cmds": [{ "Keys": [{ "Special": "Tab" }, ["Meta"]] }]},
 "TW-G": {"cmds": [{ "Keys": [{"Layout": "`"}, ["Meta"]] }]},
-"TW-F": {"cmds": [{ "Keys": [{"Layout": "{"}, ["Meta", "Shift"]] }]},
-"TW-L": {"cmds": [{ "Keys": [{"Layout": "}"}, ["Meta", "Shift"]] }]},
+"TW-F": {"cmds": [{ "Keys": [{"Layout": "["}, ["Meta", "Shift"]] }]},
+"TW-L": {"cmds": [{ "Keys": [{"Layout": "]"}, ["Meta", "Shift"]] }]},
 "TW-P": {"cmds": [{ "Keys": [{ "Special": "UpArrow" }, ["Control"]] }]},
 "TW-R": {"cmds": [{ "Keys": [{ "Special": "Tab" }, ["Meta", "Shift"]] }]},
 

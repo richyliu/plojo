@@ -74,3 +74,4 @@ users may need to install libxdo-dev.
 - note that translations with only numbers will be interpreted as glued
 - document how undo removes all strokes that only have text actions and commands
   - also removes text (attached, glued) that is empty
+- keyboard shortcuts must use the "raw" version (eg: `[`/`]` instead of `{`/`}`)
