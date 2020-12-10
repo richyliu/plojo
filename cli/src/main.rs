@@ -5,7 +5,7 @@ use plojo_input_geminipr::{self as geminipr, GeminiprMachine};
 use plojo_input_stdin::StdinMachine;
 use plojo_output_macos::MacController;
 use plojo_standard::StandardTranslator;
-use std::{env, path::Path};
+use std::{env, io, path::Path};
 
 pub fn main() {
     let matches = get_arg_matches();
@@ -57,7 +57,16 @@ pub fn main() {
         // wait for the next stroke
         let stroke = match machine.read() {
             Ok(s) => s,
-            Err(e) => panic!("unable to read stroke: {}", e,),
+            Err(e) => {
+                // exit if it is a broken pipe (likely the machine disconnected)
+                if let Some(e) = e.downcast_ref::<io::Error>() {
+                    if let io::ErrorKind::BrokenPipe = e.kind() {
+                        println!("Machine disconnected. Exiting.");
+                        return;
+                    }
+                }
+                panic!("unable to read stroke: {}", e,);
+            }
         };
 
         // logging time and the stroke
