@@ -179,7 +179,9 @@ fn unknown_with_attached() {
 }
 
 #[test]
+#[ignore]
 fn suppress_space_should_lowercase() {
+    // TODO: should it really?
     let mut b = Blackbox::new(
         r#"
             "H-L": "hello",
@@ -315,13 +317,43 @@ fn text_action_after_command() {
             "H-L": "hello",
             "TKOUPB": {
                 "cmds": [{ "Keys": [{"Special": "DownArrow"}, []] }],
-                "text_actions": [
-                    { "action_type": "SpaceNext", "val": false },
-                    { "action_type": "CaseNext", "val": true }
+                "text_after": [
+                    { "StateAction": "SuppressSpace" },
+                    { "StateAction": "ForceCapitalize" }
                 ]
             },
             "TPAO": "foo"
         "#,
     );
     b.expect("H-L/TKOUPB/TPAO", " helloFoo");
+}
+
+#[test]
+fn retrospective_actions() {
+    let mut b = Blackbox::new(
+        r#"
+            "H-L": "Hello World",
+            "TKFPS": "{*!}",
+            "KA*PD": "{*-|}",
+            "TPAO": "foo"
+        "#,
+    );
+    b.expect("H-L/TKFPS", " HelloWorld");
+    b.expect("TPAO/KA*PD", " HelloWorld Foo");
+}
+
+#[test]
+#[ignore]
+fn retrospective_add_space_breaks_up_translation() {
+    // TODO: implement
+    let mut b = Blackbox::new(
+        r#"
+            "H-L": "hello",
+            "WORLD": "world",
+            "H-L/WORLD": "Hello, world!",
+            "AFPS": "{*?}"
+        "#,
+    );
+    b.expect("H-L/WORLD", " Hello, world!");
+    b.expect("AFPS", " hello world");
 }

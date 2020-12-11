@@ -259,6 +259,7 @@ mod tests {
 
     #[test]
     fn keycode_conversion() {
+        // TODO: trivia: if you hold down shift while running this, it will fail...
         // on QWERTY layout
         assert_eq!(keycode_to_char(0), Some('a'));
         assert_eq!(keycode_to_char(6), Some('z'));

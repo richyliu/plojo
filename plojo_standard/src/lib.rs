@@ -5,50 +5,10 @@ use dictionary::Dictionary;
 use diff::translation_diff;
 use plojo_core::{Command, Stroke, Translator};
 use serde::Deserialize;
-use std::error::Error;
+use std::{error::Error, hash::Hash};
 
 mod dictionary;
 mod diff;
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Deserialize)]
-struct TextAction {
-    action_type: TextActionType,
-    // associated value for each text action (see TextActionType documentation)
-    val: bool,
-}
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Deserialize)]
-enum TextActionType {
-    // true to force a space, false for no space
-    SpaceNext,
-    SpacePrev,
-    // true for uppercase, false for lowercase
-    CaseNext,
-    CasePrev,
-}
-
-impl TextAction {
-    fn space(is_next: bool, val: bool) -> Self {
-        Self {
-            action_type: if is_next {
-                TextActionType::SpaceNext
-            } else {
-                TextActionType::SpacePrev
-            },
-            val,
-        }
-    }
-
-    fn case(is_next: bool, val: bool) -> Self {
-        Self {
-            action_type: if is_next {
-                TextActionType::CaseNext
-            } else {
-                TextActionType::CasePrev
-            },
-            val,
-        }
-    }
-}
 
 /// A dictionary entry. It could be a command, in which case it is passed directly to the
 /// dispatcher. Otherwise it is something that pertains to text, which is parsed here in translator
@@ -57,35 +17,61 @@ enum Translation {
     Text(Text),
     Command {
         cmds: Vec<Command>,
-        text_actions: Option<Vec<TextAction>>,
+        text_after: Option<Vec<Text>>,
     },
 }
 
-#[derive(Debug, PartialEq, Clone, Hash, Eq)]
+#[derive(Debug, PartialEq, Clone, Hash, Eq, Deserialize)]
 enum Text {
     // text literal that can be upper/lower cased
     Lit(String),
     // unknown strokes always printed in all caps
     UnknownStroke(Stroke),
-    // an attached string that gets orthographic rules applied
-    Attached(String),
+    // a string that can be attached to the previous and/or next word
+    Attached {
+        // the text itself
+        text: String,
+        // if it should be attached to the next word
+        joined_next: bool,
+        /// Whether or not to apply orthography rules and whether to attach to the next word
+        /// Some(true) => apply orthography rules and attach
+        /// Some(false) => attach only
+        /// None => do not attach to the previous word
+        do_orthography: Option<bool>,
+    },
     // glued strokes only attach to other glued strokes
     Glued(String),
-    // actions like no space, uppercase; apply to adjacent Texts
-    TextAction(Vec<TextAction>),
+    // changes the state for suppressing space, capitalizing, etc. the next word
+    StateAction(StateAction),
+    // text actions can only affect the text before it
+    // TODO: does this really need to be a vec?
+    TextAction(TextAction),
 }
 
 impl Translation {
     /// Convert translation into text, ignoring commands
-    fn as_text(&self) -> Option<Text> {
+    fn as_text(&self) -> Option<Vec<Text>> {
         match self {
-            Translation::Text(ref text) => Some(text.clone()),
+            Translation::Text(ref text) => Some(vec![text.clone()]),
             Translation::Command {
                 cmds: _,
-                text_actions,
-            } => text_actions.clone().map(Text::TextAction),
+                text_after,
+            } => text_after.clone(),
         }
     }
+}
+
+#[derive(Debug, PartialEq, Clone, Hash, Eq, Deserialize)]
+pub enum StateAction {
+    SuppressSpace,
+    // TODO: this should also undo suppress space?
+    ForceCapitalize,
+}
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Deserialize)]
+pub enum TextAction {
+    CapitalizePrev,
+    SuppressSpacePrev,
 }
 
 /// The standard translator is very similar in feature to Plover and other CAT software.
@@ -112,19 +98,16 @@ impl StandardTranslator {
                 // if any stroke contains text (length > 0), stop removing
                 // otherwise keep on removing
                 match t {
-                    Translation::Command {
-                        cmds: _,
-                        text_actions: _,
-                    } => {
+                    Translation::Command { .. } => {
                         // keep on removing
                     }
                     Translation::Text(text) => {
                         match text {
-                            Text::TextAction(_) => {
+                            Text::TextAction(_) | Text::StateAction(_) => {
                                 // keep on removing
                             }
-                            Text::Attached(t) => {
-                                if t.len() > 0 {
+                            Text::Attached { text, .. } => {
+                                if text.len() > 0 {
                                     return;
                                 }
                             }

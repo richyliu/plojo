@@ -74,20 +74,6 @@ fn default_orthography() -> Rules {
     ]
 }
 
-/// Join a word and suffixes together, applying orthographic (spelling) rules
-pub fn apply_orthography(strs: Vec<String>) -> String {
-    apply(&strs)
-}
-
-fn apply(strs: &[String]) -> String {
-    match strs.len() {
-        0 => String::new(),
-        1 => strs[0].clone(),
-        2 => merge(&strs[0], &strs[1]),
-        _ => merge(&merge(&strs[0], &strs[1]), &apply(&strs[2..])),
-    }
-}
-
 /// If a word and its suffix matches Find, it will be replaced with Replace
 type Rules = Vec<(Find, Replace)>;
 
@@ -124,9 +110,9 @@ enum ReplaceItem {
     Lit(&'static str),
 }
 
-/// Applies orthography rules to a given base word and a suffix
+/// Join a word and suffixes together, applying orthographic (spelling) rules
 /// Panics for invalid rules
-fn merge(base: &str, suffix: &str) -> String {
+pub fn apply_orthography(base: &str, suffix: &str) -> String {
     for (find, replace) in ORTHOGRAPHY_RULES.iter() {
         if let (Some(base_captures), Some(suffix_captures)) =
             (find.base.captures(base), find.suffix.captures(suffix))
@@ -155,8 +141,13 @@ mod tests {
     use super::*;
 
     // helper function that calls apply_orthography
-    fn orthog(s: Vec<&str>) -> String {
-        apply_orthography(s.iter().map(|s| (*s).to_string()).collect())
+    fn orthog(strs: Vec<&str>) -> String {
+        let mut iter = strs.iter();
+        let mut str = iter.next().unwrap().to_string();
+        for s in iter {
+            str = apply_orthography(&str, s);
+        }
+        str
     }
 
     #[test]

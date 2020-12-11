@@ -10,18 +10,20 @@ mod parser;
 pub(super) fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -> Vec<Command> {
     // if added a command, return that directly
     if old.len() + 1 == new.len() {
-        if let Some(Translation::Command {
-            cmds: ref cmd,
-            text_actions: _,
-        }) = new.last()
-        {
+        if let Some(Translation::Command { cmds: ref cmd, .. }) = new.last() {
             return cmd.clone();
         }
     }
 
     // only diff translations starting from where they differ and ignore commands
-    let old: Vec<_> = old.iter().filter_map(Translation::as_text).collect();
-    let new: Vec<_> = new.iter().filter_map(Translation::as_text).collect();
+    let old: Vec<_> = old
+        .iter()
+        .flat_map(|t| Translation::as_text(t).unwrap_or(vec![]))
+        .collect();
+    let new: Vec<_> = new
+        .iter()
+        .flat_map(|t| Translation::as_text(t).unwrap_or(vec![]))
+        .collect();
 
     // find where the new translations differ from the old
     let mut i = 0;
@@ -36,6 +38,7 @@ pub(super) fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -
     // include 2 additional translations
     // in case the first text command needs the previous text or two commands (one in front and one
     // behind a word) target the same word
+    // TODO: text commands might be able to target multiple words now
     if i > 1 {
         i -= 2;
     } else {
@@ -89,7 +92,7 @@ fn text_diff(old: String, new: String) -> Command {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Text, TextAction};
+    use crate::{StateAction, Text, TextAction};
     use plojo_core::Stroke;
 
     #[test]
@@ -131,7 +134,7 @@ mod tests {
             &vec![],
             &vec![Translation::Command {
                 cmds: vec![Command::PrintHello],
-                text_actions: None,
+                text_after: None,
             }],
         );
 
@@ -192,12 +195,12 @@ mod tests {
         let command = translation_diff(
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+                Translation::Text(Text::StateAction(StateAction::SuppressSpace)),
                 Translation::Text(Text::Lit("world".to_string())),
             ],
             &vec![
                 Translation::Text(Text::Lit("Hi".to_string())),
-                Translation::Text(Text::TextAction(vec![TextAction::case(true, true)])),
+                Translation::Text(Text::StateAction(StateAction::ForceCapitalize)),
                 Translation::Text(Text::Lit("world".to_string())),
             ],
         );
@@ -215,7 +218,7 @@ mod tests {
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Text(Text::Lit("world".to_string())),
-                Translation::Text(Text::TextAction(vec![TextAction::case(false, true)])),
+                Translation::Text(Text::TextAction(TextAction::CapitalizePrev)),
             ],
         );
 
@@ -229,22 +232,22 @@ mod tests {
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Command {
                     cmds: vec![Command::PrintHello],
-                    text_actions: None,
+                    text_after: None,
                 },
                 Translation::Command {
                     cmds: vec![Command::PrintHello],
-                    text_actions: None,
+                    text_after: None,
                 },
             ],
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Command {
                     cmds: vec![Command::PrintHello],
-                    text_actions: None,
+                    text_after: None,
                 },
                 Translation::Command {
                     cmds: vec![Command::PrintHello],
-                    text_actions: None,
+                    text_after: None,
                 },
             ],
         );
@@ -258,25 +261,25 @@ mod tests {
             &vec![
                 Translation::Command {
                     cmds: vec![Command::PrintHello],
-                    text_actions: None,
+                    text_after: None,
                 },
                 Translation::Command {
                     cmds: vec![Command::PrintHello],
-                    text_actions: None,
+                    text_after: None,
                 },
             ],
             &vec![
                 Translation::Command {
                     cmds: vec![Command::PrintHello],
-                    text_actions: None,
+                    text_after: None,
                 },
                 Translation::Command {
                     cmds: vec![Command::PrintHello],
-                    text_actions: None,
+                    text_after: None,
                 },
                 Translation::Command {
                     cmds: vec![Command::PrintHello],
-                    text_actions: None,
+                    text_after: None,
                 },
             ],
         );
@@ -296,7 +299,7 @@ mod tests {
                 Translation::Text(Text::Lit("world".to_string())),
                 Translation::Command {
                     cmds: vec![Command::PrintHello],
-                    text_actions: None,
+                    text_after: None,
                 },
             ],
         );
@@ -309,14 +312,15 @@ mod tests {
         let command = translation_diff(
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+                Translation::Text(Text::StateAction(StateAction::SuppressSpace)),
                 Translation::Text(Text::Lit(",".to_string())),
             ],
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::TextAction(vec![TextAction::space(true, false)])),
+                Translation::Text(Text::StateAction(StateAction::SuppressSpace)),
                 Translation::Text(Text::Lit(",".to_string())),
-                Translation::Text(Text::TextAction(vec![TextAction::space(false, false)])),
+                // TODO: prev word suppress space
+                // Translation::Text(Text::TextAction(TextAction::space(false, false))),
             ],
         );
 

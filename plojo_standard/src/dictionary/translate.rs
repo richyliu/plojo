@@ -56,7 +56,7 @@ pub(super) fn translate_strokes(dict: &Dictionary, strokes: &[Stroke]) -> Vec<Tr
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Text, TextAction};
+    use crate::{StateAction, Text};
     use plojo_core::Command;
 
     fn testing_dict() -> Dictionary {
@@ -65,13 +65,6 @@ mod tests {
             (
                 Stroke::new(stroke),
                 vec![Translation::Text(Text::Lit(translation.to_string()))],
-            )
-        }
-
-        fn row_ta(stroke: &str, text_actions: Vec<TextAction>) -> (Stroke, Vec<Translation>) {
-            (
-                Stroke::new(stroke),
-                vec![Translation::Text(Text::TextAction(text_actions))],
             )
         }
 
@@ -87,22 +80,11 @@ mod tests {
             (row("PWEUG", "big")),
             (row("PWEUG/PWOEU", "Big Boy")),
             (row("TPAOD", "food")),
-            (row_ta(
-                "KPA",
-                vec![TextAction::space(true, true), TextAction::case(true, true)],
-            )),
-            (row_ta(
-                "KPA*",
-                vec![TextAction::space(true, false), TextAction::case(true, true)],
-            )),
-            (row_ta("-RB", vec![TextAction::space(true, false)])),
-            (row_ta("S-P", vec![TextAction::space(true, true)])),
             (
-                Stroke::new("H*L"),
-                vec![Translation::Command {
-                    cmds: vec![Command::PrintHello],
-                    text_actions: None,
-                }],
+                Stroke::new("KPA"),
+                vec![Translation::Text(Text::StateAction(
+                    StateAction::ForceCapitalize,
+                ))],
             ),
             (
                 Stroke::new("TKAO*ER"),
@@ -110,7 +92,7 @@ mod tests {
                     Translation::Text(Text::Lit("deer and printing hello".to_string())),
                     Translation::Command {
                         cmds: vec![Command::PrintHello],
-                        text_actions: None,
+                        text_after: None,
                     },
                 ],
             ),
@@ -283,7 +265,7 @@ mod tests {
                 Translation::Text(Text::Lit("deer and printing hello".to_string())),
                 Translation::Command {
                     cmds: vec![Command::PrintHello],
-                    text_actions: None
+                    text_after: None,
                 },
             ]
         );
@@ -300,10 +282,7 @@ mod tests {
             translations,
             vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::TextAction(vec![
-                    TextAction::space(true, true),
-                    TextAction::case(true, true)
-                ])),
+                Translation::Text(Text::StateAction(StateAction::ForceCapitalize))
             ]
         );
     }

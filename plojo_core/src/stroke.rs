@@ -1,5 +1,7 @@
+use serde::Deserialize;
+
 /// A steno stroke. Can be a single stroke (ex: "H-L") or several strokes (ex: "H-L/WORLD")
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Deserialize)]
 pub struct Stroke(String);
 
 impl Stroke {
