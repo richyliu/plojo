@@ -76,7 +76,6 @@ pub(super) fn parse_translation(translations: Vec<Text>) -> String {
                     if do_ortho {
                         let index = find_last_word(&str);
                         // find the last word and apply orthography rule with the suffix
-                        // TODO: is this right?
                         if index < str.len() {
                             let new_word = apply_orthography(&str[index..], &text);
                             // replace that word with the new (orthography'ed) one
@@ -233,7 +232,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_parse_prev_word_text_actions() {
         let translated = parse_translation(vec![
             Text::Lit("hi".to_string()),
@@ -253,12 +251,10 @@ mod tests {
             Text::Lit("nice".to_string()),
             Text::StateAction(StateAction::SuppressSpace),
             Text::Lit("another".to_string()),
-            // TODO: insert force space prev here
         ]);
 
-        assert_eq!(translated, " Hi FOobar hello Hi A NiceTP-TDZ nice another");
+        assert_eq!(translated, " Hi FOobar hello Hi A NiceTP-TDZ niceanother");
     }
-    // TODO: test that force space prev does indeed break up strokes (maybe do in blackbox)
 
     #[test]
     fn test_parse_line_start() {
@@ -273,7 +269,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_parse_glued() {
         let translated = parse_translation(vec![
             Text::Lit("hello".to_string()),
@@ -282,10 +277,9 @@ mod tests {
             Text::Lit("foo".to_string()),
             Text::Glued("two".to_string()),
             Text::Glued("three".to_string()),
-            // TODO: insert force space prev here
         ]);
 
-        assert_eq!(translated, " hello hihi foo two three");
+        assert_eq!(translated, " hello hihi foo twothree");
     }
 
     #[test]
@@ -310,7 +304,6 @@ mod tests {
         assert_eq!(translated, " hi hello𐀀©aa");
     }
 
-    // TODO: test orthography
     #[test]
     fn test_double_space() {
         let translated = parse_translation(vec![

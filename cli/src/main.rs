@@ -1,6 +1,6 @@
 use chrono::prelude::{Local, SecondsFormat};
 use clap::{App, Arg, ArgMatches};
-use plojo_core::{Controller, Machine, Translator};
+use plojo_core::{Controller, Machine, Stroke, Translator};
 use plojo_input_geminipr::{self as geminipr, GeminiprMachine};
 use plojo_input_stdin::StdinMachine;
 use plojo_output_macos::MacController;
@@ -44,8 +44,13 @@ pub fn main() {
     println!("Loading dictionaries...");
     // this takes a few seconds
     let raw_dicts = load_dictionaries(matches.value_of("add-dictionary"));
-    let mut translator =
-        StandardTranslator::new(raw_dicts, vec![]).expect("Unable to create translator");
+    let mut translator = StandardTranslator::new(
+        raw_dicts,
+        vec![],
+        vec![Stroke::new("AFPS")], // AFPS is the stroke for retroactive add space
+        Some(Stroke::new("S-P")),  // stroke added when AFPS is stroked
+    )
+    .expect("Unable to create translator");
     println!("Loaded dictionaries");
 
     /* Load controller */

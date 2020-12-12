@@ -5,43 +5,9 @@ users may need to install libxdo-dev.
 
 ## Todos
 
-- **start in diff/parser.rs (implement parse_translation)**
-- BUG: prefix + suffixes, followed by remove last space, does not work
-  - criteria:
-    - may need to rethink the system for space next/previous
-    - delete last space needs to work even after a prefix
-    - remove space before a fingerspelled word
-    - add last space needs to add immediately between the last 2 strokes
-    - multiple add/suppress space need to work together
-    - carrying capitalization
-    - suppressing space
-  - brainstorming:
-    - system for next word state
-      - uppercase, lowercase, ALL CAPS/lower
-      - strokes like KPA* and KPA change that state
-      - the next word reads the state to do the capitalize/lowercase
-    - system for prefix/suffix
-      - suppresses space where appropriate
-      - suffix needs to be special to apply orthography rules
-      - enum "Attached" variant
-        - can specify bool attacted to prev and next
-        - can specify whether or not to use orthography rules
-    - retroactive actions
-      - after translating to string, go through a second time to apply actions
-      - actions can only affect what comes before it
-    - retroactive add space
-      - needs to be special, because it add a space (and changes a translation)
-    - when deciding next word space/uppercase:
-      - check if previous said to suppress space
-      - check if current (next) said to suppress space
-      - check current space state
-      - check if current is carrying capitalization
-        - then set state to default and change the state for next word
-    - steps
-      - translate using dictionary
-      - join words, use space/case state, change state where necessary
-        - keep text (retroactive) actions the same
-      - loop again and apply retroactive actions from back to front
+- carrying capitalization (dictionary/load.rs:260) (and other lines)
+- text actions might need more than just the last 2 words (diff.rs:41)
+- add tests for orthography getting broken up correctly
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
 - use an english dictionary lookup to fix orthography errors
   - BUG: `SHEUFR/-G` gives "shiverring"; need to use a dictionary for orthography

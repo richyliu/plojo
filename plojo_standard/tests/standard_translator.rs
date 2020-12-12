@@ -14,8 +14,27 @@ impl Blackbox {
     /// raw_dict should be in a JSON string format. The outermost brackets should be omitted
     fn new(raw_dict: &str) -> Self {
         let json_str: String = "{".to_string() + raw_dict + "}";
-        let translator =
-            StandardTranslator::new(vec![json_str], vec![]).expect("Unable to create translator");
+        let translator = StandardTranslator::new(vec![json_str], vec![], vec![], None)
+            .expect("Unable to create translator");
+
+        Self {
+            translator,
+            output: String::new(),
+            output_keys: vec![],
+        }
+    }
+
+    /// Creates a black box with stroke `AFPS` to retroactive add space. Inserts "S-P": "{^ ^}"
+    /// into the dictionary for retroactive add space to work
+    fn new_with_retroactive_add_space(raw_dict: &str) -> Self {
+        let json_str: String = "{".to_string() + raw_dict + r#", "S-P": "{^ ^}""# + "}";
+        let translator = StandardTranslator::new(
+            vec![json_str],
+            vec![],
+            vec![Stroke::new("AFPS")],
+            Some(Stroke::new("S-P")),
+        )
+        .expect("Unable to create translator");
 
         Self {
             translator,
@@ -109,6 +128,8 @@ fn basic_undo() {
     );
     b.expect("H-L", " hello");
     b.expect("WORLD", " hello world");
+    b.expect("TPHOT", " hello world TPHOT");
+    b.expect("*", " hello world");
     b.expect("*", " hello");
     b.expect("*", "");
 }
@@ -176,20 +197,6 @@ fn unknown_with_attached() {
         "#,
     );
     b.expect("STPW/-D", " STPWed");
-}
-
-#[test]
-#[ignore]
-fn suppress_space_should_lowercase() {
-    // TODO: should it really?
-    let mut b = Blackbox::new(
-        r#"
-            "H-L": "hello",
-            "TK-LS": "{^^}",
-            "KPA*": "{^}{-|}"
-        "#,
-    );
-    b.expect("H-L/KPA*/TK-LS/H-L", " hellohello");
 }
 
 #[test]
@@ -330,30 +337,45 @@ fn text_action_after_command() {
 
 #[test]
 fn retrospective_actions() {
-    let mut b = Blackbox::new(
+    let mut b = Blackbox::new_with_retroactive_add_space(
         r#"
             "H-L": "Hello World",
             "TKFPS": "{*!}",
             "KA*PD": "{*-|}",
-            "TPAO": "foo"
+            "TPAO": "foo",
+            "TK-LS": "{^^}",
+            "KPA": "{-|}"
         "#,
     );
     b.expect("H-L/TKFPS", " HelloWorld");
     b.expect("TPAO/KA*PD", " HelloWorld Foo");
+    b.expect("TK-LS/TPAO/KPA", " HelloWorld Foofoo");
+    b.expect("AFPS", " HelloWorld Foo foo");
 }
 
 #[test]
-#[ignore]
 fn retrospective_add_space_breaks_up_translation() {
-    // TODO: implement
-    let mut b = Blackbox::new(
+    let mut b = Blackbox::new_with_retroactive_add_space(
         r#"
             "H-L": "hello",
             "WORLD": "world",
             "H-L/WORLD": "Hello, world!",
-            "AFPS": "{*?}"
+            "H-L/WORLD/WORLD": "Big hello world"
         "#,
     );
     b.expect("H-L/WORLD", " Hello, world!");
-    b.expect("AFPS", " hello world");
+    b.expect("WORLD", " Big hello world");
+    b.expect("AFPS", " Hello, world! world");
+}
+
+#[test]
+fn retrospective_add_space_glued() {
+    let mut b = Blackbox::new_with_retroactive_add_space(
+        r#"
+            "H*": "{&h}",
+            "*EU": "{&i}"
+        "#,
+    );
+    b.expect("H*/*EU", " hi");
+    b.expect("AFPS", " h i");
 }

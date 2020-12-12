@@ -13,25 +13,20 @@ const MAX_TRANSLATION_STROKE_LEN: usize = 10;
 
 /// Looks up the definition of strokes in the dictionary, converting them into a Translation. Since
 /// multiple strokes could map to one dictionary translation, a greedy algorithm is used starting
-/// from the oldest strokes
+/// from the oldest strokes. If a stroke is None, it will forcible break up the translation (used
+/// for retrospective add space)
 pub(super) fn translate_strokes(dict: &Dictionary, strokes: &[Stroke]) -> Vec<Translation> {
     let mut all_translations: Vec<Translation> = vec![];
-
-    // limit how far to look forward
-    let add_max_limit_len = |n: usize| -> usize {
-        let with_max = n + MAX_TRANSLATION_STROKE_LEN;
-        if with_max > strokes.len() {
-            strokes.len()
-        } else {
-            with_max
-        }
-    };
 
     let mut start = 0;
     while start < strokes.len() {
         let mut found_translation = false;
+
+        // limit how far to look forward
+        let max_end = std::cmp::min(start + MAX_TRANSLATION_STROKE_LEN, strokes.len());
+
         // look forward up to a certain number of strokes, starting from the most strokes
-        for end in (start..add_max_limit_len(start)).rev() {
+        for end in (start..max_end).rev() {
             // if that gives a translation, add it and advance start
             if let Some(mut translations) = dict.lookup(&strokes[start..=end]) {
                 all_translations.append(&mut translations);
@@ -44,10 +39,10 @@ pub(super) fn translate_strokes(dict: &Dictionary, strokes: &[Stroke]) -> Vec<Tr
         // if no translation found for any stroke from [start..=start] to [start..=start + max]
         if !found_translation {
             // translation for this stroke
-            if let Some(s) = strokes.get(start) {
-                all_translations.push(Translation::Text(Text::UnknownStroke(s.clone())));
-                start += 1;
-            }
+            all_translations.push(Translation::Text(Text::UnknownStroke(
+                strokes[start].clone(),
+            )));
+            start += 1;
         }
     }
 

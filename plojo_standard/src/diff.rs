@@ -38,7 +38,6 @@ pub(super) fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -
     // include 2 additional translations
     // in case the first text command needs the previous text or two commands (one in front and one
     // behind a word) target the same word
-    // TODO: text commands might be able to target multiple words now
     if i > 1 {
         i -= 2;
     } else {
@@ -305,25 +304,5 @@ mod tests {
         );
 
         assert_eq!(command, vec![Command::PrintHello]);
-    }
-
-    #[test]
-    fn test_text_actions_no_double() {
-        let command = translation_diff(
-            &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::StateAction(StateAction::SuppressSpace)),
-                Translation::Text(Text::Lit(",".to_string())),
-            ],
-            &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::StateAction(StateAction::SuppressSpace)),
-                Translation::Text(Text::Lit(",".to_string())),
-                // TODO: prev word suppress space
-                // Translation::Text(Text::TextAction(TextAction::space(false, false))),
-            ],
-        );
-
-        assert_eq!(command, vec![Command::NoOp]);
     }
 }

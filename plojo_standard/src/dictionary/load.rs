@@ -54,7 +54,6 @@ use std::{error::Error, fmt};
 /// - `{,}`, `{:}`, `{;}`: inserts the punctuation joined to the previous word
 ///
 /// ### Retrospective Space
-/// - `{*?}`: retrospectivly add space before the previous translated word
 /// - `{*!}`: retrospectivly remove space before the previous translated word
 ///
 /// ### Literal symbols
@@ -66,7 +65,8 @@ use std::{error::Error, fmt};
 ///
 /// - The empty text commmand (`{}`) does not do anything. In plover, this stroke cancels the
 ///   formatting of the next word.
-/// - Retrospective space adding/removing works on the previous word, not the previous stroke
+/// - Retrospective remove space works on the previous word, not the previous stroke
+/// - Retrospective add space is configured in the translator options, not in the dictionary
 pub(super) fn load_dicts(contents: &str) -> Result<Entries, ParseError> {
     let value: Value = serde_json::from_str(&contents)?;
 
@@ -233,8 +233,6 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
         "*-|" => Ok(vec![Translation::Text(Text::TextAction(
             TextAction::CapitalizePrev,
         ))]),
-        // add space to prev word
-        "*?" => todo!("add space prev word"),
         // remove space from prev word
         "*!" => Ok(vec![Translation::Text(Text::TextAction(
             TextAction::SuppressSpacePrev,
@@ -259,31 +257,21 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                     // simply ignore the `~|` in carrying capitalization for now
                     let mut content = groups[2].to_string();
                     if let Some(carrying_cap) = CARRYING_CAP.captures(&content) {
-                        // TODO: implement carrying capitalization
                         content = carrying_cap[1].to_string();
                     }
 
+                    // suppress next space if needed
+                    let joined_to_next_word = &groups[3] == "^";
                     // apply orthography with an attached action
-                    if &groups[3] == "^" {
-                        // suppress next space if needed
-                        return Ok(vec![Translation::Text(Text::Attached {
-                            text: content.to_string(),
-                            joined_next: true,
-                            do_orthography: Some(true),
-                        })]);
-                    } else {
-                        // TODO: merge if statements?
-                        return Ok(vec![Translation::Text(Text::Attached {
-                            text: content.to_string(),
-                            joined_next: false,
-                            do_orthography: Some(true),
-                        })]);
-                    }
+                    return Ok(vec![Translation::Text(Text::Attached {
+                        text: content.to_string(),
+                        joined_next: joined_to_next_word,
+                        do_orthography: Some(true),
+                    })]);
                 } else if &groups[3] == "^" {
                     // simply ignore the `~|` in carrying capitalization for now
                     let mut content = groups[2].to_string();
                     if let Some(carrying_cap) = CARRYING_CAP.captures(&content) {
-                        // TODO: carrying cap also here
                         content = carrying_cap[1].to_string();
                     }
 
@@ -434,8 +422,7 @@ mod tests {
                 Translation::Text(Text::StateAction(StateAction::ForceCapitalize))
             ],
         );
-        // remove space from prev word
-        // TODO: implement remove space prev
+        // literal bracket
         assert_eq!(
             parse_translation("{bracketleft}").unwrap(),
             vec![Translation::Text(Text::Lit("{".to_string())),]
