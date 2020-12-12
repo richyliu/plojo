@@ -117,7 +117,7 @@ pub(super) fn parse_translation(translations: Vec<Text>) -> String {
             str.push(' ');
         }
         if state.force_capitalize {
-            str.push_str(&word_change_first_letter(next_word, true));
+            str.push_str(&word_change_first_letter(next_word));
         } else {
             str.push_str(&next_word);
         }
@@ -128,26 +128,12 @@ pub(super) fn parse_translation(translations: Vec<Text>) -> String {
     str
 }
 
-/// Forces the first letter of a string to be upper/lower case
-fn word_change_first_letter(word: String, uppercase: bool) -> String {
-    if let Some(first_letter) = word.get(0..1) {
-        // capitalize or lowercase the first letter
-        let result = if uppercase {
-            first_letter.to_uppercase()
-        } else {
-            first_letter.to_lowercase()
-        };
-
-        let mut s = result.to_string();
-        // add the rest of the word
-        if let Some(rest) = word.get(1..) {
-            s.push_str(rest);
-        }
-
-        s
-    } else {
-        // do nothing on empty word
-        word
+/// Forces the first letter of a string to be uppercase
+fn word_change_first_letter(text: String) -> String {
+    let mut chars = text.chars();
+    match chars.next() {
+        None => String::new(),
+        Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
     }
 }
 
@@ -156,12 +142,17 @@ fn word_change_first_letter(word: String, uppercase: bool) -> String {
 fn find_last_word(text: &str) -> usize {
     if let Some(i) = text.rfind(char::is_whitespace) {
         // add 1 to remove the space
+        // whitespace takes up 1 byte, so adding 1 is safe here
         i + 1
     } else {
         // no whitespace, so everything must be a word
         0
     }
 }
+
+// chars (besides alphanumeric) that are considered part of a word
+// This is used for deciding what is a word when capitalizing the previous word
+const WORD_CHARS: [char; 2] = ['-', '_'];
 
 fn perform_text_action(text: &str, action: TextAction) -> String {
     match action {
@@ -176,12 +167,24 @@ fn perform_text_action(text: &str, action: TextAction) -> String {
             new_str
         }
         TextAction::CapitalizePrev => {
-            // find the last word
-            let index = find_last_word(&text);
+            // find the last non-alphanumeric (nor hyphen) character
+            let index = if let Some(i) =
+                text.rfind(|c| !(char::is_alphanumeric(c) || WORD_CHARS.contains(&c)))
+            {
+                // size of whatever char was before the word
+                // unwrap is safe because we found the index `i` with rfind
+                let char_size = text[i..].chars().next().unwrap().to_string().len();
+                // add to get to the next char (the actual word)
+                i + char_size
+            } else {
+                // no whitespace, so everything must be a word
+                0
+            };
+
+            // capitalize the last word
             let word = text[index..].to_string();
-            // capitalize it
-            let word = word_change_first_letter(word, true);
-            let new_str = text[..index].to_string() + &word;
+            let capitalized = word_change_first_letter(word);
+            let new_str = text[..index].to_string() + &capitalized;
             new_str
         }
     }
@@ -284,9 +287,9 @@ mod tests {
 
     #[test]
     fn test_word_change_first_letter() {
-        assert_eq!(word_change_first_letter("hello".to_owned(), true), "Hello");
-        assert_eq!(word_change_first_letter("".to_owned(), true), "");
-        assert_eq!(word_change_first_letter("Hello".to_owned(), true), "Hello");
+        assert_eq!(word_change_first_letter("hello".to_owned()), "Hello");
+        assert_eq!(word_change_first_letter("".to_owned()), "");
+        assert_eq!(word_change_first_letter("Hello".to_owned()), "Hello");
     }
 
     #[test]
@@ -301,7 +304,7 @@ mod tests {
             Text::TextAction(TextAction::SuppressSpacePrev),
         ]);
 
-        assert_eq!(translated, " hi hello𐀀©aa");
+        assert_eq!(translated, " hi hello𐀀©Aa");
     }
 
     #[test]
@@ -345,6 +348,27 @@ mod tests {
         assert_eq!(
             perform_text_action(" there are many words", TextAction::CapitalizePrev),
             " there are many Words"
+        );
+        assert_eq!(
+            perform_text_action(" no previous word ", TextAction::CapitalizePrev),
+            " no previous word "
+        );
+        assert_eq!(
+            perform_text_action(" ∅∅byteboundary", TextAction::CapitalizePrev),
+            " ∅∅Byteboundary"
+        );
+        assert_eq!(
+            // This weird character becomes 2 S's when capitalized
+            perform_text_action(" ßweird_char", TextAction::CapitalizePrev),
+            " SSweird_char"
+        );
+        assert_eq!(
+            perform_text_action(" (symbol", TextAction::CapitalizePrev),
+            " (Symbol"
+        );
+        assert_eq!(
+            perform_text_action(" !symbol-hyphen", TextAction::CapitalizePrev),
+            " !Symbol-hyphen"
         );
     }
 }

@@ -5,8 +5,7 @@ users may need to install libxdo-dev.
 
 ## Todos
 
-- carrying capitalization (dictionary/load.rs:260) (and other lines)
-- text actions might need more than just the last 2 words (diff.rs:41)
+- do carrying capitalization (dictionary/load.rs:260) (and other lines)
 - add tests for orthography getting broken up correctly
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
 - use an english dictionary lookup to fix orthography errors
@@ -15,7 +14,6 @@ users may need to install libxdo-dev.
     - check with a dictionary for a "simple" join first
     - https://github.com/openstenoproject/plover/blob/master/plover/orthography.py
 
-- actually implement carrying capitalization
 - add custom stroke/command to also reset `prev_stroke`
 - implement `{}` to clear formatting
   - implement it as a suppress space followed by an empty string
@@ -73,3 +71,4 @@ users may need to install libxdo-dev.
 - capitalize prev will capitalize the previous word that appears on screen
   - for translations with multiple words, the last word will be capitalized
   - if space prev is suppressed, the whole thing will be capitalized
+  - for something like `©ab`, the `a` will be capitalized: `©Ab`

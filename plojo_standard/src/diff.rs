@@ -5,6 +5,8 @@ use std::cmp;
 
 mod parser;
 
+use parser::parse_translation;
+
 /// Finds the difference between two translations, converts them to their string representations,
 /// and diffs the strings to create a command
 pub(super) fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -> Vec<Command> {
@@ -15,44 +17,12 @@ pub(super) fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -
         }
     }
 
-    // only diff translations starting from where they differ and ignore commands
-    let old: Vec<_> = old
-        .iter()
-        .flat_map(|t| Translation::as_text(t).unwrap_or(vec![]))
-        .collect();
-    let new: Vec<_> = new
-        .iter()
-        .flat_map(|t| Translation::as_text(t).unwrap_or(vec![]))
-        .collect();
-
-    // find where the new translations differ from the old
-    let mut i = 0;
-    let loop_size = cmp::min(old.len(), new.len());
-    while i < loop_size {
-        if old.get(i) != new.get(i) {
-            break;
-        }
-        i += 1;
-    }
-
-    // include 2 additional translations
-    // in case the first text command needs the previous text or two commands (one in front and one
-    // behind a word) target the same word
-    if i > 1 {
-        i -= 2;
-    } else {
-        i = 0;
-    }
-
-    // only consider the translations after where they differ
-    let old = old[i..].to_vec();
-    let new = new[i..].to_vec();
+    // ignore commands
+    let old: Vec<_> = old.iter().flat_map(|t| Translation::as_text(t)).collect();
+    let new: Vec<_> = new.iter().flat_map(|t| Translation::as_text(t)).collect();
 
     // compare the two and return the result
-    vec![text_diff(
-        parser::parse_translation(old),
-        parser::parse_translation(new),
-    )]
+    vec![text_diff(parse_translation(old), parse_translation(new))]
 }
 
 /// Compute the command necessary to make the old string into the new

@@ -49,13 +49,13 @@ enum Text {
 
 impl Translation {
     /// Convert translation into text, ignoring commands
-    fn as_text(&self) -> Option<Vec<Text>> {
+    fn as_text(&self) -> Vec<Text> {
         match self {
-            Translation::Text(ref text) => Some(vec![text.clone()]),
+            Translation::Text(ref text) => vec![text.clone()],
             Translation::Command {
                 cmds: _,
                 text_after,
-            } => text_after.clone(),
+            } => text_after.clone().unwrap_or(vec![]),
         }
     }
 }
