@@ -5,7 +5,6 @@ users may need to install libxdo-dev.
 
 ## Todos
 
-- do carrying capitalization (dictionary/load.rs:260) (and other lines)
 - add tests for orthography getting broken up correctly
 - suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
 - use an english dictionary lookup to fix orthography errors

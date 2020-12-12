@@ -9,6 +9,5 @@ edition = "2018"
 [dependencies]
 plojo_core = { path = "../plojo_core" }
 core-graphics = "0.22.1"
-libc = "0.2"
 foreign-types = "0.3.0"
 cocoa = "0.24.0"

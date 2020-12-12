@@ -39,6 +39,8 @@ enum Text {
         /// Some(false) => attach only
         /// None => do not attach to the previous word
         do_orthography: Option<bool>,
+        /// whether or not to carry the capitalization state to the word following this
+        carry_capitalization: bool,
     },
     // glued strokes only attach to other glued strokes
     Glued(String),

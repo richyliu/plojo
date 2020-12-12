@@ -63,10 +63,17 @@ pub(super) fn parse_translation(translations: Vec<Text>) -> String {
                 text,
                 joined_next,
                 do_orthography,
+                carry_capitalization,
             } => {
                 next_word = text.clone();
                 if joined_next {
                     next_state.suppress_space = true;
+                }
+                if carry_capitalization {
+                    // carry on the capitalization state to the next word
+                    next_state.force_capitalize = state.force_capitalize;
+                    // don't capitalize this word
+                    state.force_capitalize = false;
                 }
                 // Some means to join stroke to previous word
                 if let Some(do_ortho) = do_orthography {
@@ -314,11 +321,13 @@ mod tests {
                 text: " ".to_string(),
                 joined_next: true,
                 do_orthography: Some(true),
+                carry_capitalization: false,
             },
             Text::Attached {
                 text: " ".to_string(),
                 joined_next: true,
                 do_orthography: Some(true),
+                carry_capitalization: false,
             },
         ]);
 
@@ -369,5 +378,28 @@ mod tests {
             perform_text_action(" !symbol-hyphen", TextAction::CapitalizePrev),
             " !Symbol-hyphen"
         );
+    }
+
+    #[test]
+    fn test_carry_capitalization() {
+        let translated = parse_translation(vec![
+            Text::Lit("fairy".to_string()),
+            Text::StateAction(StateAction::ForceCapitalize),
+            Text::Attached {
+                text: "s".to_string(),
+                joined_next: false,
+                do_orthography: Some(true),
+                carry_capitalization: true,
+            },
+            Text::Attached {
+                text: "b".to_string(),
+                joined_next: true,
+                do_orthography: None,
+                carry_capitalization: true,
+            },
+            Text::Lit("hi".to_string()),
+        ]);
+
+        assert_eq!(translated, " fairies bHi");
     }
 }

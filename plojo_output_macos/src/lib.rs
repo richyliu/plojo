@@ -220,7 +220,6 @@ fn keycode_to_char(code: CGKeyCode) -> Option<char> {
     use cocoa::appkit::{NSEvent, NSEventType};
     use cocoa::foundation::NSString;
     use foreign_types::ForeignType;
-    use libc::c_void;
     use std::{slice, str};
 
     let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
@@ -229,7 +228,7 @@ fn keycode_to_char(code: CGKeyCode) -> Option<char> {
     unsafe {
         let ns_event = NSEvent::eventWithCGEvent_(
             cocoa::appkit::NSGeneralPboard, // this can be anything; it isn't actually used
-            event.as_ptr() as *mut c_void,
+            event.as_ptr() as *mut core::ffi::c_void,
         );
 
         if ns_event.eventType() == NSEventType::NSKeyDown {
@@ -267,6 +266,5 @@ mod tests {
 
         // control key
         assert_eq!(keycode_to_char(59), None);
-        println!("{:?}", build_char_to_keycode_map());
     }
 }

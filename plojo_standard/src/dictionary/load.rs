@@ -216,6 +216,7 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                 text: p.to_string(),
                 joined_next: false,
                 do_orthography: Some(false),
+                carry_capitalization: false,
             }),
             Translation::Text(Text::StateAction(StateAction::ForceCapitalize)),
         ]),
@@ -224,6 +225,7 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
             text: p.to_string(),
             joined_next: false,
             do_orthography: Some(false),
+            carry_capitalization: false,
         })]),
         // capitalize next word
         "-|" => Ok(vec![Translation::Text(Text::StateAction(
@@ -254,10 +256,12 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                         ))]);
                     }
 
-                    // simply ignore the `~|` in carrying capitalization for now
+                    // set carrying capitalization flag
                     let mut content = groups[2].to_string();
+                    let mut carry_capitalization = false;
                     if let Some(carrying_cap) = CARRYING_CAP.captures(&content) {
                         content = carrying_cap[1].to_string();
+                        carry_capitalization = true;
                     }
 
                     // suppress next space if needed
@@ -267,12 +271,15 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                         text: content,
                         joined_next: joined_to_next_word,
                         do_orthography: Some(true),
+                        carry_capitalization,
                     })]);
                 } else if &groups[3] == "^" {
-                    // simply ignore the `~|` in carrying capitalization for now
+                    // set carrying capitalization flag
                     let mut content = groups[2].to_string();
+                    let mut carry_capitalization = false;
                     if let Some(carrying_cap) = CARRYING_CAP.captures(&content) {
                         content = carrying_cap[1].to_string();
+                        carry_capitalization = true;
                     }
 
                     // caret at end is a prefix stroke
@@ -280,16 +287,22 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                         text: content,
                         joined_next: true,
                         do_orthography: None,
+                        carry_capitalization,
                     })]);
                 }
                 // no caret, ignore it
 
-                // simply ignore the `~|` in carrying capitalization for now
+                // carrying capitalization without any attached
                 let content = groups[2].to_string();
                 if let Some(carrying_cap) = CARRYING_CAP.captures(&content) {
                     let content = carrying_cap[1].to_string();
 
-                    return Ok(vec![Translation::Text(Text::Lit(content))]);
+                    return Ok(vec![Translation::Text(Text::Attached {
+                        text: content,
+                        joined_next: false,
+                        do_orthography: None,
+                        carry_capitalization: true,
+                    })]);
                 }
             }
 
@@ -383,6 +396,7 @@ mod tests {
                 text: "ish".to_string(),
                 joined_next: false,
                 do_orthography: Some(true),
+                carry_capitalization: false,
             })]
         );
         // `{^-to-^}` should be "-to-" attached with orthography with space suppressed following it
@@ -392,6 +406,7 @@ mod tests {
                 text: "-to-".to_string(),
                 joined_next: true,
                 do_orthography: Some(true),
+                carry_capitalization: false,
             })]
         );
         // `{in^}` should be an "in" followed by a suppressed space
@@ -400,7 +415,8 @@ mod tests {
             vec![Translation::Text(Text::Attached {
                 text: "in".to_string(),
                 joined_next: true,
-                do_orthography: None
+                do_orthography: None,
+                carry_capitalization: false,
             })]
         );
     }
@@ -433,7 +449,8 @@ mod tests {
             vec![Translation::Text(Text::Attached {
                 text: "\"".to_string(),
                 joined_next: true,
-                do_orthography: None
+                do_orthography: None,
+                carry_capitalization: true,
             })]
         );
         // quote followed by word
@@ -443,10 +460,21 @@ mod tests {
                 Translation::Text(Text::Attached {
                     text: "'".to_string(),
                     joined_next: true,
-                    do_orthography: None
+                    do_orthography: None,
+                    carry_capitalization: true,
                 }),
                 Translation::Text(Text::Lit("cause".to_string())),
             ]
+        );
+        // standalone carrying cap
+        assert_eq!(
+            parse_translation(r#"{~|hello}"#).unwrap(),
+            vec![Translation::Text(Text::Attached {
+                text: "hello".to_string(),
+                joined_next: false,
+                do_orthography: None,
+                carry_capitalization: true,
+            })]
         );
     }
 

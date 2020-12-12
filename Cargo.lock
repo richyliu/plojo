@@ -414,7 +414,6 @@ dependencies = [
  "cocoa",
  "core-graphics 0.22.1",
  "foreign-types",
- "libc",
  "plojo_core",
 ]
 
