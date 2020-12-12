@@ -29,7 +29,7 @@ impl Dictionary {
     fn lookup(&self, strokes: &[Stroke]) -> Option<Vec<Translation>> {
         // combine strokes with a `/` between them
         let mut combined = strokes
-            .into_iter()
+            .iter()
             .map(|s| s.clone().to_raw())
             .fold(String::new(), |acc, s| acc + &s + "/");
         // remove trailing `/`
@@ -46,8 +46,8 @@ impl Dictionary {
 impl FromIterator<DictEntry> for Dictionary {
     fn from_iter<T: IntoIterator<Item = DictEntry>>(iter: T) -> Self {
         let mut hashmap: HashMap<Stroke, Vec<Translation>> = HashMap::new();
-        for (stroke, command) in iter {
-            hashmap.insert(stroke, command);
+        for (stroke, translations) in iter {
+            hashmap.insert(stroke, translations);
         }
 
         Dictionary { strokes: hashmap }

@@ -184,8 +184,7 @@ fn perform_text_action(text: &str, action: TextAction) -> String {
             // capitalize the last word
             let word = text[index..].to_string();
             let capitalized = word_change_first_letter(word);
-            let new_str = text[..index].to_string() + &capitalized;
-            new_str
+            text[..index].to_string() + &capitalized
         }
     }
 }

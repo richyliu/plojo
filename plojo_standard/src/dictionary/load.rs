@@ -82,9 +82,9 @@ pub(super) fn load_dicts(contents: &str) -> Result<Entries, ParseError> {
                 result_entries.push((stroke, parsed));
             }
             Value::Object(obj) => {
-                let commands = obj.get("cmds").ok_or(ParseError::InvalidTranslation(
-                    "cmds key not found".to_string(),
-                ))?;
+                let commands = obj.get("cmds").ok_or_else(|| {
+                    ParseError::InvalidTranslation("cmds key not found".to_string())
+                })?;
                 let parsed: Vec<Command> = serde_json::from_value(commands.clone())?;
                 let mut texts: Option<Vec<Text>> = None;
                 if let Some(raw_texts) = obj.get("text_after") {
@@ -146,7 +146,7 @@ fn parse_stroke(s: &str) -> Result<Stroke, ParseError> {
 }
 
 fn parse_translation(t: &str) -> Result<Vec<Translation>, ParseError> {
-    if t.len() == 0 {
+    if t.is_empty() {
         return Err(ParseError::EmptyTranslation);
     }
 
@@ -248,7 +248,7 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                 // a caret in front means its either a suppress space or apply orthography
                 if &groups[1] == "^" {
                     // nothing in the text section, just a simple suppress space stroke
-                    if groups[2].len() == 0 {
+                    if groups[2].is_empty() {
                         return Ok(vec![Translation::Text(Text::StateAction(
                             StateAction::SuppressSpace,
                         ))]);
@@ -264,7 +264,7 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                     let joined_to_next_word = &groups[3] == "^";
                     // apply orthography with an attached action
                     return Ok(vec![Translation::Text(Text::Attached {
-                        text: content.to_string(),
+                        text: content,
                         joined_next: joined_to_next_word,
                         do_orthography: Some(true),
                     })]);
@@ -277,7 +277,7 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
 
                     // caret at end is a prefix stroke
                     return Ok(vec![Translation::Text(Text::Attached {
-                        text: content.to_string(),
+                        text: content,
                         joined_next: true,
                         do_orthography: None,
                     })]);
@@ -300,7 +300,7 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                 }
             }
 
-            return Err(ParseError::InvalidSpecialAction(_t.to_string()));
+            Err(ParseError::InvalidSpecialAction(_t.to_string()))
         }
     }
 }

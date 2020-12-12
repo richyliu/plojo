@@ -21,6 +21,7 @@ enum Translation {
     },
 }
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Debug, PartialEq, Clone, Hash, Eq, Deserialize)]
 enum Text {
     // text literal that can be upper/lower cased
@@ -55,7 +56,7 @@ impl Translation {
             Translation::Command {
                 cmds: _,
                 text_after,
-            } => text_after.clone().unwrap_or(vec![]),
+            } => text_after.clone().unwrap_or_default(),
         }
     }
 }
@@ -109,7 +110,7 @@ fn can_be_undone(translation: Translation) -> bool {
         Translation::Text(text) => match text {
             Text::TextAction(_) | Text::StateAction(_) => false,
             Text::UnknownStroke(_) => true,
-            Text::Attached { text, .. } | Text::Glued(text) | Text::Lit(text) => text.len() > 0,
+            Text::Attached { text, .. } | Text::Glued(text) | Text::Lit(text) => !text.is_empty(),
         },
     }
 }
@@ -146,7 +147,7 @@ impl StandardTranslator {
         add_space_insert: Option<Stroke>,
     ) -> Result<Self, Box<dyn Error>> {
         let dict = Dictionary::new(raw_dicts)?;
-        if retrospective_add_space.len() > 0 && add_space_insert == None {
+        if !retrospective_add_space.is_empty() && add_space_insert == None {
             panic!("translator must have an add_space_insert stroke for retrospective_add_space");
         }
         Ok(Self {

@@ -9,7 +9,7 @@ use parser::parse_translation;
 
 /// Finds the difference between two translations, converts them to their string representations,
 /// and diffs the strings to create a command
-pub(super) fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -> Vec<Command> {
+pub(super) fn translation_diff(old: &[Translation], new: &[Translation]) -> Vec<Command> {
     // if added a command, return that directly
     if old.len() + 1 == new.len() {
         if let Some(Translation::Command { cmds: ref cmd, .. }) = new.last() {
@@ -27,14 +27,14 @@ pub(super) fn translation_diff(old: &Vec<Translation>, new: &Vec<Translation>) -
 
 /// Compute the command necessary to make the old string into the new
 fn text_diff(old: String, new: String) -> Command {
-    if old.len() == 0 {
-        if new.len() == 0 {
+    if old.is_empty() {
+        if new.is_empty() {
             return Command::NoOp;
         }
 
         return Command::add_text(&new);
     }
-    if new.len() == 0 {
+    if new.is_empty() {
         return Command::replace_text(old.len(), "");
     }
 
