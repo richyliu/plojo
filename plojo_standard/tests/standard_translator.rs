@@ -379,3 +379,15 @@ fn retrospective_add_space_glued() {
     b.expect("H*/*EU", " hi");
     b.expect("AFPS", " h i");
 }
+
+#[test]
+fn basic_unicode() {
+    let mut b = Blackbox::new(
+        r#"
+            "PH-RB": "—",
+            "H-L": "hello"
+        "#,
+    );
+    b.expect("PH-RB", " —");
+    b.expect("H-L", " — hello");
+}

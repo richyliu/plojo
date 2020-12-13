@@ -38,12 +38,14 @@ fn text_diff(old: String, new: String) -> Command {
         return Command::replace_text(old.len(), "");
     }
 
+    let old_chars_len = old.clone().chars().count();
+    let new_chars_len = new.clone().chars().count();
     let mut old_chars = old.chars();
     let mut new_chars = new.chars();
 
     // find where the new translations differ from the old
     let mut i: usize = 0;
-    let loop_size: usize = cmp::min(old.len(), new.len());
+    let loop_size: usize = cmp::min(old_chars_len, new_chars_len);
     while i < loop_size {
         if old_chars.next() != new_chars.next() {
             break;
@@ -51,11 +53,11 @@ fn text_diff(old: String, new: String) -> Command {
         i += 1;
     }
 
-    if i == old.len() && old.len() == new.len() {
+    if i == old_chars_len && old_chars_len == new_chars_len {
         return Command::NoOp;
     }
 
-    Command::replace_text(old.len() - i, &new[i..])
+    Command::replace_text(old_chars_len - i, &new.chars().skip(i).collect::<String>())
 }
 
 #[cfg(test)]
@@ -274,5 +276,16 @@ mod tests {
         );
 
         assert_eq!(command, vec![Command::PrintHello]);
+    }
+
+    #[test]
+    fn test_unicode() {
+        let command = text_diff(
+            // note that these are "em dashes"
+            " ——a".to_string(),
+            " —Ω".to_string(),
+        );
+
+        assert_eq!(command, Command::Replace(2, "Ω".to_string()));
     }
 }
