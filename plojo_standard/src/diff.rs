@@ -166,7 +166,6 @@ mod tests {
         let command = translation_diff(
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::StateAction(StateAction::SuppressSpace)),
                 Translation::Text(Text::Lit("world".to_string())),
             ],
             &vec![
@@ -176,7 +175,7 @@ mod tests {
             ],
         );
 
-        assert_eq!(command, vec![Command::replace_text(9, "i World")]);
+        assert_eq!(command, vec![Command::replace_text(10, "i World")]);
     }
 
     #[test]

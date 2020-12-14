@@ -60,11 +60,11 @@ use std::{error::Error, fmt};
 /// - `{bracketleft}`: inserts a literal opening bracket (`{`)
 /// - `{bracketright}`: inserts a literal closing bracket (`}`)
 ///
+/// ### Canceling Formatting of Next Word
+/// - The empty text commmand (`{}`) cancels the state actions (mostly formatting actions)
 ///
 /// ## Differences from plover
 ///
-/// - The empty text commmand (`{}`) does not do anything. In plover, this stroke cancels the
-///   formatting of the next word.
 /// - Retrospective remove space works on the previous word, not the previous stroke
 /// - Retrospective add space is configured in the translator options, not in the dictionary
 pub(super) fn load_dicts(contents: &str) -> Result<Entries, ParseError> {
@@ -208,8 +208,10 @@ lazy_static! {
 /// Parses "special actions" which are in the translation surrounded by brackets
 fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
     match t {
-        // do nothing for empty action
-        "" => Ok(vec![]),
+        // empty action clears state actions
+        "" => Ok(vec![Translation::Text(Text::StateAction(
+            StateAction::Clear,
+        ))]),
         // sentence end-ers
         p if p == "." || p == "!" || p == "?" => Ok(vec![
             Translation::Text(Text::Attached {
@@ -251,9 +253,12 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                 if &groups[1] == "^" {
                     // nothing in the text section, just a simple suppress space stroke
                     if groups[2].is_empty() {
-                        return Ok(vec![Translation::Text(Text::StateAction(
-                            StateAction::SuppressSpace,
-                        ))]);
+                        return Ok(vec![Translation::Text(Text::Attached {
+                            text: "".to_string(),
+                            joined_next: true,
+                            do_orthography: Some(true),
+                            carry_capitalization: false,
+                        })]);
                     }
 
                     // set carrying capitalization flag
@@ -351,9 +356,10 @@ mod tests {
             ),
             (
                 Stroke::new("KPA"),
-                vec![Translation::Text(Text::StateAction(
-                    StateAction::ForceCapitalize,
-                ))],
+                vec![
+                    Translation::Text(Text::StateAction(StateAction::Clear)),
+                    Translation::Text(Text::StateAction(StateAction::ForceCapitalize)),
+                ],
             ),
             (
                 Stroke::new("-T/WUPB"),
@@ -370,22 +376,33 @@ mod tests {
         // `{^}` should suppress space
         assert_eq!(
             parse_translation("{^}").unwrap(),
-            vec![Translation::Text(Text::StateAction(
-                StateAction::SuppressSpace
-            ))]
+            vec![Translation::Text(Text::Attached {
+                text: "".to_string(),
+                joined_next: true,
+                do_orthography: Some(true),
+                carry_capitalization: false,
+            })]
         );
         // `{^^}` should also suppress space
         assert_eq!(
             parse_translation("{^^}").unwrap(),
-            vec![Translation::Text(Text::StateAction(
-                StateAction::SuppressSpace
-            ))]
+            vec![Translation::Text(Text::Attached {
+                text: "".to_string(),
+                joined_next: true,
+                do_orthography: Some(true),
+                carry_capitalization: false,
+            })]
         );
         // `{^}sh` should simply join "sh" to the previous word
         assert_eq!(
             parse_translation("{^}sh").unwrap(),
             vec![
-                Translation::Text(Text::StateAction(StateAction::SuppressSpace)),
+                Translation::Text(Text::Attached {
+                    text: "".to_string(),
+                    joined_next: true,
+                    do_orthography: Some(true),
+                    carry_capitalization: false,
+                }),
                 Translation::Text(Text::Lit("sh".to_string()))
             ]
         );
@@ -434,7 +451,12 @@ mod tests {
         assert_eq!(
             parse_translation("{^}{-|}").unwrap(),
             vec![
-                Translation::Text(Text::StateAction(StateAction::SuppressSpace)),
+                Translation::Text(Text::Attached {
+                    text: "".to_string(),
+                    joined_next: true,
+                    do_orthography: Some(true),
+                    carry_capitalization: false,
+                }),
                 Translation::Text(Text::StateAction(StateAction::ForceCapitalize))
             ],
         );
@@ -475,6 +497,11 @@ mod tests {
                 do_orthography: None,
                 carry_capitalization: true,
             })]
+        );
+        // clear state translation
+        assert_eq!(
+            parse_translation(r#"{}"#).unwrap(),
+            vec![Translation::Text(Text::StateAction(StateAction::Clear))]
         );
     }
 

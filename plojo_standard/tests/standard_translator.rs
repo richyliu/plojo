@@ -325,7 +325,12 @@ fn text_action_after_command() {
             "TKOUPB": {
                 "cmds": [{ "Keys": [{"Special": "DownArrow"}, []] }],
                 "text_after": [
-                    { "StateAction": "SuppressSpace" },
+                    { "Attached": {
+                        "text": "",
+                        "joined_next": true,
+                        "do_orthography": false,
+                        "carry_capitalization": false }
+                    },
                     { "StateAction": "ForceCapitalize" }
                 ]
             },
@@ -390,4 +395,32 @@ fn basic_unicode() {
     );
     b.expect("PH-RB", " —");
     b.expect("H-L", " — hello");
+}
+
+#[test]
+fn suppress_space_lowercases_word() {
+    let mut b = Blackbox::new(
+        r#"
+            "TK-LS": "{^^}",
+            "TP-PL": "{.}",
+            "KPA": "{-|}",
+            "H-L": "hello"
+        "#,
+    );
+    b.expect("TP-PL/TK-LS/H-L", ".hello");
+    b.expect("KPA/TK-LS/H-L", ".hellohello");
+}
+
+#[test]
+fn force_cap_should_clear_suppress_space() {
+    let mut b = Blackbox::new(
+        r#"
+            "TK-LS": "{^^}",
+            "KPA*": "{^}{-|}",
+            "KPA": "{}{-|}",
+            "H-L": "hello"
+        "#,
+    );
+    b.expect("TK-LS/KPA/H-L", " Hello");
+    b.expect("KPA*/KPA/H-L", " Hello Hello");
 }

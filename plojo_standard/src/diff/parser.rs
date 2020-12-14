@@ -108,8 +108,11 @@ pub(super) fn parse_translation(translations: Vec<Text>) -> String {
                     StateAction::ForceCapitalize => {
                         state.force_capitalize = true;
                     }
-                    StateAction::SuppressSpace => {
-                        state.suppress_space = true;
+                    StateAction::Clear => {
+                        // reset formatting state
+                        state.force_capitalize = Default::default();
+                        state.prev_is_glued = Default::default();
+                        state.suppress_space = Default::default();
                     }
                 }
                 continue;
@@ -222,7 +225,12 @@ mod tests {
     #[test]
     fn test_parse_text_actions() {
         let translated = parse_translation(vec![
-            Text::StateAction(StateAction::SuppressSpace),
+            Text::Attached {
+                text: "".to_string(),
+                joined_next: true,
+                do_orthography: Some(false),
+                carry_capitalization: false,
+            },
             Text::StateAction(StateAction::ForceCapitalize),
             Text::Lit("hello".to_string()),
             Text::Lit("hi".to_string()),
@@ -230,9 +238,19 @@ mod tests {
             Text::Lit("FOo".to_string()),
             Text::Lit("bar".to_string()),
             Text::Lit("baZ".to_string()),
-            Text::StateAction(StateAction::SuppressSpace),
+            Text::Attached {
+                text: "".to_string(),
+                joined_next: true,
+                do_orthography: Some(false),
+                carry_capitalization: false,
+            },
             Text::Lit("NICE".to_string()),
-            Text::StateAction(StateAction::SuppressSpace),
+            Text::Attached {
+                text: "".to_string(),
+                joined_next: true,
+                do_orthography: Some(false),
+                carry_capitalization: false,
+            },
             Text::Lit("".to_string()),
             Text::Lit("well done".to_string()),
         ]);
@@ -258,7 +276,12 @@ mod tests {
             Text::UnknownStroke(Stroke::new("TP-TDZ")),
             Text::TextAction(TextAction::SuppressSpacePrev),
             Text::Lit("nice".to_string()),
-            Text::StateAction(StateAction::SuppressSpace),
+            Text::Attached {
+                text: "".to_string(),
+                joined_next: true,
+                do_orthography: Some(false),
+                carry_capitalization: false,
+            },
             Text::Lit("another".to_string()),
         ]);
 
@@ -268,7 +291,12 @@ mod tests {
     #[test]
     fn test_parse_line_start() {
         let translated = parse_translation(vec![
-            Text::StateAction(StateAction::SuppressSpace),
+            Text::Attached {
+                text: "".to_string(),
+                joined_next: true,
+                do_orthography: Some(false),
+                carry_capitalization: false,
+            },
             Text::StateAction(StateAction::ForceCapitalize),
             Text::Lit("hello".to_string()),
             Text::Lit("hi".to_string()),

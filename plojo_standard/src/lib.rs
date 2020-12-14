@@ -65,8 +65,8 @@ impl Translation {
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq, Deserialize)]
 pub enum StateAction {
-    SuppressSpace,
     ForceCapitalize,
+    Clear,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Deserialize)]
