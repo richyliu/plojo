@@ -2,6 +2,7 @@
 use super::Dictionary;
 use crate::{Text, Translation};
 use plojo_core::Stroke;
+use std::slice;
 
 // Limit the max number of strokes per translation for performance reasons
 // Note: running the following command on the plover dictionary reveals that just 10 translations
@@ -25,16 +26,19 @@ pub(super) fn translate_strokes(dict: &Dictionary, strokes: &[Stroke]) -> Vec<Tr
         // limit how far to look forward
         let max_end = std::cmp::min(start + MAX_TRANSLATION_STROKE_LEN, strokes.len());
 
-        // try suffix folding the single stroke first
-        if let Some(mut t) = try_suffix_folding(&dict, &strokes[start]) {
-            all_translations.append(&mut t);
-            start += 1;
-            continue;
-        }
-
         // look forward up to a certain number of strokes, starting from the most strokes
         for end in (start..max_end).rev() {
-            // if that gives a translation, add it and advance start
+            // try suffix folding if it's just the single stroke
+            if start == end {
+                if let Some(mut translations) = try_suffix_folding(&dict, &strokes[start]) {
+                    all_translations.append(&mut translations);
+                    start = end + 1;
+                    found_translation = true;
+                    break;
+                }
+            }
+
+            // if the strokes give a translation, add it and advance start
             if let Some(mut translations) = dict.lookup(&strokes[start..=end]) {
                 all_translations.append(&mut translations);
                 start = end + 1;
@@ -65,26 +69,29 @@ const SUFFIXES: [&'static str; 4] = ["-Z", "-D", "-S", "-G"];
 /// For example, "KARS" will return the iook up of "KAR" and "-S" in the dictionary
 /// "WORLD" will return None because there is no suffix to remove
 fn try_suffix_folding(dict: &Dictionary, stroke: &Stroke) -> Option<Vec<Translation>> {
+    // if the original stroke has a translation, don't extract suffixes
+    if let Some(t) = dict.lookup(slice::from_ref(stroke)) {
+        return Some(t);
+    }
+
     let raw_stroke = stroke.clone().to_raw();
     // ignore stroke if it doesn't contains right hand keys (since all suffixes are right hand)
     // this is detected with middle keys, which must be present if there are right hand keys
-    if !raw_stroke.contains(&['-', 'A', 'O', 'E', 'U'][..]) {
-        return None;
-    }
-
-    // try each suffix in order
-    for s in SUFFIXES.iter() {
-        // get the suffix (ignore the leading dash)
-        let suffix_char = &s[1..2];
-        // check if the suffix exists in the stroke
-        if raw_stroke.contains(suffix_char) {
-            // remove the suffix
-            let removed_suffix = &raw_stroke.replace(suffix_char, "");
-            if let Some(base) = dict.lookup(&[Stroke::new(removed_suffix)]) {
-                if let Some(mut suffix_translation) = dict.lookup(&[Stroke::new(s)]) {
-                    let mut t = base;
-                    t.append(&mut suffix_translation);
-                    return Some(t);
+    if let Some(center_loc) = raw_stroke.find(&['-', 'A', 'O', 'E', 'U'][..]) {
+        // try each suffix in order
+        for s in SUFFIXES.iter() {
+            // get the suffix (ignore the leading dash)
+            let suffix_char = &s[1..2];
+            // check if the suffix exists in the stroke (after the center strokes)
+            if raw_stroke[center_loc..].contains(suffix_char) {
+                // remove the suffix
+                let removed_suffix = &raw_stroke.replace(suffix_char, "");
+                if let Some(base) = dict.lookup(&[Stroke::new(removed_suffix)]) {
+                    if let Some(mut suffix_translation) = dict.lookup(&[Stroke::new(s)]) {
+                        let mut t = base;
+                        t.append(&mut suffix_translation);
+                        return Some(t);
+                    }
                 }
             }
         }
@@ -347,6 +354,7 @@ mod tests {
             try_suffix_folding(&dict, &Stroke::new("TPAOGD")).unwrap(),
             all_text_helper(&["food", "ing"])
         );
+        assert!(try_suffix_folding(&dict, &Stroke::new("SH-L")).is_none());
         assert!(try_suffix_folding(&dict, &Stroke::new("TPAOGSD")).is_none());
         assert!(try_suffix_folding(&dict, &Stroke::new("H")).is_none());
         assert!(try_suffix_folding(&dict, &Stroke::new("H-LZ")).is_none());

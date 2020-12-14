@@ -453,3 +453,15 @@ fn suffix_folding() {
     );
     b.expect("RAEUSZ", " races");
 }
+
+#[test]
+fn suffix_folding_precedence() {
+    let mut b = Blackbox::new(
+        r#"
+            "TPRAOEU": "Friday",
+            "-S": "{^s}",
+            "TPRAOEUS": "fries"
+        "#,
+    );
+    b.expect("TPRAOEUS", " fries");
+}
