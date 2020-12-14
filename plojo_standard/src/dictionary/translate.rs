@@ -25,6 +25,13 @@ pub(super) fn translate_strokes(dict: &Dictionary, strokes: &[Stroke]) -> Vec<Tr
         // limit how far to look forward
         let max_end = std::cmp::min(start + MAX_TRANSLATION_STROKE_LEN, strokes.len());
 
+        // try suffix folding the single stroke first
+        if let Some(mut t) = try_suffix_folding(&dict, &strokes[start]) {
+            all_translations.append(&mut t);
+            start += 1;
+            continue;
+        }
+
         // look forward up to a certain number of strokes, starting from the most strokes
         for end in (start..max_end).rev() {
             // if that gives a translation, add it and advance start
@@ -48,6 +55,43 @@ pub(super) fn translate_strokes(dict: &Dictionary, strokes: &[Stroke]) -> Vec<Tr
 
     all_translations
 }
+
+// suffixes for suffix folding (currently must all be right hand suffixes)
+const SUFFIXES: [&'static str; 4] = ["-Z", "-D", "-S", "-G"];
+
+/// Try to extract a suffix from a stroke (handles "suffix folding")
+/// It will check if the resulting stroke and suffix have translations and return that
+///
+/// For example, "KARS" will return the iook up of "KAR" and "-S" in the dictionary
+/// "WORLD" will return None because there is no suffix to remove
+fn try_suffix_folding(dict: &Dictionary, stroke: &Stroke) -> Option<Vec<Translation>> {
+    let raw_stroke = stroke.clone().to_raw();
+    // ignore stroke if it doesn't contains right hand keys (since all suffixes are right hand)
+    // this is detected with middle keys, which must be present if there are right hand keys
+    if !raw_stroke.contains(&['-', 'A', 'O', 'E', 'U'][..]) {
+        return None;
+    }
+
+    // try each suffix in order
+    for s in SUFFIXES.iter() {
+        // get the suffix (ignore the leading dash)
+        let suffix_char = &s[1..2];
+        // check if the suffix exists in the stroke
+        if raw_stroke.contains(suffix_char) {
+            // remove the suffix
+            let removed_suffix = &raw_stroke.replace(suffix_char, "");
+            if let Some(base) = dict.lookup(&[Stroke::new(removed_suffix)]) {
+                if let Some(mut suffix_translation) = dict.lookup(&[Stroke::new(s)]) {
+                    let mut t = base;
+                    t.append(&mut suffix_translation);
+                    return Some(t);
+                }
+            }
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -75,6 +119,8 @@ mod tests {
             (row("PWEUG", "big")),
             (row("PWEUG/PWOEU", "Big Boy")),
             (row("TPAOD", "food")),
+            (row("-S", "s")),
+            (row("-G", "ing")),
             (
                 Stroke::new("KPA"),
                 vec![Translation::Text(Text::StateAction(
@@ -280,5 +326,29 @@ mod tests {
                 Translation::Text(Text::StateAction(StateAction::ForceCapitalize))
             ]
         );
+    }
+
+    #[test]
+    fn test_suffix_folding() {
+        fn all_text_helper(text: &[&str]) -> Vec<Translation> {
+            let mut translations = Vec::with_capacity(text.len());
+            for t in text {
+                translations.push(Translation::Text(Text::Lit(t.to_string())));
+            }
+            translations
+        }
+        let dict = testing_dict();
+
+        assert_eq!(
+            try_suffix_folding(&dict, &Stroke::new("H-LS")).unwrap(),
+            all_text_helper(&["Hello", "s"])
+        );
+        assert_eq!(
+            try_suffix_folding(&dict, &Stroke::new("TPAOGD")).unwrap(),
+            all_text_helper(&["food", "ing"])
+        );
+        assert!(try_suffix_folding(&dict, &Stroke::new("TPAOGSD")).is_none());
+        assert!(try_suffix_folding(&dict, &Stroke::new("H")).is_none());
+        assert!(try_suffix_folding(&dict, &Stroke::new("H-LZ")).is_none());
     }
 }

@@ -78,7 +78,8 @@ impl Blackbox {
                 match command {
                     Command::Replace(backspace_num, add_text) => {
                         if backspace_num > 0 {
-                            self.output.truncate(self.output.len() - backspace_num)
+                            let output_len = self.output.chars().count();
+                            self.output.truncate(output_len - backspace_num)
                         }
 
                         if add_text.len() > 0 {
@@ -390,11 +391,13 @@ fn basic_unicode() {
     let mut b = Blackbox::new(
         r#"
             "PH-RB": "—",
-            "H-L": "hello"
+            "H-L": "hello",
+            "PH-RB/H-L/H-L": "hello—"
         "#,
     );
     b.expect("PH-RB", " —");
     b.expect("H-L", " — hello");
+    b.expect("H-L", " hello—");
 }
 
 #[test]
@@ -423,4 +426,30 @@ fn force_cap_should_clear_suppress_space() {
     );
     b.expect("TK-LS/KPA/H-L", " Hello");
     b.expect("KPA*/KPA/H-L", " Hello Hello");
+}
+
+#[test]
+fn orthography_retro_add_space() {
+    let mut b = Blackbox::new_with_retroactive_add_space(
+        r#"
+            "KAER": "carry",
+            "-S": "{^s}"
+        "#,
+    );
+    b.expect("KAER/-S", " carries");
+    b.expect("AFPS", " carry s");
+    b.expect("-S/AFPS", " carry s s");
+}
+
+#[test]
+fn suffix_folding() {
+    let mut b = Blackbox::new(
+        r#"
+            "-S": "{^s}",
+            "-Z": "{^s}",
+            "RAEUS": "race",
+            "RAEUZ": "raise"
+        "#,
+    );
+    b.expect("RAEUSZ", " races");
 }

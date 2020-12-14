@@ -5,20 +5,18 @@ users may need to install libxdo-dev.
 
 ## Todos
 
-- add tests for orthography getting broken up correctly
-- suffixes folding (-D, -S, -Z, -G) (make sure their order is good)
 - use an english dictionary lookup to fix orthography errors
   - BUG: `SHEUFR/-G` gives "shiverring"; need to use a dictionary for orthography
     - the issue is primarily with consonant doubling
     - check with a dictionary for a "simple" join first
     - https://github.com/openstenoproject/plover/blob/master/plover/orthography.py
+- something that can suggest briefs based on usage
+- upper/lower casing entire words
 
 - add custom stroke/command to also reset `prev_stroke`
-- implement `{}` to clear formatting
-  - implement it as a suppress space followed by an empty string
-- fix retrospective add/remove space to work on the previous stroke, not word
-- upper/lower casing entire words
-- clear `prev_stroke` after a command?
+- BUG: tab should clear something, because `KA*PD` doesn't work after it
+  - `Hello` + `{tab}` + `hi` + `KA*PD` doesn't do anything
+  - maybe add option to clear `prev_strokes`
 - add support for multiple dictionaries that can have their order changed
 - allow comments to be added to the dictionary
 
@@ -41,6 +39,7 @@ users may need to install libxdo-dev.
 - refactor machine to use more traits
 - use macros for raw stokes parsing
 - implement feature flag for serde deserializing in plojo_core
+- consolidate `Lit` and `Attached` (and maybe even `Glued`)
 
 ### Plover compatible
 - write a script to convert plover shortcut keys to plojo keys
@@ -54,6 +53,7 @@ users may need to install libxdo-dev.
   - this is because an attached stroke (by itself) is only attached to the
     previous word if it is the first word
 - consider changing commands format back to one that is plover compatible
+- make text_after actions more convenient to type
 
 ### Documentation
 - write somewhere about how commands are dispatched without modifying any text
