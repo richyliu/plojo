@@ -1,7 +1,9 @@
 use regex::Regex;
+use std::collections::HashSet;
 
 lazy_static! {
     static ref ORTHOGRAPHY_RULES: Rules = default_orthography();
+    static ref ORTHOGRAPHY_DICT: HashSet<String> = load_orthography_dict();
 }
 
 fn default_orthography() -> Rules {
@@ -74,6 +76,17 @@ fn default_orthography() -> Rules {
     ]
 }
 
+fn load_orthography_dict() -> HashSet<String> {
+    let mut set = HashSet::new();
+    let raw_dict = include_str!("american_english_words.txt");
+
+    for word in raw_dict.lines() {
+        set.insert(word.to_string());
+    }
+
+    set
+}
+
 /// If a word and its suffix matches Find, it will be replaced with Replace
 type Rules = Vec<(Find, Replace)>;
 
@@ -110,9 +123,18 @@ enum ReplaceItem {
     Lit(&'static str),
 }
 
-/// Join a word and suffixes together, applying orthographic (spelling) rules
+/// Join a word and suffix together, applying orthographic (spelling) rules
+/// It will first try a simple join of the suffix and look it up in a list of words
 /// Panics for invalid rules
 pub fn apply_orthography(base: &str, suffix: &str) -> String {
+    // Try matching a simple join first and see if that is an english word
+    // This is done mainly for consonant doubling rule, which sometimes doubles a consonant even
+    // when it doesn't need to.
+    let simple_join = base.to_owned() + suffix;
+    if ORTHOGRAPHY_DICT.contains(&simple_join) {
+        return simple_join;
+    }
+
     for (find, replace) in ORTHOGRAPHY_RULES.iter() {
         if let (Some(base_captures), Some(suffix_captures)) =
             (find.base.captures(base), find.suffix.captures(suffix))
@@ -132,8 +154,8 @@ pub fn apply_orthography(base: &str, suffix: &str) -> String {
         }
     }
 
-    // unable to match an orthography rule, just return a simple join of the strokes
-    base.to_owned() + suffix
+    // unable to match an orthography rule, just return the simple join of the strokes
+    simple_join
 }
 
 #[cfg(test)]
@@ -172,5 +194,11 @@ mod tests {
         assert_eq!(orthog(vec!["artistic", "ly", "s"]), "artisticallies");
         assert_eq!(orthog(vec!["bite", "ing", "s"]), "bitings");
         assert_eq!(orthog(vec!["combine", "ate", "or"]), "combinator");
+    }
+
+    #[test]
+    fn test_orthography_simple_join() {
+        assert_eq!(orthog(vec!["monitor", "ed"]), "monitored");
+        assert_eq!(orthog(vec!["shiver", "ing"]), "shivering");
     }
 }

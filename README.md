@@ -5,11 +5,6 @@ users may need to install libxdo-dev.
 
 ## Todos
 
-- use an english dictionary lookup to fix orthography errors
-  - BUG: `SHEUFR/-G` gives "shiverring"; need to use a dictionary for orthography
-    - the issue is primarily with consonant doubling
-    - check with a dictionary for a "simple" join first
-    - https://github.com/openstenoproject/plover/blob/master/plover/orthography.py
 - something that can suggest briefs based on usage
 - upper/lower casing entire words
 
@@ -28,7 +23,6 @@ users may need to install libxdo-dev.
 - store prev_strokes in a VecDeque instead of a Vec
   - only diff the last 15 or something strokes instead of all the strokes
 - find out what text was deleted to allow for delete by word optimization
-- sort orthography rules in the order of most to least used
 - limit number of strokes sent to `translate_strokes`
 - possibly optimize hashmap lookup by turning steno keys into a u32
 - initialize vecs and hashmaps with capacity to improve performance
