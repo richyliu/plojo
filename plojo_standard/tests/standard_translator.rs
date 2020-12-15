@@ -1,6 +1,20 @@
 use plojo_core::{Command, Key, Modifier, SpecialKey, Stroke, Translator};
 use plojo_standard::StandardTranslator;
 
+/// Blackbox assert macro for better line number tracing
+macro_rules! b_expect {
+    ($blackbox:expr, $strokes:expr, $expected:expr) => {
+        $blackbox.expect($strokes, $expected);
+    };
+}
+
+/// Blackbox assert macro for keys for better line number tracing
+macro_rules! b_expect_keys {
+    ($blackbox:expr, $strokes:expr, $expected:expr) => {
+        $blackbox.expect_keys($strokes, $expected);
+    };
+}
+
 /// Black box for testing the entire translator
 struct Blackbox {
     output: String,
@@ -131,7 +145,7 @@ fn basic_translation() {
             "WORLD": "world"
         "#,
     );
-    b.expect("H-L/WORLD", " hello world");
+    b_expect!(b, "H-L/WORLD", " hello world");
 }
 
 #[test]
@@ -142,12 +156,12 @@ fn basic_undo() {
             "WORLD": "world"
         "#,
     );
-    b.expect("H-L", " hello");
-    b.expect("WORLD", " hello world");
-    b.expect("TPHOT", " hello world TPHOT");
-    b.expect("*", " hello world");
-    b.expect("*", " hello");
-    b.expect("*", "");
+    b_expect!(b, "H-L", " hello");
+    b_expect!(b, "WORLD", " hello world");
+    b_expect!(b, "TPHOT", " hello world TPHOT");
+    b_expect!(b, "*", " hello world");
+    b_expect!(b, "*", " hello");
+    b_expect!(b, "*", "");
 }
 
 #[test]
@@ -158,8 +172,8 @@ fn basic_correction() {
             "H-L/WORLD": "hi"
         "#,
     );
-    b.expect("H-L", " hello");
-    b.expect("WORLD", " hi");
+    b_expect!(b, "H-L", " hello");
+    b_expect!(b, "WORLD", " hi");
 }
 
 #[test]
@@ -170,7 +184,7 @@ fn double_space() {
             "H-L": "hello"
         "#,
     );
-    b.expect("H-L/S-P/S-P", " hello  ");
+    b_expect!(b, "H-L/S-P/S-P", " hello  ");
 }
 
 #[test]
@@ -180,7 +194,7 @@ fn first_punctuation() {
             "TP-PL": "{.}"
         "#,
     );
-    b.expect("TP-PL", ".");
+    b_expect!(b, "TP-PL", ".");
 }
 
 #[test]
@@ -190,8 +204,8 @@ fn first_attached() {
             "EURB": "{^ish}"
         "#,
     );
-    b.expect("EURB", "ish");
-    b.expect("EURB", "ishish");
+    b_expect!(b, "EURB", "ish");
+    b_expect!(b, "EURB", "ishish");
 }
 
 #[test]
@@ -202,7 +216,7 @@ fn punctuation_with_attached() {
             "KR-GS": "{^~|\"}"
         "#,
     );
-    b.expect("TP-PL/KR-GS", ".\"");
+    b_expect!(b, "TP-PL/KR-GS", ".\"");
 }
 
 #[test]
@@ -212,7 +226,7 @@ fn unknown_with_attached() {
             "-D": "{^ed}"
         "#,
     );
-    b.expect("STPW/-D", " STPWed");
+    b_expect!(b, "STPW/-D", " STPWed");
 }
 
 #[test]
@@ -224,9 +238,13 @@ fn commands_correction() {
             "H-L/WORLD/H-L": "hi"
         "#,
     );
-    b.expect_keys("H-L", vec![(Key::Special(SpecialKey::UpArrow), vec![])]);
-    b.expect_keys("WORLD", vec![(Key::Special(SpecialKey::UpArrow), vec![])]);
-    b.expect("H-L", " hi");
+    b_expect_keys!(b, "H-L", vec![(Key::Special(SpecialKey::UpArrow), vec![])]);
+    b_expect_keys!(
+        b,
+        "WORLD",
+        vec![(Key::Special(SpecialKey::UpArrow), vec![])]
+    );
+    b_expect!(b, "H-L", " hi");
 }
 
 #[test]
@@ -239,18 +257,19 @@ fn commands_undo() {
             "TPAO": "foo"
         "#,
     );
-    b.expect_keys("H-L", vec![(Key::Special(SpecialKey::UpArrow), vec![])]);
-    b.expect("WORLD", " hello");
-    b.expect_keys(
+    b_expect_keys!(b, "H-L", vec![(Key::Special(SpecialKey::UpArrow), vec![])]);
+    b_expect!(b, "WORLD", " hello");
+    b_expect_keys!(
+        b,
         "TP",
         vec![
             (Key::Special(SpecialKey::UpArrow), vec![]),
             (Key::Layout('a'), vec![Modifier::Meta]),
-        ],
+        ]
     );
-    b.expect("TPAO", " hello foo");
-    b.expect("*", " hello");
-    b.expect("*", "");
+    b_expect!(b, "TPAO", " hello foo");
+    b_expect!(b, "*", " hello");
+    b_expect!(b, "*", "");
 }
 
 #[test]
@@ -261,9 +280,9 @@ fn glued_strokes() {
             "H-L": "hello"
         "#,
     );
-    b.expect("H-L/TK*", " hello d");
-    b.expect("TK*", " hello dd");
-    b.expect("H-L", " hello dd hello");
+    b_expect!(b, "H-L/TK*", " hello d");
+    b_expect!(b, "TK*", " hello dd");
+    b_expect!(b, "H-L", " hello dd hello");
 }
 
 #[test]
@@ -274,10 +293,10 @@ fn numbers_are_glued() {
             "H-L": "hello"
         "#,
     );
-    b.expect("TK*", " d");
-    b.expect("123/1-8", " d12318");
-    b.expect("H-L", " d12318 hello");
-    b.expect("123", " d12318 hello 123");
+    b_expect!(b, "TK*", " d");
+    b_expect!(b, "123/1-8", " d12318");
+    b_expect!(b, "H-L", " d12318 hello");
+    b_expect!(b, "123", " d12318 hello 123");
 }
 
 #[test]
@@ -288,9 +307,9 @@ fn number_translation() {
             "2-8D": "2800"
         "#,
     );
-    b.expect("H-L", " hi");
-    b.expect("12", " hi12");
-    b.expect("2-8D", " hi122800");
+    b_expect!(b, "H-L", " hi");
+    b_expect!(b, "12", " hi12");
+    b_expect!(b, "2-8D", " hi122800");
 }
 
 #[test]
@@ -303,19 +322,21 @@ fn capitalize_word_after_command() {
             "-T": "the"
         "#,
     );
-    b.expect("-T", " the");
-    b.expect_keys(
+    b_expect!(b, "-T", " the");
+    b_expect_keys!(
+        b,
         "KPA*/TKOUPB",
-        vec![(Key::Special(SpecialKey::DownArrow), vec![])],
+        vec![(Key::Special(SpecialKey::DownArrow), vec![])]
     );
-    b.expect_keys(
+    b_expect_keys!(
+        b,
         "UP",
         vec![
             (Key::Special(SpecialKey::DownArrow), vec![]),
             (Key::Special(SpecialKey::UpArrow), vec![]),
-        ],
+        ]
     );
-    b.expect("-T", " theThe");
+    b_expect!(b, "-T", " theThe");
 }
 
 #[test]
@@ -328,9 +349,9 @@ fn undo_suppress_space() {
             "TPAO": "foo"
         "#,
     );
-    b.expect("H-L/TK-LS/KPA*/TPAO", " helloFoo");
-    b.expect("*", " hello");
-    b.expect("*", "");
+    b_expect!(b, "H-L/TK-LS/KPA*/TPAO", " helloFoo");
+    b_expect!(b, "*", " hello");
+    b_expect!(b, "*", "");
 }
 
 #[test]
@@ -355,7 +376,7 @@ fn text_action_after_command() {
             "TPAO": "foo"
         "#,
     );
-    b.expect("H-L/TKOUPB/TPAO", " helloFoo");
+    b_expect!(b, "H-L/TKOUPB/TPAO", " helloFoo");
 }
 
 #[test]
@@ -370,10 +391,10 @@ fn retrospective_actions() {
             "KPA": "{-|}"
         "#,
     );
-    b.expect("H-L/TKFPS", " HelloWorld");
-    b.expect("TPAO/KA*PD", " HelloWorld Foo");
-    b.expect("TK-LS/TPAO/KPA", " HelloWorld Foofoo");
-    b.expect("AFPS", " HelloWorld Foo foo");
+    b_expect!(b, "H-L/TKFPS", " HelloWorld");
+    b_expect!(b, "TPAO/KA*PD", " HelloWorld Foo");
+    b_expect!(b, "TK-LS/TPAO/KPA", " HelloWorld Foofoo");
+    b_expect!(b, "AFPS", " HelloWorld Foo foo");
 }
 
 #[test]
@@ -386,9 +407,9 @@ fn retrospective_add_space_breaks_up_translation() {
             "H-L/WORLD/WORLD": "Big hello world"
         "#,
     );
-    b.expect("H-L/WORLD", " Hello, world!");
-    b.expect("WORLD", " Big hello world");
-    b.expect("AFPS", " Hello, world! world");
+    b_expect!(b, "H-L/WORLD", " Hello, world!");
+    b_expect!(b, "WORLD", " Big hello world");
+    b_expect!(b, "AFPS", " Hello, world! world");
 }
 
 #[test]
@@ -399,8 +420,8 @@ fn retrospective_add_space_glued() {
             "*EU": "{&i}"
         "#,
     );
-    b.expect("H*/*EU", " hi");
-    b.expect("AFPS", " h i");
+    b_expect!(b, "H*/*EU", " hi");
+    b_expect!(b, "AFPS", " h i");
 }
 
 #[test]
@@ -412,9 +433,9 @@ fn basic_unicode() {
             "PH-RB/H-L/H-L": "hello—"
         "#,
     );
-    b.expect("PH-RB", " —");
-    b.expect("H-L", " — hello");
-    b.expect("H-L", " hello—");
+    b_expect!(b, "PH-RB", " —");
+    b_expect!(b, "H-L", " — hello");
+    b_expect!(b, "H-L", " hello—");
 }
 
 #[test]
@@ -427,8 +448,8 @@ fn suppress_space_lowercases_word() {
             "H-L": "hello"
         "#,
     );
-    b.expect("TP-PL/TK-LS/H-L", ".hello");
-    b.expect("KPA/TK-LS/H-L", ".hellohello");
+    b_expect!(b, "TP-PL/TK-LS/H-L", ".hello");
+    b_expect!(b, "KPA/TK-LS/H-L", ".hellohello");
 }
 
 #[test]
@@ -441,8 +462,8 @@ fn force_cap_should_clear_suppress_space() {
             "H-L": "hello"
         "#,
     );
-    b.expect("TK-LS/KPA/H-L", " Hello");
-    b.expect("KPA*/KPA/H-L", " Hello Hello");
+    b_expect!(b, "TK-LS/KPA/H-L", " Hello");
+    b_expect!(b, "KPA*/KPA/H-L", " Hello Hello");
 }
 
 #[test]
@@ -453,9 +474,9 @@ fn orthography_retro_add_space() {
             "-S": "{^s}"
         "#,
     );
-    b.expect("KAER/-S", " carries");
-    b.expect("AFPS", " carry s");
-    b.expect("-S/AFPS", " carry s s");
+    b_expect!(b, "KAER/-S", " carries");
+    b_expect!(b, "AFPS", " carry s");
+    b_expect!(b, "-S/AFPS", " carry s s");
 }
 
 #[test]
@@ -468,7 +489,7 @@ fn suffix_folding() {
             "RAEUZ": "raise"
         "#,
     );
-    b.expect("RAEUSZ", " races");
+    b_expect!(b, "RAEUSZ", " races");
 }
 
 #[test]
@@ -480,7 +501,7 @@ fn suffix_folding_precedence() {
             "TPRAOEUS": "fries"
         "#,
     );
-    b.expect("TPRAOEUS", " fries");
+    b_expect!(b, "TPRAOEUS", " fries");
 }
 
 #[test]
@@ -491,11 +512,11 @@ fn space_after_suppress_space() {
             "TK-LS": "{^^}"
         "#,
     );
-    b.expect("H-L", "hello ");
-    b.expect("TK-LS", "hello");
-    b.expect("H-L", "hellohello ");
-    b.expect("*", "hello");
-    b.expect("*", "");
+    b_expect!(b, "H-L", "hello ");
+    b_expect!(b, "TK-LS", "hello");
+    b_expect!(b, "H-L", "hellohello ");
+    b_expect!(b, "*", "hello");
+    b_expect!(b, "*", "");
 }
 
 #[test]
@@ -521,7 +542,7 @@ fn space_after_suppress_space_before_command() {
             "OBG": "okay"
         "#,
     );
-    b.expect("H-L/R-R/OBG", "helloOkay ");
+    b_expect!(b, "H-L/R-R/OBG", "helloOkay ");
 }
 
 #[test]
@@ -535,8 +556,21 @@ fn space_after_duplicate_deletes() {
             "H-L": "hello"
         "#,
     );
-    b.expect("H-L", "hello ");
-    b.expect("TW-B", "hello");
-    b.expect("TW-B", "hello");
-    b.expect("TW-B", "hello");
+    b_expect!(b, "H-L", "hello ");
+    b_expect!(b, "TW-B", "hello");
+    b_expect!(b, "TW-B", "hello");
+    b_expect!(b, "TW-B", "hello");
+}
+
+#[test]
+fn orthography_uppercase() {
+    let mut b = Blackbox::new(
+        r#"
+            "KPA": "{-|}",
+            "PWEUG": "big",
+            "*ER": "{^er}"
+        "#,
+    );
+    b_expect!(b, "KPA/PWEUG", " Big");
+    b_expect!(b, "*ER", " Bigger");
 }

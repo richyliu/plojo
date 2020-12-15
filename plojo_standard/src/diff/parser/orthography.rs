@@ -1,4 +1,4 @@
-use regex::Regex;
+use regex::{Regex, RegexBuilder};
 use std::collections::HashSet;
 
 lazy_static! {
@@ -101,8 +101,14 @@ impl Find {
     /// Panics if either regex is invalid
     fn new(base_rule: &str, suffix_rule: &str) -> Self {
         Self {
-            base: Regex::new(base_rule).unwrap(),
-            suffix: Regex::new(suffix_rule).unwrap(),
+            base: RegexBuilder::new(base_rule)
+                .case_insensitive(true)
+                .build()
+                .unwrap(),
+            suffix: RegexBuilder::new(suffix_rule)
+                .case_insensitive(true)
+                .build()
+                .unwrap(),
         }
     }
 }
@@ -200,5 +206,11 @@ mod tests {
     fn test_orthography_simple_join() {
         assert_eq!(orthog(vec!["monitor", "ed"]), "monitored");
         assert_eq!(orthog(vec!["shiver", "ing"]), "shivering");
+    }
+
+    #[test]
+    fn test_orthography_uppercase() {
+        assert_eq!(orthog(vec!["Big", "er"]), "Bigger");
+        assert_eq!(orthog(vec!["biG", "eR"]), "biGGeR");
     }
 }

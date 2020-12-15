@@ -6,9 +6,11 @@ users may need to install libxdo-dev.
 ## Todos
 
 - something that can suggest briefs based on usage
+- config file instead of command line arguments
+- add custom stroke/command to also reset `prev_stroke`
+- add stroke to toggle between space before and space after
 - upper/lower casing entire words
 
-- add custom stroke/command to also reset `prev_stroke`
 - BUG: tab should clear something, because `KA*PD` doesn't work after it
   - `Hello` + `{tab}` + `hi` + `KA*PD` doesn't do anything
   - maybe add option to clear `prev_strokes`
