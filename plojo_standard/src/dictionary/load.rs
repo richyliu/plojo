@@ -90,11 +90,18 @@ pub(super) fn load_dicts(contents: &str) -> Result<Entries, ParseError> {
                 if let Some(raw_texts) = obj.get("text_after") {
                     texts = Some(serde_json::from_value(raw_texts.clone())?);
                 }
+                let suppress_space_before = if let Some(s) = obj.get("suppress_space_before") {
+                    serde_json::from_value(s.clone())?
+                } else {
+                    false
+                };
+
                 result_entries.push((
                     stroke,
                     vec![Translation::Command {
                         cmds: parsed,
                         text_after: texts,
+                        suppress_space_before,
                     }],
                 ));
             }
@@ -538,6 +545,7 @@ mod tests {
                 vec![Translation::Command {
                     cmds: vec![Command::Keys(Key::Special(SpecialKey::UpArrow), vec![])],
                     text_after: None,
+                    suppress_space_before: false,
                 }],
             ),
             (
@@ -545,6 +553,7 @@ mod tests {
                 vec![Translation::Command {
                     cmds: vec![Command::Keys(Key::Layout('a'), vec![Modifier::Meta])],
                     text_after: None,
+                    suppress_space_before: false,
                 }],
             ),
         ];

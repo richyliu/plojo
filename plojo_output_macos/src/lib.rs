@@ -37,7 +37,7 @@ impl Controller for MacController {
                 }
 
                 // type text
-                if add_text.len() > 0 {
+                if !add_text.is_empty() {
                     for c in add_text.chars() {
                         type_char(c, true);
                         thread::sleep(Duration::from_millis(KEY_HOLD_DELAY));

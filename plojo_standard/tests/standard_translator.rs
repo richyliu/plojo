@@ -13,27 +13,42 @@ impl Blackbox {
     ///
     /// raw_dict should be in a JSON string format. The outermost brackets should be omitted
     fn new(raw_dict: &str) -> Self {
-        let json_str: String = "{".to_string() + raw_dict + "}";
-        let translator = StandardTranslator::new(vec![json_str], vec![], vec![], None)
-            .expect("Unable to create translator");
-
-        Self {
-            translator,
-            output: String::new(),
-            output_keys: vec![],
-        }
+        // allocate string with extra capacity for the brackets
+        let json_str = String::with_capacity(raw_dict.len() + 2) + "{" + raw_dict + "}";
+        Self::new_internal(json_str, false, false)
     }
 
     /// Creates a black box with stroke `AFPS` to retroactive add space. Inserts "S-P": "{^ ^}"
     /// into the dictionary for retroactive add space to work
     fn new_with_retroactive_add_space(raw_dict: &str) -> Self {
-        let json_str: String = "{".to_string() + raw_dict + r#", "S-P": "{^ ^}""# + "}";
-        let translator = StandardTranslator::new(
-            vec![json_str],
-            vec![],
-            vec![Stroke::new("AFPS")],
-            Some(Stroke::new("S-P")),
-        )
+        // allocate string with extra capacity for the brackets and the S-P entry
+        let json_str = String::with_capacity(raw_dict.len() + 18)
+            + "{"
+            + raw_dict
+            + r#", "S-P": "{^ ^}""#
+            + "}";
+        Self::new_internal(json_str, true, false)
+    }
+
+    /// Creates a black box with stroke `AFPS` to retroactive add space. Inserts "S-P": "{^ ^}"
+    /// into the dictionary for retroactive add space to work
+    fn new_with_space_after(raw_dict: &str) -> Self {
+        let json_str: String = "{".to_string() + raw_dict + "}";
+        Self::new_internal(json_str, false, true)
+    }
+
+    fn new_internal(json_str: String, is_retro_add_space: bool, is_space_after: bool) -> Self {
+        let translator = if is_retro_add_space {
+            StandardTranslator::new(
+                vec![json_str],
+                vec![],
+                vec![Stroke::new("AFPS")],
+                Some(Stroke::new("S-P")),
+                is_space_after,
+            )
+        } else {
+            StandardTranslator::new(vec![json_str], vec![], vec![], None, is_space_after)
+        }
         .expect("Unable to create translator");
 
         Self {
@@ -82,7 +97,7 @@ impl Blackbox {
                             self.output.truncate(output_len - backspace_num)
                         }
 
-                        if add_text.len() > 0 {
+                        if !add_text.is_empty() {
                             self.output.push_str(&add_text);
                         }
                     }
@@ -326,11 +341,13 @@ fn text_action_after_command() {
             "TKOUPB": {
                 "cmds": [{ "Keys": [{"Special": "DownArrow"}, []] }],
                 "text_after": [
-                    { "Attached": {
-                        "text": "",
-                        "joined_next": true,
-                        "do_orthography": false,
-                        "carry_capitalization": false }
+                    {
+                        "Attached": {
+                            "text": "",
+                            "joined_next": true,
+                            "do_orthography": false,
+                            "carry_capitalization": false
+                        }
                     },
                     { "StateAction": "ForceCapitalize" }
                 ]
@@ -464,4 +481,45 @@ fn suffix_folding_precedence() {
         "#,
     );
     b.expect("TPRAOEUS", " fries");
+}
+
+#[test]
+fn space_after_suppress_space() {
+    let mut b = Blackbox::new_with_space_after(
+        r#"
+            "H-L": "hello",
+            "TK-LS": "{^^}"
+        "#,
+    );
+    b.expect("H-L", "hello ");
+    b.expect("TK-LS", "hello");
+    b.expect("H-L", "hellohello ");
+    b.expect("*", "hello");
+    b.expect("*", "");
+}
+
+#[test]
+fn space_after_suppress_space_before_command() {
+    let mut b = Blackbox::new_with_space_after(
+        r#"
+            "R-R": {
+                "cmds": [{ "Keys": [{"Special": "Return"}, []] }],
+                "text_after": [
+                    {
+                        "Attached": {
+                            "text": "",
+                            "joined_next": true,
+                            "do_orthography": false,
+                            "carry_capitalization": false
+                        }
+                    },
+                    { "StateAction": "ForceCapitalize" }
+                ],
+                "suppress_space_before": true
+            },
+            "H-L": "hello",
+            "OBG": "okay"
+        "#,
+    );
+    b.expect("H-L/R-R/OBG", "helloOkay ");
 }

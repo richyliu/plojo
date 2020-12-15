@@ -18,6 +18,6 @@ impl Stroke {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.0.len() > 0
+        !self.0.is_empty()
     }
 }

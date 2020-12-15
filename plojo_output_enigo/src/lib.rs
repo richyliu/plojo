@@ -57,7 +57,7 @@ impl Controller for EnigoController {
                     self.backspace(backspace_num, BACKSPACE_DELAY);
                 }
 
-                if add_text.len() > 0 {
+                if !add_text.is_empty() {
                     self.type_with_delay(&add_text, KEY_DELAY);
                 }
             }

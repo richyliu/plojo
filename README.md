@@ -65,3 +65,4 @@ users may need to install libxdo-dev.
   - for translations with multiple words, the last word will be capitalized
   - if space prev is suppressed, the whole thing will be capitalized
   - for something like `©ab`, the `a` will be capitalized: `©Ab`
+- `suppress_space_before` is the same as a `{^}` before command in Plover

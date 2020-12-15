@@ -7,22 +7,43 @@ mod parser;
 
 use parser::parse_translation;
 
+const SPACE: char = ' ';
+
 /// Finds the difference between two translations, converts them to their string representations,
-/// and diffs the strings to create a command
-pub(super) fn translation_diff(old: &[Translation], new: &[Translation]) -> Vec<Command> {
+/// and diffs the strings to create a command. Has an option to insert spaces after words instead
+/// of before
+pub(super) fn translation_diff(
+    old: &[Translation],
+    new: &[Translation],
+    space_after: bool,
+) -> Vec<Command> {
+    // ignore commands and convert old translations to text
+    let old_translations: Vec<_> = old.iter().flat_map(|t| Translation::as_text(t)).collect();
+    let old_parsed = parse_translation(old_translations, space_after);
+
     // if added a command, return that directly
     if old.len() + 1 == new.len() {
-        if let Some(Translation::Command { cmds: ref cmd, .. }) = new.last() {
-            return cmd.clone();
+        if let Some(Translation::Command {
+            cmds,
+            suppress_space_before,
+            ..
+        }) = new.last()
+        {
+            let mut cmds = cmds.clone();
+            // if suppress space, delete the space if there is any
+            if *suppress_space_before && old_parsed.chars().last() == Some(SPACE) {
+                cmds.insert(0, Command::Replace(1, "".to_string()));
+            }
+            return cmds;
         }
     }
 
-    // ignore commands
-    let old: Vec<_> = old.iter().flat_map(|t| Translation::as_text(t)).collect();
-    let new: Vec<_> = new.iter().flat_map(|t| Translation::as_text(t)).collect();
+    // ignore commands and convert old translations to text
+    let new_translations: Vec<_> = new.iter().flat_map(|t| Translation::as_text(t)).collect();
+    let new_parsed = parse_translation(new_translations, space_after);
 
     // compare the two and return the result
-    vec![text_diff(parse_translation(old), parse_translation(new))]
+    vec![text_diff(old_parsed, new_parsed)]
 }
 
 /// Compute the command necessary to make the old string into the new
@@ -66,9 +87,21 @@ mod tests {
     use crate::{StateAction, Text, TextAction};
     use plojo_core::Stroke;
 
+    fn translation_diff_space_after(old: &[Translation], new: &[Translation]) -> Vec<Command> {
+        translation_diff(old, new, false)
+    }
+
+    fn basic_command(cmds: Vec<Command>) -> Translation {
+        Translation::Command {
+            cmds,
+            text_after: None,
+            suppress_space_before: false,
+        }
+    }
+
     #[test]
     fn test_diff_same() {
-        let command = translation_diff(
+        let command = translation_diff_space_after(
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Text(Text::Lit("Hi".to_string())),
@@ -84,14 +117,14 @@ mod tests {
 
     #[test]
     fn test_diff_empty() {
-        let command = translation_diff(&vec![], &vec![]);
+        let command = translation_diff_space_after(&vec![], &vec![]);
 
         assert_eq!(command, vec![Command::NoOp]);
     }
 
     #[test]
     fn test_diff_one_empty() {
-        let command = translation_diff(
+        let command = translation_diff_space_after(
             &vec![],
             &vec![Translation::Text(Text::Lit("Hello".to_string()))],
         );
@@ -101,20 +134,15 @@ mod tests {
 
     #[test]
     fn test_diff_one_command_empty() {
-        let command = translation_diff(
-            &vec![],
-            &vec![Translation::Command {
-                cmds: vec![Command::PrintHello],
-                text_after: None,
-            }],
-        );
+        let command =
+            translation_diff_space_after(&vec![], &vec![basic_command(vec![Command::PrintHello])]);
 
         assert_eq!(command, vec![Command::PrintHello]);
     }
 
     #[test]
     fn test_diff_simple_add() {
-        let command = translation_diff(
+        let command = translation_diff_space_after(
             &vec![Translation::Text(Text::Lit("Hello".to_string()))],
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
@@ -127,7 +155,7 @@ mod tests {
 
     #[test]
     fn test_diff_correction() {
-        let command = translation_diff(
+        let command = translation_diff_space_after(
             &vec![Translation::Text(Text::Lit("Hello".to_string()))],
             &vec![Translation::Text(Text::Lit("He..llo".to_string()))],
         );
@@ -137,7 +165,7 @@ mod tests {
 
     #[test]
     fn test_diff_deletion() {
-        let command = translation_diff(
+        let command = translation_diff_space_after(
             &vec![Translation::Text(Text::Lit("Hello".to_string()))],
             &vec![],
         );
@@ -147,7 +175,7 @@ mod tests {
 
     #[test]
     fn test_diff_unknown_correction() {
-        let command = translation_diff(
+        let command = translation_diff_space_after(
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Text(Text::UnknownStroke(Stroke::new("WUPB"))),
@@ -163,7 +191,7 @@ mod tests {
 
     #[test]
     fn test_diff_text_actions() {
-        let command = translation_diff(
+        let command = translation_diff_space_after(
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Text(Text::Lit("world".to_string())),
@@ -180,7 +208,7 @@ mod tests {
 
     #[test]
     fn test_diff_prev_word_text_actions() {
-        let command = translation_diff(
+        let command = translation_diff_space_after(
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Text(Text::Lit("world".to_string())),
@@ -197,28 +225,16 @@ mod tests {
 
     #[test]
     fn test_diff_same_command() {
-        let command = translation_diff(
+        let command = translation_diff_space_after(
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Command {
-                    cmds: vec![Command::PrintHello],
-                    text_after: None,
-                },
-                Translation::Command {
-                    cmds: vec![Command::PrintHello],
-                    text_after: None,
-                },
+                basic_command(vec![Command::PrintHello]),
+                basic_command(vec![Command::PrintHello]),
             ],
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Command {
-                    cmds: vec![Command::PrintHello],
-                    text_after: None,
-                },
-                Translation::Command {
-                    cmds: vec![Command::PrintHello],
-                    text_after: None,
-                },
+                basic_command(vec![Command::PrintHello]),
+                basic_command(vec![Command::PrintHello]),
             ],
         );
 
@@ -227,30 +243,15 @@ mod tests {
 
     #[test]
     fn test_diff_repeated_command() {
-        let command = translation_diff(
+        let command = translation_diff_space_after(
             &vec![
-                Translation::Command {
-                    cmds: vec![Command::PrintHello],
-                    text_after: None,
-                },
-                Translation::Command {
-                    cmds: vec![Command::PrintHello],
-                    text_after: None,
-                },
+                basic_command(vec![Command::PrintHello]),
+                basic_command(vec![Command::PrintHello]),
             ],
             &vec![
-                Translation::Command {
-                    cmds: vec![Command::PrintHello],
-                    text_after: None,
-                },
-                Translation::Command {
-                    cmds: vec![Command::PrintHello],
-                    text_after: None,
-                },
-                Translation::Command {
-                    cmds: vec![Command::PrintHello],
-                    text_after: None,
-                },
+                basic_command(vec![Command::PrintHello]),
+                basic_command(vec![Command::PrintHello]),
+                basic_command(vec![Command::PrintHello]),
             ],
         );
 
@@ -259,7 +260,7 @@ mod tests {
 
     #[test]
     fn test_diff_external_command() {
-        let command = translation_diff(
+        let command = translation_diff_space_after(
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Text(Text::Lit("world".to_string())),
@@ -267,10 +268,7 @@ mod tests {
             &vec![
                 Translation::Text(Text::Lit("Hello".to_string())),
                 Translation::Text(Text::Lit("world".to_string())),
-                Translation::Command {
-                    cmds: vec![Command::PrintHello],
-                    text_after: None,
-                },
+                basic_command(vec![Command::PrintHello]),
             ],
         );
 

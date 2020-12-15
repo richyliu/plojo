@@ -13,6 +13,8 @@ lazy_static! {
     static ref NUMBERS_ONLY_REGEX: Regex = Regex::new(r"^[0-9]+$").unwrap();
 }
 
+const SPACE: char = ' ';
+
 #[derive(Debug, Default)]
 struct State {
     suppress_space: bool,
@@ -21,11 +23,11 @@ struct State {
 }
 
 /// Converts translations into their string representation by adding spaces in between words and
-/// applying text actions.
+/// applying text actions. Has an option to insert spaces after words instead of before.
 ///
 /// A state of the spaces/capitalization is kept as it loops over the Texts to build the string.
 /// StateActions change that state
-pub(super) fn parse_translation(translations: Vec<Text>) -> String {
+pub(super) fn parse_translation(translations: Vec<Text>, space_after: bool) -> String {
     // current state
     let mut state: State = Default::default();
     let mut str = String::new();
@@ -124,7 +126,7 @@ pub(super) fn parse_translation(translations: Vec<Text>) -> String {
         }
 
         if !state.suppress_space {
-            str.push(' ');
+            str.push(SPACE);
         }
         if state.force_capitalize {
             str.push_str(&word_change_first_letter(next_word));
@@ -133,6 +135,19 @@ pub(super) fn parse_translation(translations: Vec<Text>) -> String {
         }
 
         state = next_state;
+    }
+
+    // put space after if it is configured to do so
+    if space_after && !str.is_empty() {
+        // remove the leading space if there is any
+        if let Some(maybe_space) = str.chars().next() {
+            if maybe_space == SPACE {
+                str.remove(0);
+            }
+        }
+        if !state.suppress_space {
+            str.push(SPACE);
+        }
     }
 
     str
@@ -205,16 +220,20 @@ mod tests {
     use crate::{StateAction, TextAction};
     use plojo_core::Stroke;
 
+    fn translation_diff_space_after(t: Vec<Text>) -> String {
+        parse_translation(t, false)
+    }
+
     #[test]
     fn test_parse_empty() {
-        let translated = parse_translation(vec![]);
+        let translated = translation_diff_space_after(vec![]);
 
         assert_eq!(translated, "");
     }
 
     #[test]
     fn test_parse_basic() {
-        let translated = parse_translation(vec![
+        let translated = translation_diff_space_after(vec![
             Text::Lit("hello".to_string()),
             Text::Lit("hi".to_string()),
         ]);
@@ -224,7 +243,7 @@ mod tests {
 
     #[test]
     fn test_parse_text_actions() {
-        let translated = parse_translation(vec![
+        let translated = translation_diff_space_after(vec![
             Text::Attached {
                 text: "".to_string(),
                 joined_next: true,
@@ -260,7 +279,7 @@ mod tests {
 
     #[test]
     fn test_parse_prev_word_text_actions() {
-        let translated = parse_translation(vec![
+        let translated = translation_diff_space_after(vec![
             Text::Lit("hi".to_string()),
             Text::TextAction(TextAction::CapitalizePrev),
             Text::TextAction(TextAction::CapitalizePrev),
@@ -290,7 +309,7 @@ mod tests {
 
     #[test]
     fn test_parse_line_start() {
-        let translated = parse_translation(vec![
+        let translated = translation_diff_space_after(vec![
             Text::Attached {
                 text: "".to_string(),
                 joined_next: true,
@@ -307,7 +326,7 @@ mod tests {
 
     #[test]
     fn test_parse_glued() {
-        let translated = parse_translation(vec![
+        let translated = translation_diff_space_after(vec![
             Text::Lit("hello".to_string()),
             Text::Glued("hi".to_string()),
             Text::Glued("hi".to_string()),
@@ -328,7 +347,7 @@ mod tests {
 
     #[test]
     fn test_unicode() {
-        let translated = parse_translation(vec![
+        let translated = translation_diff_space_after(vec![
             Text::Lit("hi".to_string()),
             Text::Lit("hello".to_string()),
             Text::Lit("𐀀".to_string()),
@@ -343,7 +362,7 @@ mod tests {
 
     #[test]
     fn test_double_space() {
-        let translated = parse_translation(vec![
+        let translated = translation_diff_space_after(vec![
             Text::Lit("hello".to_string()),
             Text::Attached {
                 text: " ".to_string(),
@@ -410,7 +429,7 @@ mod tests {
 
     #[test]
     fn test_carry_capitalization() {
-        let translated = parse_translation(vec![
+        let translated = translation_diff_space_after(vec![
             Text::Lit("fairy".to_string()),
             Text::StateAction(StateAction::ForceCapitalize),
             Text::Attached {
@@ -429,5 +448,64 @@ mod tests {
         ]);
 
         assert_eq!(translated, " fairies bHi");
+    }
+
+    #[test]
+    fn test_space_after_basic() {
+        let translated = parse_translation(
+            vec![
+                Text::Lit("hello".to_string()),
+                Text::StateAction(StateAction::ForceCapitalize),
+                Text::Attached {
+                    text: "a".to_string(),
+                    joined_next: false,
+                    do_orthography: Some(false),
+                    carry_capitalization: false,
+                },
+            ],
+            true,
+        );
+
+        assert_eq!(translated, "helloA ");
+    }
+
+    #[test]
+    fn test_space_after_suppress_space() {
+        let translated = parse_translation(
+            vec![
+                Text::Lit("hello".to_string()),
+                Text::Lit("world".to_string()),
+                Text::Attached {
+                    text: "".to_string(),
+                    joined_next: true,
+                    do_orthography: None,
+                    carry_capitalization: false,
+                },
+            ],
+            true,
+        );
+
+        assert_eq!(translated, "hello world ");
+    }
+
+    #[test]
+    fn test_space_after_glued() {
+        let translated = parse_translation(
+            vec![
+                Text::Glued("a".to_string()),
+                Text::Glued("b".to_string()),
+                Text::Glued("c".to_string()),
+            ],
+            true,
+        );
+
+        assert_eq!(translated, "abc ");
+    }
+
+    #[test]
+    fn test_space_after_empty() {
+        let translated = parse_translation(vec![], true);
+
+        assert_eq!(translated, "");
     }
 }

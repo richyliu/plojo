@@ -49,6 +49,7 @@ pub fn main() {
         vec![],
         vec![Stroke::new("AFPS")], // AFPS is the stroke for retroactive add space
         Some(Stroke::new("S-P")),  // stroke added when AFPS is stroked
+        matches.is_present("space-after"),
     )
     .expect("Unable to create translator");
     println!("Loaded dictionaries");
@@ -140,6 +141,11 @@ fn get_arg_matches() -> ArgMatches<'static> {
                 .short("s")
                 .takes_value(true)
                 .help("Serial port the machine is connected to"),
+        )
+        .arg(
+            Arg::with_name("space-after")
+                .short("f")
+                .help("Insert spaces after a word instead of before"),
         )
         .get_matches()
 }

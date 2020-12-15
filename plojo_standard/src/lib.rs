@@ -18,6 +18,7 @@ enum Translation {
     Command {
         cmds: Vec<Command>,
         text_after: Option<Vec<Text>>,
+        suppress_space_before: bool,
     },
 }
 
@@ -55,10 +56,7 @@ impl Translation {
     fn as_text(&self) -> Vec<Text> {
         match self {
             Translation::Text(ref text) => vec![text.clone()],
-            Translation::Command {
-                cmds: _,
-                text_after,
-            } => text_after.clone().unwrap_or_default(),
+            Translation::Command { text_after, .. } => text_after.clone().unwrap_or_default(),
         }
     }
 }
@@ -87,6 +85,7 @@ pub struct StandardTranslator {
     dict: Dictionary,
     retrospective_add_space: Vec<Stroke>,
     add_space_insert: Option<Stroke>,
+    space_after: bool,
 }
 
 // most number of strokes to stroke in prev_strokes; limits undo to this many strokes
@@ -147,6 +146,7 @@ impl StandardTranslator {
         starting_strokes: Vec<Stroke>,
         retrospective_add_space: Vec<Stroke>,
         add_space_insert: Option<Stroke>,
+        space_after: bool,
     ) -> Result<Self, Box<dyn Error>> {
         let dict = Dictionary::new(raw_dicts)?;
         if !retrospective_add_space.is_empty() && add_space_insert == None {
@@ -157,6 +157,7 @@ impl StandardTranslator {
             dict,
             retrospective_add_space,
             add_space_insert,
+            space_after,
         })
     }
 }
@@ -198,7 +199,7 @@ impl Translator for StandardTranslator {
 
         let new_translations = self.dict.translate(&self.prev_strokes[start..]);
 
-        translation_diff(&old_translations, &new_translations)
+        translation_diff(&old_translations, &new_translations, self.space_after)
     }
 
     fn undo(&mut self) -> Vec<Command> {
@@ -206,6 +207,6 @@ impl Translator for StandardTranslator {
         self.remove_non_undoable_strokes();
         let new_translations = self.dict.translate(&self.prev_strokes);
 
-        translation_diff(&old_translations, &new_translations)
+        translation_diff(&old_translations, &new_translations, self.space_after)
     }
 }

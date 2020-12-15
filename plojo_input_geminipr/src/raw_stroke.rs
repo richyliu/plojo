@@ -29,9 +29,9 @@ pub trait RawStroke {
         } else {
             // the hyphen is only used when there are no center strokes nor star key, and there are
             // keys on the right hand
-            if self.get_center_left().len() == 0
-                && self.get_center_right().len() == 0
-                && self.get_right_hand().len() > 0
+            if self.get_center_left().is_empty()
+                && self.get_center_right().is_empty()
+                && !self.get_right_hand().is_empty()
             {
                 stroke.push('-')
             }

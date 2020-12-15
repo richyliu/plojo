@@ -141,6 +141,7 @@ mod tests {
                     Translation::Command {
                         cmds: vec![Command::PrintHello],
                         text_after: None,
+                        suppress_space_before: false,
                     },
                 ],
             ),
@@ -314,6 +315,7 @@ mod tests {
                 Translation::Command {
                     cmds: vec![Command::PrintHello],
                     text_after: None,
+                    suppress_space_before: false,
                 },
             ]
         );
