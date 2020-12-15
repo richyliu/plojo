@@ -523,3 +523,20 @@ fn space_after_suppress_space_before_command() {
     );
     b.expect("H-L/R-R/OBG", "helloOkay ");
 }
+
+#[test]
+fn space_after_duplicate_deletes() {
+    let mut b = Blackbox::new_with_space_after(
+        r#"
+            "TW-B": {
+                "cmds": [{ "Keys": [{"Special": "Tab"}, ["Meta"]] }],
+                "suppress_space_before": true
+            },
+            "H-L": "hello"
+        "#,
+    );
+    b.expect("H-L", "hello ");
+    b.expect("TW-B", "hello");
+    b.expect("TW-B", "hello");
+    b.expect("TW-B", "hello");
+}

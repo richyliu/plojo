@@ -30,9 +30,16 @@ pub(super) fn translation_diff(
         }) = new.last()
         {
             let mut cmds = cmds.clone();
-            // if suppress space, delete the space if there is any
+            // for suppress space, check if there's a space...
             if *suppress_space_before && old_parsed.chars().last() == Some(SPACE) {
-                cmds.insert(0, Command::Replace(1, "".to_string()));
+                // ...and it hasn't been deleted before (to prevent duplicate space deletion)
+                if let Some(t) = old.last() {
+                    if let Translation::Command { .. } = t {
+                        // last translation was a command, which already deleted the space
+                    } else {
+                        cmds.insert(0, Command::Replace(1, "".to_string()));
+                    }
+                }
             }
             return cmds;
         }
