@@ -137,7 +137,7 @@ pub fn apply_orthography(base: &str, suffix: &str) -> String {
     // This is done mainly for consonant doubling rule, which sometimes doubles a consonant even
     // when it doesn't need to.
     let simple_join = base.to_owned() + suffix;
-    if ORTHOGRAPHY_DICT.contains(&simple_join) {
+    if ORTHOGRAPHY_DICT.contains(&simple_join.to_lowercase()) {
         return simple_join;
     }
 
@@ -212,5 +212,7 @@ mod tests {
     fn test_orthography_uppercase() {
         assert_eq!(orthog(vec!["Big", "er"]), "Bigger");
         assert_eq!(orthog(vec!["biG", "eR"]), "biGGeR");
+        assert_eq!(orthog(vec!["SHiver", "ing"]), "SHivering");
+        assert_eq!(orthog(vec!["sHivER", "iNG"]), "sHivERiNG");
     }
 }

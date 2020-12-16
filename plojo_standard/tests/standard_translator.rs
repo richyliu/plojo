@@ -574,3 +574,16 @@ fn orthography_uppercase() {
     b_expect!(b, "KPA/PWEUG", " Big");
     b_expect!(b, "*ER", " Bigger");
 }
+
+#[test]
+fn orthography_bypass_with_ortho_dict() {
+    let mut b = Blackbox::new(
+        r#"
+            "KPA": "{-|}",
+            "TKPWA*RPB": "garden",
+            "-G": "{^ing}"
+        "#,
+    );
+    b_expect!(b, "KPA/TKPWA*RPB", " Garden");
+    b_expect!(b, "-G", " Gardening");
+}
