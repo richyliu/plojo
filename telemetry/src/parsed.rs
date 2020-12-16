@@ -1,9 +1,11 @@
 use serde::{Deserialize, Serialize};
 
+pub type Stroke = String;
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct LogEntry {
     pub time: i64,
-    pub stroke: String,
+    pub stroke: Stroke,
     pub content: Content,
 }
 

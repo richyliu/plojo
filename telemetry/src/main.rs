@@ -4,19 +4,28 @@ use itertools::Itertools;
 use std::fs::File;
 use std::io::{BufRead, BufReader, LineWriter, Write};
 
+mod frequency;
 mod parsed;
+mod processor;
 mod raw;
+
+use frequency::FrequencyAnalyzer;
+use processor::Processor;
 
 const CHUNK_SIZE: usize = 1000;
 
 fn main() {
-    println!("Parsing raw file (this may take a few seconds)...");
-    read_raw_and_parse("log_raw.txt", "log_parsed.txt");
-    println!("Done!");
+    analyze_frequency("log_parsed.txt");
+
+    // to prevent unused code warnings
+    if false {
+        read_raw_and_parse("log_raw.txt", "log_parsed.txt");
+    }
 }
 
 /// Reads a raw log file and parses it into another file
-pub fn read_raw_and_parse(raw_file: &str, out_file: &str) {
+fn read_raw_and_parse(raw_file: &str, out_file: &str) {
+    println!("Parsing raw file (this may take a few seconds)...");
     let file = File::open(raw_file).expect("File not found");
     let reader = BufReader::new(file);
 
@@ -47,4 +56,24 @@ pub fn read_raw_and_parse(raw_file: &str, out_file: &str) {
         }
         i += 1;
     }
+    println!("Done!");
+}
+
+fn analyze_frequency(file: &str) {
+    let file = File::open(file).expect("File not found");
+    let reader = BufReader::new(file);
+    let mut freq = FrequencyAnalyzer::new();
+
+    for lines in &reader.lines().chunks(CHUNK_SIZE) {
+        let lines = lines.map(|x| x.unwrap()).collect::<Vec<_>>();
+
+        for line in lines {
+            let entry = serde_json::from_str(&line).expect("Invalid serialized data");
+            freq.process(entry);
+        }
+    }
+
+    let grams_1 = freq.grams_1(2);
+    println!("Number of n grams: {}", grams_1.len());
+    println!("{:?}", &grams_1[..50]);
 }
