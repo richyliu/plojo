@@ -8,4 +8,7 @@ members = [
     "plojo_output_enigo",
     "plojo_output_macos",
     "cli",
+    "telemetry",
 ]
+
+default-members = ["cli"]
