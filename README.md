@@ -6,6 +6,9 @@ users may need to install libxdo-dev.
 ## Todos
 
 - something that can suggest briefs based on usage
+  - analyze frequency of common n grams of strokes (where n = 1, 2, 3)
+  - calculate stroke speed and average strokes per word
+  - find which strokes happen quickly one after the other (for brief suggestion)
 - config file instead of command line arguments
 - add custom stroke/command to also reset `prev_stroke`
 - add stroke to toggle between space before and space after
