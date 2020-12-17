@@ -5,12 +5,14 @@ use std::collections::HashMap;
 
 pub struct FrequencyAnalyzer {
     grams_1: HashMap<Stroke, u32>,
+    grams_2: HashMap<[Stroke; 2], u32>,
 }
 
 impl FrequencyAnalyzer {
     pub fn new() -> Self {
         Self {
             grams_1: HashMap::new(),
+            grams_2: HashMap::new(),
         }
     }
 
@@ -29,29 +31,75 @@ impl FrequencyAnalyzer {
 
         freqs
     }
+
+    /// Get a list of bi-grams
+    pub fn grams_2(&self, threshold: u32) -> Vec<(&[Stroke; 2], u32)> {
+        let mut freqs = Vec::new();
+        for (strokes, &count) in &self.grams_2 {
+            if count >= threshold {
+                freqs.push((strokes, count));
+            }
+        }
+
+        // reverse sort
+        freqs.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+
+        freqs
+    }
+
+    fn process_grams_1(&mut self, entries: &[&LogEntry]) {
+        for entry in entries {
+            let stroke = entry.stroke.clone();
+
+            // increment the stroke's counter, or add one if it isn't in the map
+            if let Some(count) = self.grams_1.get_mut(&stroke) {
+                *count += 1;
+            } else {
+                self.grams_1.insert(stroke, 1);
+            }
+        }
+    }
+
+    fn process_grams_2(&mut self, entries: &[&LogEntry]) {
+        // each stroke of the bi-gram must occur this frequently
+        const THRESHOLD: u32 = 2;
+        let mut prev: Option<Stroke> = None;
+
+        for entry in entries {
+            let stroke = entry.stroke.clone();
+
+            // insert the bi-gram of the previous stroke and this stroke
+            if let Some(prev) = prev {
+                // only insert if both occur frequently enough on their own
+                if self.grams_1.get(&prev).unwrap_or(&0) >= &THRESHOLD
+                    && self.grams_1.get(&stroke).unwrap_or(&0) >= &THRESHOLD
+                {
+                    // insert the bi-gram into the map
+                    if let Some(count) = self.grams_2.get_mut(&[prev.clone(), stroke.clone()]) {
+                        *count += 1;
+                    } else {
+                        self.grams_2.insert([prev.clone(), stroke.clone()], 1);
+                    }
+                }
+            }
+
+            prev = Some(entry.stroke.clone());
+        }
+    }
 }
 
 impl Processor for FrequencyAnalyzer {
-    /// Process an additional entry
-    fn process(&mut self, entry: LogEntry) {
-        // ignore commands
-        if entry.content == Content::Command {
-            return;
-        }
-
-        let stroke = entry.stroke;
-
-        // ignore undo
-        if stroke == "*" {
-            return;
-        }
-
-        // increment the stroke's counter, or add one if it isn't in the map
-        if let Some(count) = self.grams_1.get_mut(&stroke) {
-            *count += 1;
-        } else {
-            self.grams_1.insert(stroke, 1);
-        }
+    /// Process a series of entries
+    fn process(&mut self, entries: &[LogEntry]) {
+        // ignore commands, undo stroke, and NoOp
+        let cleaned: Vec<&LogEntry> = entries
+            .iter()
+            .filter(|l| {
+                l.content != Content::NoOp && l.content != Content::Command && l.stroke != "*"
+            })
+            .collect();
+        self.process_grams_1(&cleaned);
+        self.process_grams_2(&cleaned);
     }
 }
 
@@ -85,9 +133,7 @@ mod tests {
     #[test]
     fn test_1_gram_statistics() {
         let mut f = FrequencyAnalyzer::new();
-        for e in log_entries() {
-            f.process(e);
-        }
+        f.process(&log_entries());
 
         let freq = f.grams_1(2);
         assert_eq!(freq, vec![(&"-T".to_string(), 3), (&"K-R".to_string(), 2)])
@@ -96,27 +142,43 @@ mod tests {
     #[test]
     fn test_ignore_commands_and_undo() {
         let mut f = FrequencyAnalyzer::new();
-        f.process(entry(1607820695881, "*", 2, ""));
-        f.process(entry(1607820695882, "*", 2, ""));
-        f.process(entry(1607820695883, "*", 2, ""));
-        f.process(entry(1607820695884, "*", 2, ""));
-        f.process(LogEntry {
-            time: 1607820697201,
-            stroke: "SRO*PL".to_string(),
-            content: Content::Command,
-        });
-        f.process(LogEntry {
-            time: 1607820697202,
-            stroke: "SRO*PL".to_string(),
-            content: Content::Command,
-        });
-        f.process(LogEntry {
-            time: 1607820697203,
-            stroke: "SRO*PL".to_string(),
-            content: Content::Command,
-        });
+        f.process(&vec![
+            entry(1607820695881, "*", 2, ""),
+            entry(1607820695882, "*", 2, ""),
+            entry(1607820695883, "*", 2, ""),
+            entry(1607820695884, "*", 2, ""),
+            LogEntry {
+                time: 1607820697201,
+                stroke: "SRO*PL".to_string(),
+                content: Content::Command,
+            },
+            LogEntry {
+                time: 1607820697202,
+                stroke: "SRO*PL".to_string(),
+                content: Content::Command,
+            },
+            LogEntry {
+                time: 1607820697203,
+                stroke: "SRO*PL".to_string(),
+                content: Content::Command,
+            },
+            LogEntry {
+                time: 1607820697423,
+                stroke: "KPA*".to_string(),
+                content: Content::NoOp,
+            },
+        ]);
 
         let freq = f.grams_1(2);
         assert_eq!(freq, vec![])
+    }
+
+    #[test]
+    fn test_2_gram_statistics() {
+        let mut f = FrequencyAnalyzer::new();
+        f.process(&log_entries());
+
+        let freq = f.grams_2(2);
+        assert_eq!(freq, vec![(&["K-R".to_string(), "-T".to_string()], 2)])
     }
 }

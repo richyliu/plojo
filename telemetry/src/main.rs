@@ -10,16 +10,17 @@ mod processor;
 mod raw;
 
 use frequency::FrequencyAnalyzer;
+use parsed::LogEntry;
 use processor::Processor;
 
 const CHUNK_SIZE: usize = 1000;
 
 fn main() {
-    analyze_frequency("log_parsed.txt");
+    analyze_frequency("logs/parsed.txt");
 
     // to prevent unused code warnings
     if false {
-        read_raw_and_parse("log_raw.txt", "log_parsed.txt");
+        read_raw_and_parse("logs/raw.txt", "logs/parsed.txt");
     }
 }
 
@@ -60,20 +61,21 @@ fn read_raw_and_parse(raw_file: &str, out_file: &str) {
 }
 
 fn analyze_frequency(file: &str) {
-    let file = File::open(file).expect("File not found");
-    let reader = BufReader::new(file);
+    let contents = std::fs::read_to_string(file).expect("Could not read from file");
     let mut freq = FrequencyAnalyzer::new();
 
-    for lines in &reader.lines().chunks(CHUNK_SIZE) {
-        let lines = lines.map(|x| x.unwrap()).collect::<Vec<_>>();
-
-        for line in lines {
-            let entry = serde_json::from_str(&line).expect("Invalid serialized data");
-            freq.process(entry);
-        }
-    }
+    let parsed: Vec<LogEntry> = contents
+        .lines()
+        .map(|l| serde_json::from_str(&l).expect("Invalid serialized data"))
+        .collect();
+    freq.process(&parsed);
 
     let grams_1 = freq.grams_1(2);
-    println!("Number of n grams: {}", grams_1.len());
-    println!("{:?}", &grams_1[..50]);
+    println!("one-grams (frequency)");
+    println!("{:?}", &grams_1[..20]);
+    println!("");
+    let grams_2 = freq.grams_2(2);
+    println!("bi-grams");
+    println!("{:?}", &grams_2[..20]);
+    println!("");
 }
