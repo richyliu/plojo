@@ -84,9 +84,12 @@ fn try_suffix_folding(dict: &Dictionary, stroke: &Stroke) -> Option<Vec<Translat
             let suffix_char = &s[1..2];
             // check if the suffix exists in the stroke (after the center strokes)
             if raw_stroke[center_loc..].contains(suffix_char) {
-                // remove the suffix
-                let removed_suffix = &raw_stroke.replace(suffix_char, "");
-                if let Some(base) = dict.lookup(&[Stroke::new(removed_suffix)]) {
+                // remove last occurrence of the suffix
+                let reversed: String = raw_stroke.chars().rev().collect();
+                // remove at most 1 suffix starting from the end
+                let removed_suffix = reversed.replacen(suffix_char, "", 1);
+                let removed_suffix: String = removed_suffix.chars().rev().collect();
+                if let Some(base) = dict.lookup(&[Stroke::new(&removed_suffix)]) {
                     if let Some(mut suffix_translation) = dict.lookup(&[Stroke::new(s)]) {
                         let mut t = base;
                         t.append(&mut suffix_translation);
@@ -360,5 +363,6 @@ mod tests {
         assert!(try_suffix_folding(&dict, &Stroke::new("TPAOGSD")).is_none());
         assert!(try_suffix_folding(&dict, &Stroke::new("H")).is_none());
         assert!(try_suffix_folding(&dict, &Stroke::new("H-LZ")).is_none());
+        assert!(try_suffix_folding(&dict, &Stroke::new("STPAODS")).is_none());
     }
 }

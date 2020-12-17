@@ -2,16 +2,26 @@ use plojo_core::{Command, Key, Modifier, SpecialKey, Stroke, Translator};
 use plojo_standard::StandardTranslator;
 
 /// Blackbox assert macro for better line number tracing
+/// Expect that pressing stroke(s) causes a certain output
+///
+/// The stroke (or multiple strokes separated by '/') creates a command which is performed
+///
+/// The entire output (not just the added text) is matched against the total_output
 macro_rules! b_expect {
     ($blackbox:expr, $strokes:expr, $expected:expr) => {
-        $blackbox.expect($strokes, $expected);
+        $blackbox.lookup_and_dispatch($strokes);
+        assert_eq!($blackbox.output, $expected);
     };
 }
 
 /// Blackbox assert macro for keys for better line number tracing
+/// Expect that pressing stroke(s) causes certain key commands
+/// Similar to b_expect
+/// All of the keys produced are matched against total_keys
 macro_rules! b_expect_keys {
     ($blackbox:expr, $strokes:expr, $expected:expr) => {
-        $blackbox.expect_keys($strokes, $expected);
+        $blackbox.lookup_and_dispatch($strokes);
+        assert_eq!($blackbox.output_keys, $expected);
     };
 }
 
@@ -70,24 +80,6 @@ impl Blackbox {
             output: String::new(),
             output_keys: vec![],
         }
-    }
-
-    /// Expect that pressing stroke(s) causes a certain output
-    ///
-    /// The stroke (or multiple strokes separated by '/') creates a command which is performed
-    ///
-    /// The entire output (not just the added text) is matched against the total_output
-    fn expect(&mut self, strokes: &str, total_output: &str) {
-        self.lookup_and_dispatch(strokes);
-        assert_eq!(self.output, total_output);
-    }
-
-    /// Expect that pressing stroke(s) causes certain key commands
-    /// Similar to expect
-    /// All of the keys produced are matched against total_keys
-    fn expect_keys(&mut self, strokes: &str, total_keys: Vec<(Key, Vec<Modifier>)>) {
-        self.lookup_and_dispatch(strokes);
-        assert_eq!(self.output_keys, total_keys);
     }
 
     fn lookup_and_dispatch(&mut self, strokes: &str) {
@@ -586,4 +578,17 @@ fn orthography_bypass_with_ortho_dict() {
     );
     b_expect!(b, "KPA/TKPWA*RPB", " Garden");
     b_expect!(b, "-G", " Gardening");
+}
+
+#[test]
+fn suffix_folding_last_suffix() {
+    // only the last key which is the suffix can be folded
+    let mut b = Blackbox::new(
+        r#"
+            "TPHRAT": "flat",
+            "-S": "{^s}"
+        "#,
+    );
+    b_expect!(b, "TPHRATS", " flats");
+    b_expect!(b, "STPHRATS", " flats STPHRATS");
 }
