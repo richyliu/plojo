@@ -5,21 +5,22 @@ users may need to install libxdo-dev.
 
 ## Todos
 
-- something that can suggest briefs based on usage
-  - calculate stroke speed and average strokes per word
-  - find which strokes happen quickly one after the other (for brief suggestion)
 - config file instead of command line arguments
 - add custom stroke/command to also reset `prev_stroke`
 - add stroke to toggle between space before and space after
-- upper/lower casing entire words
+- add support for multiple dictionaries that can have their order changed
+- something that can suggest briefs based on usage
+  - calculate stroke speed and average strokes per word
+  - find which strokes happen quickly one after the other (for brief suggestion)
 
+- upper/lower casing entire words
 - BUG: tab should clear something, because `KA*PD` doesn't work after it
   - `Hello` + `{tab}` + `hi` + `KA*PD` doesn't do anything
   - maybe add option to clear `prev_strokes`
-- add support for multiple dictionaries that can have their order changed
 - allow comments to be added to the dictionary
 
 ### Optimization
+- I probably shouldn't worry about performance because it is already really fast
 - use a bloom filter to prevent need to lookup a long stroke
   - instead of looking up 10, 9, 8, ... 1 strokes joined together
   - 10..n (where n is around 4) could be looked up in a bloom filter

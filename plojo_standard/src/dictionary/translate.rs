@@ -62,6 +62,8 @@ pub(super) fn translate_strokes(dict: &Dictionary, strokes: &[Stroke]) -> Vec<Tr
 
 // suffixes for suffix folding (currently must all be right hand suffixes)
 const SUFFIXES: [&'static str; 4] = ["-Z", "-D", "-S", "-G"];
+// keys used to distinguish right hand keys (for suffix)
+const CENTER_KEYS: [char; 6] = ['*', '-', 'A', 'O', 'E', 'U'];
 
 /// Try to extract a suffix from a stroke (handles "suffix folding")
 /// It will check if the resulting stroke and suffix have translations and return that
@@ -77,7 +79,7 @@ fn try_suffix_folding(dict: &Dictionary, stroke: &Stroke) -> Option<Vec<Translat
     let raw_stroke = stroke.clone().to_raw();
     // ignore stroke if it doesn't contains right hand keys (since all suffixes are right hand)
     // this is detected with middle keys, which must be present if there are right hand keys
-    if let Some(center_loc) = raw_stroke.find(&['-', 'A', 'O', 'E', 'U'][..]) {
+    if let Some(center_loc) = raw_stroke.find(&CENTER_KEYS[..]) {
         // try each suffix in order
         for s in SUFFIXES.iter() {
             // get the suffix (ignore the leading dash)
@@ -131,6 +133,7 @@ mod tests {
             (row("TPAOD", "food")),
             (row("-S", "s")),
             (row("-G", "ing")),
+            (row("PH*PB", "mountain")),
             (
                 Stroke::new("KPA"),
                 vec![Translation::Text(Text::StateAction(
@@ -358,6 +361,10 @@ mod tests {
         assert_eq!(
             try_suffix_folding(&dict, &Stroke::new("TPAOGD")).unwrap(),
             all_text_helper(&["food", "ing"])
+        );
+        assert_eq!(
+            try_suffix_folding(&dict, &Stroke::new("PH*PBS")).unwrap(),
+            all_text_helper(&["mountain", "s"])
         );
         assert!(try_suffix_folding(&dict, &Stroke::new("SH-L")).is_none());
         assert!(try_suffix_folding(&dict, &Stroke::new("TPAOGSD")).is_none());

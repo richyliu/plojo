@@ -592,3 +592,20 @@ fn suffix_folding_last_suffix() {
     b_expect!(b, "TPHRATS", " flats");
     b_expect!(b, "STPHRATS", " flats STPHRATS");
 }
+
+#[test]
+fn command_preserve_space() {
+    // suppress space before should not do anything unless output is set to space after
+    let mut b = Blackbox::new(
+        r#"
+            "R-R": {
+                "cmds": [{ "Keys": [{"Special": "Return"}, []] }],
+                "suppress_space_before": true
+            },
+            "S-P": "{^ ^}",
+            "H-L": "hello"
+        "#,
+    );
+    b_expect!(b, "H-L/S-P", " hello ");
+    b_expect!(b, "R-R", " hello ");
+}

@@ -30,8 +30,8 @@ pub(super) fn translation_diff(
         }) = new.last()
         {
             let mut cmds = cmds.clone();
-            // for suppress space, check if there's a space...
-            if *suppress_space_before && old_parsed.chars().last() == Some(SPACE) {
+            // if space after and suppress space, check if there's a space...
+            if space_after && *suppress_space_before && old_parsed.chars().last() == Some(SPACE) {
                 // ...and it hasn't been deleted before (to prevent duplicate space deletion)
                 if let Some(t) = old.last() {
                     if let Translation::Command { .. } = t {

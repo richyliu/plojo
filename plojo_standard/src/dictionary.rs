@@ -28,12 +28,11 @@ impl Dictionary {
 
     fn lookup(&self, strokes: &[Stroke]) -> Option<Vec<Translation>> {
         // combine strokes with a `/` between them
-        let mut combined = strokes
+        let combined = strokes
             .iter()
             .map(|s| s.clone().to_raw())
-            .fold(String::new(), |acc, s| acc + &s + "/");
-        // remove trailing `/`
-        combined.pop();
+            .collect::<Vec<_>>()
+            .join("/");
 
         self.strokes.get(&Stroke::new(&combined)).cloned()
     }

@@ -72,7 +72,7 @@ pub(super) fn load_dicts(contents: &str) -> Result<Entries, ParseError> {
 
     let object_entries = value.as_object().ok_or(ParseError::NotEntries)?;
 
-    let mut result_entries = vec![];
+    let mut result_entries = Vec::with_capacity(object_entries.len());
 
     for (stroke, translation) in object_entries {
         let stroke = parse_stroke(stroke)?;
