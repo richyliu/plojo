@@ -9,6 +9,7 @@ members = [
     "plojo_output_macos",
     "cli",
     "telemetry",
+    "lookup",
 ]
 
 default-members = ["cli"]

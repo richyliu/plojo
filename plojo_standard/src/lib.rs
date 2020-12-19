@@ -62,13 +62,13 @@ impl Translation {
 }
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq, Deserialize)]
-pub enum StateAction {
+enum StateAction {
     ForceCapitalize,
     Clear,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Deserialize)]
-pub enum TextAction {
+enum TextAction {
     CapitalizePrev,
     SuppressSpacePrev,
 }

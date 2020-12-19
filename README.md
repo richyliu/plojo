@@ -5,6 +5,8 @@ users may need to install libxdo-dev.
 
 ## Todos
 
+- for stroke lookup, search also with first letter capitalized/lowercased
+  - also cache hashmaps and deserialize with serde for faster loading
 - config file instead of command line arguments
 - add custom stroke/command to also reset `prev_stroke`
 - add stroke to toggle between space before and space after
