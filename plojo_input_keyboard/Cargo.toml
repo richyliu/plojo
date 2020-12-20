@@ -1,0 +1,12 @@
+[package]
+name = "plojo_input_keyboard"
+version = "0.1.0"
+authors = ["Richard Liu <richy.liu.2002@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+plojo_core = { path = "../plojo_core" }
+lazy_static = "1.4.0"
+rdev = { version = "0.4.5", features = [ "unstable_grab" ] }

@@ -5,21 +5,23 @@ users may need to install libxdo-dev.
 
 ## Todos
 
+- BUG: `KPA*` + word doesn't check with orthography word list
+- keyboard input with [rdev](https://crates.io/crates/rdev)
 - for stroke lookup, search also with first letter capitalized/lowercased
-  - also cache hashmaps and deserialize with serde for faster loading
-- config file instead of command line arguments
 - add custom stroke/command to also reset `prev_stroke`
+  - BUG: tab should clear something, because `KA*PD` doesn't work after it
+    - `Hello` + `{tab}` + `hi` + `KA*PD` doesn't do anything
+    - maybe add option to clear `prev_strokes`
 - add stroke to toggle between space before and space after
 - add support for multiple dictionaries that can have their order changed
+
+- mouse control
+- upper/lower casing entire words
+- config file instead of command line arguments
+- allow comments to be added to the dictionary
 - something that can suggest briefs based on usage
   - calculate stroke speed and average strokes per word
   - find which strokes happen quickly one after the other (for brief suggestion)
-
-- upper/lower casing entire words
-- BUG: tab should clear something, because `KA*PD` doesn't work after it
-  - `Hello` + `{tab}` + `hi` + `KA*PD` doesn't do anything
-  - maybe add option to clear `prev_strokes`
-- allow comments to be added to the dictionary
 
 ### Optimization
 - I probably shouldn't worry about performance because it is already really fast
@@ -48,11 +50,6 @@ users may need to install libxdo-dev.
 - escape sequences (especially for brackets) in dictionary
 - add orthography rules aliases
 - potential bug: uppercase the next word (without specifying space) and then
-- add option for inserting spaces after instead of before
-  stroking an attached word results in that word *not* being attached (space is
-  not suppressed)
-  - this is because an attached stroke (by itself) is only attached to the
-    previous word if it is the first word
 - consider changing commands format back to one that is plover compatible
 - make text_after actions more convenient to type
 
