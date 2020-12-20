@@ -95,7 +95,7 @@ fn type_char(c: char, down: bool) {
     let event = CGEvent::new_keyboard_event(source, 0, down).unwrap();
     let mut buf = [0; 2];
     event.set_string_from_utf16_unchecked(c.encode_utf16(&mut buf));
-    event.post(CGEventTapLocation::HID);
+    event.post(CGEventTapLocation::Session);
 }
 
 /// Toggles a physical key with support for modifiers
@@ -111,19 +111,19 @@ fn toggle_key(key: CGKeyCode, down: bool, modifiers: &[Modifier], modifier_delay
         let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
         let event = CGEvent::new_keyboard_event(source, key, true).unwrap();
         event.set_flags(modifiers_to_flags(modifiers));
-        event.post(CGEventTapLocation::HID);
+        event.post(CGEventTapLocation::Session);
     } else {
         // ... while keyup must release the modifiers individually as keys
         for m in modifiers {
             let modifier_key = modifier_to_key(*m);
             let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
             let event = CGEvent::new_keyboard_event(source, modifier_key, false).unwrap();
-            event.post(CGEventTapLocation::HID);
+            event.post(CGEventTapLocation::Session);
             thread::sleep(Duration::from_millis(modifier_delay));
         }
         let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
         let event = CGEvent::new_keyboard_event(source, key, false).unwrap();
-        event.post(CGEventTapLocation::HID);
+        event.post(CGEventTapLocation::Session);
     }
 }
 
@@ -136,13 +136,13 @@ fn handle_keydown_control_and_arrow(key: CGKeyCode, modifier_delay: u64) {
             // press the control separately instead of as a flag
             let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
             let event = CGEvent::new_keyboard_event(source, KeyCode::CONTROL, true).unwrap();
-            event.post(CGEventTapLocation::HID);
+            event.post(CGEventTapLocation::Session);
 
             thread::sleep(Duration::from_millis(modifier_delay));
 
             let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
             let event = CGEvent::new_keyboard_event(source, key, true).unwrap();
-            event.post(CGEventTapLocation::HID);
+            event.post(CGEventTapLocation::Session);
         }
         _ => {}
     }

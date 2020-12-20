@@ -202,8 +202,10 @@ impl Machine for KeyboardMachine {
 ///
 /// This is used in rdev::listen, which only takes a fn pointer, which forces me to use Arc<Mutex>
 /// and lazy static.
+///
+/// We don't have to worry about listening to key strokes that we dispatched because that's sent
+/// via "Session", but this listens for keystrokes via "HID".
 fn handle_event(event: Event) -> Option<Event> {
-    // TODO: this doesn't work because it picks up the event from its own dispatching
     let (key, is_down) = match event.event_type {
         EventType::KeyPress(key) => (key, true),
         EventType::KeyRelease(key) => (key, false),

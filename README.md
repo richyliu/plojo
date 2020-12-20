@@ -6,7 +6,7 @@ users may need to install libxdo-dev.
 ## Todos
 
 - BUG: `KPA*` + word doesn't check with orthography word list
-- keyboard input with [rdev](https://crates.io/crates/rdev)
+- config file instead of command line arguments
 - for stroke lookup, search also with first letter capitalized/lowercased
 - add custom stroke/command to also reset `prev_stroke`
   - BUG: tab should clear something, because `KA*PD` doesn't work after it
@@ -17,7 +17,6 @@ users may need to install libxdo-dev.
 
 - mouse control
 - upper/lower casing entire words
-- config file instead of command line arguments
 - allow comments to be added to the dictionary
 - something that can suggest briefs based on usage
   - calculate stroke speed and average strokes per word
