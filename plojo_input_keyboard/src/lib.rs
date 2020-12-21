@@ -32,13 +32,19 @@ pub struct KeyboardMachine {
     stroke: Option<Stroke>,
 }
 
-impl KeyboardMachine {
-    pub fn new() -> Self {
+impl Default for KeyboardMachine {
+    fn default() -> Self {
         Self {
             down_keys: HashSet::new(),
             up_keys: HashSet::new(),
             stroke: None,
         }
+    }
+}
+
+impl KeyboardMachine {
+    pub fn new() -> Self {
+        Default::default()
     }
 
     /// Handles a key pressed down or up

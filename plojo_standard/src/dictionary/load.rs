@@ -325,6 +325,15 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                 }
             }
 
+            // allow `{#}` to do nothing for plover compatibility
+            if _t == "#" {
+                return Ok(vec![Translation::Command {
+                    cmds: vec![Command::NoOp],
+                    text_after: None,
+                    suppress_space_before: false,
+                }]);
+            }
+
             Err(ParseError::InvalidSpecialAction(_t.to_string()))
         }
     }

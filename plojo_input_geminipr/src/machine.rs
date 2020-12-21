@@ -12,8 +12,8 @@ pub struct SerialMachine {
 }
 
 impl SerialMachine {
-    pub fn new(port_name: String) -> Result<Self, Box<dyn Error>> {
-        let port = serialport::open_with_settings(&port_name, &SerialPortSettings::default())?;
+    pub fn new(port_name: &str) -> Result<Self, Box<dyn Error>> {
+        let port = serialport::open_with_settings(port_name, &SerialPortSettings::default())?;
 
         Ok(Self {
             read_rate: DEFAULT_READ_RATE,

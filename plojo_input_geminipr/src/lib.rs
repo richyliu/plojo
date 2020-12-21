@@ -13,7 +13,7 @@ pub struct GeminiprMachine {
 }
 
 impl GeminiprMachine {
-    pub fn new(config_port: String) -> Result<Self, Box<dyn Error>> {
+    pub fn new(config_port: &str) -> Result<Self, Box<dyn Error>> {
         let machine = SerialMachine::new(config_port)?;
         Ok(Self { machine })
     }

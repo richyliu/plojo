@@ -1,4 +1,5 @@
-use std::{collections::HashMap, env, fs};
+use std::{collections::HashMap, env, fs, path::Path};
+use toml::Value;
 
 mod load;
 
@@ -9,27 +10,25 @@ type DictName = String;
 
 fn main() {
     let query = get_query();
-    // get home directory with the $HOME environment variable
-    let home = env::var_os("HOME").unwrap().into_string().unwrap();
-    let dicts = load::load_dictionaries(
-        vec![
-            "plojo_user.json",
-            "dict.json",
-            "fingerspelling.json",
-            "fingerspelling-RBGS.json",
-            "numbers.json",
-            "thumb_numbers.json",
-            "nav.json",
-            "modifiers-single-stroke.json",
-        ]
+    // assume config file with list of dictionaries is at ~/.plojo/config.toml
+    let config_base = Path::new(&dirs::home_dir().unwrap()).join(".plojo");
+    let raw_config = fs::read_to_string(config_base.join("config.toml"))
+        .expect("unable to read config.toml file");
+    let value = raw_config.parse::<Value>().unwrap();
+    // assume config file has dicts key with list of strings which are the dictionary names
+    let dicts: Vec<(String, String)> = value["dicts"]
+        .as_array()
+        .unwrap()
         .iter()
+        .map(|val| val.as_str().unwrap())
         .map(|name| {
-            let file_name = home.to_string() + "/plojo/cli/runtime_files/" + name;
+            // assume dictionaries are in ~/.plojo/dicts/
+            let file_name = config_base.join("dicts").join(name);
             let raw = fs::read_to_string(file_name).expect("Unable to read dictionary");
             (raw, name.to_string())
         })
-        .collect::<Vec<_>>(),
-    );
+        .collect::<Vec<_>>();
+    let dicts = load::load_dictionaries(dicts);
 
     println!("Searching for: {}", query);
 

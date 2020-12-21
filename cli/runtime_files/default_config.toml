@@ -1,0 +1,22 @@
+# Configuration for plojo
+#
+# This should be in the plojo config folder as config.toml
+# The config folder is by default located at ~/.plojo/
+# The dictionaries should be in dicts/ within the config folder
+
+# Dictionaries with the latter ones able to override the former ones
+dicts = [
+  "dict.json",
+  "user.json",
+]
+
+input_machine = "Stdin"
+
+output_dispatcher = "Stdout"
+
+# Strokes that can retrospectively add a spaces between the previous two strokes
+retrospective_add_space_strokes = [ "AFPS" ]
+
+# Space stroke that is inserted when a retrospective add space stroke is pressed
+space_stroke = "S-P"
+

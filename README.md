@@ -5,8 +5,9 @@ users may need to install libxdo-dev.
 
 ## Todos
 
+- BUG: control-up arrow broke again
+- BUG: `H-L` + `H-L` + `AFPS` + `*` doesn't work properly
 - BUG: `KPA*` + word doesn't check with orthography word list
-- config file instead of command line arguments
 - for stroke lookup, search also with first letter capitalized/lowercased
 - add custom stroke/command to also reset `prev_stroke`
   - BUG: tab should clear something, because `KA*PD` doesn't work after it
@@ -36,6 +37,7 @@ users may need to install libxdo-dev.
 - initialize vecs and hashmaps with capacity to improve performance
 
 ### Cleanup
+- look for plojo config folder in multiple places (instead of just `~/.plojo`)
 - write dictionary parsing as a serde deserializer
 - check for stroke validity with a regex and warn if a stoke is invalid
 - refactor machine to use more traits
@@ -51,6 +53,7 @@ users may need to install libxdo-dev.
 - potential bug: uppercase the next word (without specifying space) and then
 - consider changing commands format back to one that is plover compatible
 - make text_after actions more convenient to type
+- add config to customize undo strokes
 
 ### Documentation
 - write somewhere about how commands are dispatched without modifying any text
