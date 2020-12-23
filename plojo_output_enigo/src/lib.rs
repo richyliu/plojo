@@ -130,6 +130,6 @@ fn dispatch_shell(cmd: String, args: Vec<String>) {
     let result = ProcessCommand::new(cmd).args(args).spawn();
     match result {
         Ok(_) => {}
-        Err(e) => eprintln!("Could not execute shell command: {}", e),
+        Err(e) => eprintln!("[WARN] Could not execute shell command: {}", e),
     }
 }

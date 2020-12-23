@@ -128,8 +128,6 @@ impl Layout {
 /// Converts pressed keys to a stroke based on the layout. Returns None if none of the keys
 /// pressed could be mapped to a stroke key
 fn convert_stroke(layout: &Layout, keys: &HashSet<Key>) -> Option<Stroke> {
-    // TODO: handle number strokes
-
     let mut left = String::new();
     // check each key in the layout to see it exists
     for (k, c) in &layout.left_keys {
@@ -177,8 +175,7 @@ lazy_static! {
         // spawn the listener here so it's not duplicated
         std::thread::spawn(|| {
             if let Err(e) = rdev::grab(handle_event) {
-                eprintln!("Error listening to system events: {:?}", e);
-                panic!("couldn't listen to system events");
+                panic!("couldn't listen to system events: {:?}", e);
             }
         });
 

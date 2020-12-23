@@ -57,12 +57,11 @@ impl Controller for MacController {
                         if let Some(code) = keycode_map.get(&c) {
                             *code
                         } else {
+                            eprintln!("[ERR] Cannot press {:?} and {:?}", c, modifiers);
                             eprintln!(
-                                "Cannot do keyboard shortcut of {:?} with {:?}",
-                                key, modifiers
+                                "[ERR] Is your caps lock on? Did you change the keyboard layout?"
                             );
-                            eprintln!("Cannot convert the key to a physical key");
-                            return;
+                            panic!("could not convert {} to a physical key", c);
                         }
                     }
                     Key::Special(special_key) => key_to_keycode(special_key),
@@ -85,7 +84,7 @@ fn dispatch_shell(cmd: String, args: Vec<String>) {
     let result = process::Command::new(cmd).args(args).spawn();
     match result {
         Ok(_) => {}
-        Err(e) => eprintln!("Could not execute shell command: {}", e),
+        Err(e) => eprintln!("[WARN] Could not execute shell command: {}", e),
     }
 }
 
@@ -100,14 +99,10 @@ fn type_char(c: char, down: bool) {
 
 /// Toggles a physical key with support for modifiers
 ///
-/// Key down and key up for modifiers must be handled differently. This is the only way to prevent
-/// glitches in the modifier not being detected
+/// Arrow key + some modifiers don't work. This is a known (and unsolvable) glitch.
 fn toggle_key(key: CGKeyCode, down: bool, modifiers: &[Modifier], modifier_delay: u64) {
     // key down must be triggered with modifiers as flags...
     if down {
-        if modifiers == &[Modifier::Control] {
-            handle_keydown_control_and_arrow(key, modifier_delay);
-        }
         let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
         let event = CGEvent::new_keyboard_event(source, key, true).unwrap();
         event.set_flags(modifiers_to_flags(modifiers));
@@ -124,27 +119,6 @@ fn toggle_key(key: CGKeyCode, down: bool, modifiers: &[Modifier], modifier_delay
         let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
         let event = CGEvent::new_keyboard_event(source, key, false).unwrap();
         event.post(CGEventTapLocation::Session);
-    }
-}
-
-/// If key is an arrow key, it must be handled differently.
-///
-/// We need to do this because of a bug in the Carbon API
-fn handle_keydown_control_and_arrow(key: CGKeyCode, modifier_delay: u64) {
-    match key {
-        KeyCode::UP_ARROW | KeyCode::DOWN_ARROW | KeyCode::LEFT_ARROW | KeyCode::RIGHT_ARROW => {
-            // press the control separately instead of as a flag
-            let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
-            let event = CGEvent::new_keyboard_event(source, KeyCode::CONTROL, true).unwrap();
-            event.post(CGEventTapLocation::Session);
-
-            thread::sleep(Duration::from_millis(modifier_delay));
-
-            let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).unwrap();
-            let event = CGEvent::new_keyboard_event(source, key, true).unwrap();
-            event.post(CGEventTapLocation::Session);
-        }
-        _ => {}
     }
 }
 

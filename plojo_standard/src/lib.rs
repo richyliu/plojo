@@ -149,9 +149,11 @@ impl StandardTranslator {
         space_after: bool,
     ) -> Result<Self, Box<dyn Error>> {
         let dict = Dictionary::new(raw_dicts)?;
-        if !retrospective_add_space.is_empty() && add_space_insert == None {
-            panic!("translator must have an add_space_insert stroke for retrospective_add_space");
+        // if there are retrospective add space strokes, there must be a space stroke
+        if !retrospective_add_space.is_empty() {
+            assert!(add_space_insert.is_some());
         }
+
         Ok(Self {
             prev_strokes: starting_strokes,
             dict,

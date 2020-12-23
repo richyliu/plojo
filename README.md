@@ -6,8 +6,8 @@ users may need to install libxdo-dev.
 ## Todos
 
 - BUG: control-up arrow broke again
-- BUG: `H-L` + `H-L` + `AFPS` + `*` doesn't work properly
 - BUG: `KPA*` + word doesn't check with orthography word list
+- handle number strokes for keyboard input
 - for stroke lookup, search also with first letter capitalized/lowercased
 - add custom stroke/command to also reset `prev_stroke`
   - BUG: tab should clear something, because `KA*PD` doesn't work after it
@@ -22,6 +22,7 @@ users may need to install libxdo-dev.
 - something that can suggest briefs based on usage
   - calculate stroke speed and average strokes per word
   - find which strokes happen quickly one after the other (for brief suggestion)
+- translation mode for verbatim strokes for brief creation
 
 ### Optimization
 - I probably shouldn't worry about performance because it is already really fast
@@ -54,6 +55,8 @@ users may need to install libxdo-dev.
 - consider changing commands format back to one that is plover compatible
 - make text_after actions more convenient to type
 - add config to customize undo strokes
+- some strokes (like `O-RBGS`) have a dash when it doesn't need a dash
+- should be usable as a drop-in replacement for Plover
 
 ### Documentation
 - write somewhere about how commands are dispatched without modifying any text
@@ -72,3 +75,6 @@ users may need to install libxdo-dev.
   - if space prev is suppressed, the whole thing will be capitalized
   - for something like `©ab`, the `a` will be capitalized: `©Ab`
 - `suppress_space_before` is the same as a `{^}` before command in Plover
+- retrospective add space will add a space in the stroke buffer
+  - this means that undo will "undo" the space stroke that was added
+  - retrospective add space itself cannot be undone either

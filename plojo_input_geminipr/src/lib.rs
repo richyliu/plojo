@@ -67,8 +67,7 @@ pub fn print_available_ports() {
             }
         }
         Err(e) => {
-            eprintln!("{:?}", e);
-            eprintln!("Error listing serial ports");
+            eprintln!("[ERR] Could not get available ports: {:?}", e);
         }
     }
 }

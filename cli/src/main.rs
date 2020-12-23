@@ -46,6 +46,7 @@ pub fn main() {
     /* Load controller */
     let mut controller = config.get_output_controller(matches.is_present("stdout"));
 
+    println!("[INFO] Ready.");
     println!();
 
     loop {
