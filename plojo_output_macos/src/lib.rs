@@ -76,6 +76,7 @@ impl Controller for MacController {
                 toggle_key(key, false, &[], MODIFIER_DELAY);
             }
             Command::Shell(cmd, args) => dispatch_shell(cmd, args),
+            Command::TranslatorCommand(_) => panic!("cannot handle translator command"),
         }
     }
 }

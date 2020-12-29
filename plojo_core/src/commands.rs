@@ -13,6 +13,8 @@ pub enum Command {
     Raw(u16),
     /// Dispatch a shell command with arguments
     Shell(String, Vec<String>),
+    /// Pass a command to the translator to be handled
+    TranslatorCommand(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize)]

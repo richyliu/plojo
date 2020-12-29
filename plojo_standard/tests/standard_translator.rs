@@ -123,6 +123,9 @@ impl Blackbox {
                             cmd, args
                         );
                     }
+                    Command::TranslatorCommand(cmd) => {
+                        self.translator.handle_command(cmd);
+                    }
                 }
             }
         }
@@ -608,4 +611,35 @@ fn command_preserve_space() {
     );
     b_expect!(b, "H-L/S-P", " hello ");
     b_expect!(b, "R-R", " hello ");
+}
+
+#[test]
+fn clear_prev_strokes_orthography() {
+    // suppress space before should not do anything unless output is set to space after
+    let mut b = Blackbox::new(
+        r#"
+            "R-R": {
+                "cmds": [
+                    { "Keys": [{"Special": "Return"}, []] },
+                    { "TranslatorCommand": "clear_prev_strokes" }
+                ],
+                "text_after": [
+                  {
+                    "Attached": {
+                      "text": "",
+                      "joined_next": true,
+                      "do_orthography": false,
+                      "carry_capitalization": false
+                    }
+                  },
+                  { "StateAction": "ForceCapitalize" }
+                ],
+                "suppress_space_before": true
+            },
+            "SKEL": "cancel",
+            "-D": "{^ed}"
+        "#,
+    );
+    b_expect!(b, "SKEL/-D", " canceled");
+    b_expect!(b, "R-R/SKEL/-D", " canceledCanceled");
 }

@@ -5,15 +5,9 @@ users may need to install libxdo-dev.
 
 ## Todos
 
-- BUG: control-up arrow broke again
-- BUG: `KPA*` + word doesn't check with orthography word list
+- BUG?: should `EPB/TKOUD` be "endowed" or "endo youed"
 - handle number strokes for keyboard input
 - for stroke lookup, search also with first letter capitalized/lowercased
-- add custom stroke/command to also reset `prev_stroke`
-  - BUG: tab should clear something, because `KA*PD` doesn't work after it
-    - `Hello` + `{tab}` + `hi` + `KA*PD` doesn't do anything
-    - maybe add option to clear `prev_strokes`
-- add stroke to toggle between space before and space after
 - add support for multiple dictionaries that can have their order changed
 
 - mouse control

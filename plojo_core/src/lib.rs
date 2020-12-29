@@ -13,6 +13,7 @@ pub use stroke::Stroke;
 pub trait Translator {
     fn translate(&mut self, stroke: Stroke) -> Vec<Command>;
     fn undo(&mut self) -> Vec<Command>;
+    fn handle_command(&mut self, command: String);
 }
 
 /// Controller that can perform a command

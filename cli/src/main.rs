@@ -1,6 +1,6 @@
 use clap::{App, Arg, ArgMatches};
 use dirs;
-use plojo_core::Translator;
+use plojo_core::{Command, Translator};
 use plojo_input_geminipr as geminipr;
 use plojo_standard::StandardTranslator;
 use std::{fs, io, path::Path};
@@ -80,7 +80,11 @@ pub fn main() {
 
         // performing the command
         for command in commands {
-            controller.dispatch(command);
+            if let Command::TranslatorCommand(cmd) = command {
+                translator.handle_command(cmd);
+            } else {
+                controller.dispatch(command);
+            }
         }
 
         println!("{}", log);

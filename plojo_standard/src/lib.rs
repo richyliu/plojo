@@ -211,4 +211,27 @@ impl Translator for StandardTranslator {
 
         translation_diff(&old_translations, &new_translations, self.space_after)
     }
+
+    /// Handle a command for the translator.
+    ///
+    /// Valid commands are:
+    /// - "clear_prev_strokes": Clears the stroke buffer
+    /// - "toggle_space_after": Toggles between space after and space before
+    fn handle_command(&mut self, command: String) {
+        match command.as_ref() {
+            "clear_prev_strokes" => {
+                // remove every stroke before the last, because that stroke triggered this command
+                // and the last stroke could have text_after text that needs to be preserved
+                let mut v = Vec::with_capacity(MAX_STROKE_BUFFER);
+                if let Some(last) = self.prev_strokes.pop() {
+                    v.push(last);
+                }
+                self.prev_strokes = v;
+            }
+            "toggle_space_after" => {
+                self.space_after = !self.space_after;
+            }
+            _c => eprintln!("[WARN]: the standard translator cannot handle {:?}", _c),
+        }
+    }
 }

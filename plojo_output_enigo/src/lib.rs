@@ -77,6 +77,7 @@ impl Controller for EnigoController {
                 self.enigo.key_click(Key::Raw(code));
             }
             Command::Shell(cmd, args) => dispatch_shell(cmd, args),
+            Command::TranslatorCommand(_) => panic!("cannot handle translator command"),
         }
     }
 }
