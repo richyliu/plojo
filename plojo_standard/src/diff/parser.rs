@@ -83,7 +83,21 @@ pub(super) fn parse_translation(translations: Vec<Text>, space_after: bool) -> S
 
                     // do orthography rule
                     if do_ortho {
-                        let index = find_last_word(&str);
+                        // find last none alpha character
+                        let index = str.rfind(|c: char| !c.is_alphabetic()).map_or(0, |i| {
+                            // we want the index of the next char
+                            let mut char_size = 0;
+                            // find number of bytes of that char and increment by that much
+                            for (idx, c) in str.char_indices() {
+                                if idx == i {
+                                    char_size = c.len_utf8();
+                                    break;
+                                }
+                            }
+                            // rfind found the index, so it should exist in char_indices
+                            assert!(char_size > 0);
+                            i + char_size
+                        });
                         // find the last word and apply orthography rule with the suffix
                         if index < str.len() {
                             let new_word = apply_orthography(&str[index..], &text);
@@ -507,5 +521,29 @@ mod tests {
         let translated = parse_translation(vec![], true);
 
         assert_eq!(translated, "");
+    }
+
+    #[test]
+    fn test_alpha_orthograhy() {
+        let translated = parse_translation(
+            vec![
+                Text::Attached {
+                    text: "©".to_string(),
+                    joined_next: true,
+                    do_orthography: None,
+                    carry_capitalization: false,
+                },
+                Text::Lit("model".to_string()),
+                Text::Attached {
+                    text: "ed".to_string(),
+                    joined_next: false,
+                    do_orthography: Some(true),
+                    carry_capitalization: false,
+                },
+            ],
+            false,
+        );
+
+        assert_eq!(translated, " ©modeled");
     }
 }
