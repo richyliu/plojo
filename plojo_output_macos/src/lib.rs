@@ -22,10 +22,6 @@ impl Controller for MacController {
     }
 
     fn dispatch(&mut self, command: Command) {
-        // build a new map on each dispatch in case the keyboard layout changed
-        // this map converts chars to keycodes in a keyboard shortcut
-        let keycode_map = build_char_to_keycode_map();
-
         match command {
             Command::Replace(backspace_num, add_text) => {
                 // tap backspace for corrections
@@ -53,6 +49,10 @@ impl Controller for MacController {
             Command::Keys(key, modifiers) => {
                 let keycode = match key {
                     Key::Layout(c) => {
+                        // build a new map on each dispatch in case the keyboard layout changed
+                        // this map converts chars to keycodes in a keyboard shortcut
+                        let keycode_map = build_char_to_keycode_map();
+
                         // try to convert the char to a physical key
                         if let Some(code) = keycode_map.get(&c) {
                             *code
@@ -183,7 +183,7 @@ fn key_to_keycode(key: SpecialKey) -> CGKeyCode {
 fn build_char_to_keycode_map() -> HashMap<char, CGKeyCode> {
     let mut map = HashMap::new();
     // check each key code to see if it represents a char
-    for i in 0..128 {
+    for i in 0..64 {
         if let Some(c) = keycode_to_char(i) {
             map.insert(c, i);
         }
@@ -201,6 +201,7 @@ fn keycode_to_char(code: CGKeyCode) -> Option<char> {
     let event = CGEvent::new_keyboard_event(source, code, true).unwrap();
 
     unsafe {
+        // the eventWithCGEvent_ call causes a memory leak, but I can't fix it
         let ns_event = NSEvent::eventWithCGEvent_(
             cocoa::appkit::NSGeneralPboard, // this can be anything; it isn't actually used
             event.as_ptr() as *mut core::ffi::c_void,
@@ -233,13 +234,23 @@ mod tests {
 
     #[test]
     fn keycode_conversion() {
-        // NOTE: if you hold down shift while running this test, it will fail
-        // on QWERTY layout
+        // if you hold down shift while running this test, it will fail
+        // these keycodes are for QWERTY layout on US (ANSI) keyboard
         assert_eq!(keycode_to_char(0), Some('a'));
         assert_eq!(keycode_to_char(6), Some('z'));
+        assert_eq!(keycode_to_char(50), Some('`'));
         assert_eq!(keycode_to_char(53), Some('\u{1b}'));
 
         // control key
         assert_eq!(keycode_to_char(59), None);
+    }
+
+    #[test]
+    fn keycode_map() {
+        let keycode_map = build_char_to_keycode_map();
+        assert!(keycode_map.get(&'a').is_some());
+        assert!(keycode_map.get(&'o').is_some());
+        assert!(keycode_map.get(&'4').is_some());
+        assert!(keycode_map.get(&';').is_some());
     }
 }
