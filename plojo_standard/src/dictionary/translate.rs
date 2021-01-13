@@ -90,6 +90,12 @@ fn try_suffix_folding(dict: &Dictionary, stroke: &Stroke) -> Option<Vec<Translat
                 let reversed: String = raw_stroke.chars().rev().collect();
                 // remove at most 1 suffix starting from the end
                 let removed_suffix = reversed.replacen(suffix_char, "", 1);
+                // remove extraneous dash if there is any
+                let removed_suffix = if removed_suffix.chars().next().unwrap() == '-' {
+                    removed_suffix[1..].to_owned()
+                } else {
+                    removed_suffix
+                };
                 let removed_suffix: String = removed_suffix.chars().rev().collect();
                 if let Some(base) = dict.lookup(&[Stroke::new(&removed_suffix)]) {
                     if let Some(mut suffix_translation) = dict.lookup(&[Stroke::new(s)]) {

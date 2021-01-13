@@ -643,3 +643,15 @@ fn clear_prev_strokes_orthography() {
     b_expect!(b, "SKEL/-D", " canceled");
     b_expect!(b, "R-R/SKEL/-D", " canceledCanceled");
 }
+
+#[test]
+fn suffix_folding_dash() {
+    // dash is not removed when attempting suffix folding
+    let mut b = Blackbox::new(
+        r#"
+            "SKHR": "circle",
+            "-S": "{^s}"
+        "#,
+    );
+    b_expect!(b, "SKHR-S", " circles");
+}
