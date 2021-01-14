@@ -3,20 +3,47 @@
 Note: uses [enigo](https://crates.io/crates/enigo) for computer control. Linux
 users may need to install libxdo-dev.
 
-## Todos
+## Immediate todos
 
-- BUG?: should `EPB/TKOUD` be "endowed" or "endo youed"
+### Plover compatible
+
+#### Dictionary
+- make plover compatible (see `~/steno/dict/plover-use.json`)
+  - `{<}` and `{>}` for all caps/all lowering a word
 - handle number strokes for keyboard input
-- for stroke lookup, search also with first letter capitalized/lowercased
-- add support for multiple dictionaries that can have their order changed
 
-- mouse control
+#### Text
 - upper/lower casing entire words
+- add orthography (`-Z`) for numbers? (to add "00" to a number)
+
+#### Other
+- for stroke lookup, search also with first letter capitalized/lowercased
+- BUG?: "okay, okay" has 2 spaces
+
+### Features
+
+- call function (like for date)
+- calculate translation frequency
+  - also calculate stroke speed and strokes per day
+  - calculate strokes per word
+  - calculate frequency of certain individual keys and two keys
+- for corrections (browser URL bar), add space and then delete
+- mouse control
+- add support for multiple dictionaries that can have their order changed
 - allow comments to be added to the dictionary
 - something that can suggest briefs based on usage
   - calculate stroke speed and average strokes per word
   - find which strokes happen quickly one after the other (for brief suggestion)
 - translation mode for verbatim strokes for brief creation
+
+## Test on Plover
+- `SEUFRPL` + `ER/ROR`
+- `EPB/TKOUD` be "endowed" or "endo youed"
+- `STREUP/-D` be "stripped" or "striped"
+- `UPB/TPA*EUGS` be "unification" or "uniification"
+- `TPAUR/OUS` be "forous" or "forrous"
+
+## Later todos
 
 ### Optimization
 - I probably shouldn't worry about performance because it is already really fast
@@ -72,3 +99,6 @@ users may need to install libxdo-dev.
 - retrospective add space will add a space in the stroke buffer
   - this means that undo will "undo" the space stroke that was added
   - retrospective add space itself cannot be undone either
+- document the overall architecture of plojo
+- prefix + suffix doesn't apply orthography (like Plover)
+  - ex: `TPAUR/OUS` makes `forous`, not `forrous`

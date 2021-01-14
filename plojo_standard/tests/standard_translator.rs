@@ -655,3 +655,40 @@ fn suffix_folding_dash() {
     );
     b_expect!(b, "SKHR-S", " circles");
 }
+
+#[test]
+fn prefix_and_suffix() {
+    let mut b = Blackbox::new(
+        r#"
+            "TPAUR": "{for^}",
+            "OUS": "{^ous}"
+        "#,
+    );
+    b_expect!(b, "TPAUR/OUS", " forrous");
+}
+
+#[test]
+fn suppress_space_orthography() {
+    // a suppress space stroke should cause the suffix to be appended literally
+    let mut b = Blackbox::new(
+        r#"
+            "TPHRO*UR": "flower",
+            "OUS": "{^ous}",
+            "TK-LS": "{^^}"
+        "#,
+    );
+    b_expect!(b, "TPHRO*UR/TK-LS/OUS", " flowerous");
+}
+
+#[test]
+fn capitalize_next_word_orthography() {
+    // capitalize next word should not apply orthography, and work on a suffix
+    let mut b = Blackbox::new(
+        r#"
+            "TPHRO*UR": "flower",
+            "OUS": "{^ous}",
+            "KPA*": "{^}{-|}"
+        "#,
+    );
+    b_expect!(b, "TPHRO*UR/KPA*/OUS", " flowerOus");
+}

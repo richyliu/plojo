@@ -77,38 +77,43 @@ pub(super) fn parse_translation(translations: Vec<Text>, space_after: bool) -> S
                     // don't capitalize this word
                     state.force_capitalize = false;
                 }
-                // Some means to join stroke to previous word
-                if let Some(do_ortho) = do_orthography {
-                    state.suppress_space = true;
 
-                    // do orthography rule
-                    if do_ortho {
-                        // find last none alpha character
-                        let index = str.rfind(|c: char| !c.is_alphabetic()).map_or(0, |i| {
-                            // we want the index of the next char
-                            let mut char_size = 0;
-                            // find number of bytes of that char and increment by that much
-                            for (idx, c) in str.char_indices() {
-                                if idx == i {
-                                    char_size = c.len_utf8();
-                                    break;
+                // don't apply orthography if previous stroke suppressed the next space
+                // this is so suppress space can output a suffix literally (without ortho rule)
+                if !state.suppress_space {
+                    // Some means to join stroke to previous word
+                    if let Some(do_ortho) = do_orthography {
+                        state.suppress_space = true;
+
+                        // do orthography rule
+                        if do_ortho {
+                            // find last none alpha character
+                            let index = str.rfind(|c: char| !c.is_alphabetic()).map_or(0, |i| {
+                                // we want the index of the next char
+                                let mut char_size = 0;
+                                // find number of bytes of that char and increment by that much
+                                for (idx, c) in str.char_indices() {
+                                    if idx == i {
+                                        char_size = c.len_utf8();
+                                        break;
+                                    }
                                 }
+                                // rfind found the index, so it should exist in char_indices
+                                assert!(char_size > 0);
+                                i + char_size
+                            });
+                            // find the last word and apply orthography rule with the suffix
+                            if index < str.len() {
+                                let new_word = apply_orthography(&str[index..], &text);
+                                // replace that word with the new (orthography'ed) one
+                                str = str[..index].to_string() + &new_word;
+                            } else {
+                                // there was no last word, directly add the text
+                                str = str + &text;
                             }
-                            // rfind found the index, so it should exist in char_indices
-                            assert!(char_size > 0);
-                            i + char_size
-                        });
-                        // find the last word and apply orthography rule with the suffix
-                        if index < str.len() {
-                            let new_word = apply_orthography(&str[index..], &text);
-                            // replace that word with the new (orthography'ed) one
-                            str = str[..index].to_string() + &new_word;
-                        } else {
-                            // there was no last word, directly add the text
-                            str = str + &text;
+                            state = next_state;
+                            continue;
                         }
-                        state = next_state;
-                        continue;
                     }
                 }
             }
