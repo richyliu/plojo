@@ -64,6 +64,7 @@ impl Translation {
 #[derive(Debug, PartialEq, Clone, Hash, Eq, Deserialize)]
 enum StateAction {
     ForceCapitalize,
+    SameCase(bool), // apply all upper (true) or lower (false) case
     Clear,
 }
 
@@ -71,6 +72,7 @@ enum StateAction {
 enum TextAction {
     CapitalizePrev,
     SuppressSpacePrev,
+    SameCasePrev(bool), // apply all upper (true) or lower (false) case
 }
 
 /// The standard translator is very similar in feature to Plover and other CAT software.

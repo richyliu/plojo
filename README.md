@@ -7,18 +7,20 @@ users may need to install libxdo-dev.
 
 ### Plover compatible
 
-#### Dictionary
-- make plover compatible (see `~/steno/dict/plover-use.json`)
-  - `{<}` and `{>}` for all caps/all lowering a word
-- handle number strokes for keyboard input
-
 #### Text
-- upper/lower casing entire words
+- add support for plover modes (caps, camel, snake, etc.)?
 - add orthography (`-Z`) for numbers? (to add "00" to a number)
+- suffix strokes on multistroke words
 
 #### Other
+- handle number strokes for keyboard input
 - for stroke lookup, search also with first letter capitalized/lowercased
 - BUG?: "okay, okay" has 2 spaces
+- BUG?: capitalize last word for: (`|` indicates cursor)
+  - how should these be handled?
+  - `said, 'hi`
+  - `get frank's`
+- BUG: `1BGS` works but `5BGS` doesn't
 
 ### Features
 
@@ -57,6 +59,7 @@ users may need to install libxdo-dev.
 - limit number of strokes sent to `translate_strokes`
 - possibly optimize hashmap lookup by turning steno keys into a u32
 - initialize vecs and hashmaps with capacity to improve performance
+- alternate log format that stores time deltas and strokes as ints for low size
 
 ### Cleanup
 - look for plojo config folder in multiple places (instead of just `~/.plojo`)
@@ -99,6 +102,8 @@ users may need to install libxdo-dev.
 - retrospective add space will add a space in the stroke buffer
   - this means that undo will "undo" the space stroke that was added
   - retrospective add space itself cannot be undone either
+- retrospective add space stroke is set in the config (not with `{*?}`)
 - document the overall architecture of plojo
-- prefix + suffix doesn't apply orthography (like Plover)
+- prefix + suffix doesn't apply orthography (this may differ from Plover)
   - ex: `TPAUR/OUS` makes `forous`, not `forrous`
+- force same case overrides force capitalize (when it applies to the next word)

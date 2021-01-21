@@ -56,6 +56,12 @@ use std::{error::Error, fmt};
 /// ### Retrospective Space
 /// - `{*!}`: retrospectivly remove space before the previous translated word
 ///
+/// ### Uppercasing
+/// - `{<}`: uppercase (ALL CAPS) next word
+/// - `{*<}`: uppercase previous word
+/// - `{>}`: lowercase next word
+/// - `{*>}`: lowercase previous word
+///
 /// ### Literal symbols
 /// - `{bracketleft}`: inserts a literal opening bracket (`{`)
 /// - `{bracketright}`: inserts a literal closing bracket (`}`)
@@ -247,6 +253,22 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
         // remove space from prev word
         "*!" => Ok(vec![Translation::Text(Text::TextAction(
             TextAction::SuppressSpacePrev,
+        ))]),
+        // all caps next word
+        "<" => Ok(vec![Translation::Text(Text::StateAction(
+            StateAction::SameCase(true),
+        ))]),
+        // all caps previous word
+        "*<" => Ok(vec![Translation::Text(Text::TextAction(
+            TextAction::SameCasePrev(true),
+        ))]),
+        // all lowercase next word
+        ">" => Ok(vec![Translation::Text(Text::StateAction(
+            StateAction::SameCase(false),
+        ))]),
+        // all lowercase previous word
+        "*>" => Ok(vec![Translation::Text(Text::TextAction(
+            TextAction::SameCasePrev(false),
         ))]),
         // insert literal bracket
         "bracketleft" => Ok(vec![Translation::Text(Text::Lit("{".to_string()))]),

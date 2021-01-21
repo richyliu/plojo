@@ -20,6 +20,7 @@ struct State {
     suppress_space: bool,
     force_capitalize: bool,
     prev_is_glued: bool,
+    force_same_case: Option<bool>,
 }
 
 /// Converts translations into their string representation by adding spaces in between words and
@@ -74,6 +75,7 @@ pub(super) fn parse_translation(translations: Vec<Text>, space_after: bool) -> S
                 if carry_capitalization {
                     // carry on the capitalization state to the next word
                     next_state.force_capitalize = state.force_capitalize;
+                    next_state.force_same_case = state.force_same_case;
                     // don't capitalize this word
                     state.force_capitalize = false;
                 }
@@ -129,11 +131,12 @@ pub(super) fn parse_translation(translations: Vec<Text>, space_after: bool) -> S
                     StateAction::ForceCapitalize => {
                         state.force_capitalize = true;
                     }
+                    StateAction::SameCase(b) => {
+                        state.force_same_case = Some(b);
+                    }
                     StateAction::Clear => {
                         // reset formatting state
-                        state.force_capitalize = Default::default();
-                        state.prev_is_glued = Default::default();
-                        state.suppress_space = Default::default();
+                        state = Default::default();
                     }
                 }
                 continue;
@@ -147,11 +150,19 @@ pub(super) fn parse_translation(translations: Vec<Text>, space_after: bool) -> S
         if !state.suppress_space {
             str.push(SPACE);
         }
+
+        let mut word = next_word;
         if state.force_capitalize {
-            str.push_str(&word_change_first_letter(next_word));
-        } else {
-            str.push_str(&next_word);
+            word = word_change_first_letter(word);
         }
+        if let Some(b) = state.force_same_case {
+            word = if b {
+                word.to_uppercase()
+            } else {
+                word.to_lowercase()
+            };
+        }
+        str.push_str(&word);
 
         state = next_state;
     }
@@ -183,7 +194,7 @@ fn word_change_first_letter(text: String) -> String {
 
 /// Find the index in the text after the last space
 /// This index is 0 if there is no whitespace, and text.len() if the last char is a whitespace
-fn find_last_word(text: &str) -> usize {
+fn find_last_word_space(text: &str) -> usize {
     if let Some(i) = text.rfind(char::is_whitespace) {
         // add 1 to remove the space
         // whitespace takes up 1 byte, so adding 1 is safe here
@@ -198,11 +209,26 @@ fn find_last_word(text: &str) -> usize {
 // This is used for deciding what is a word when capitalizing the previous word
 const WORD_CHARS: [char; 2] = ['-', '_'];
 
+/// Find the index of the last word by looking for a non alphanumeric or non word character
+fn find_last_word(text: &str) -> usize {
+    // find the last non-alphanumeric (nor hyphen) character
+    if let Some(i) = text.rfind(|c| !(char::is_alphanumeric(c) || WORD_CHARS.contains(&c))) {
+        // size of whatever char was before the word
+        // unwrap is safe because we found the index `i` with rfind
+        let char_size = text[i..].chars().next().unwrap().to_string().len();
+        // add to get to the next char (the actual word)
+        i + char_size
+    } else {
+        // no whitespace, so everything must be a word
+        0
+    }
+}
+
 fn perform_text_action(text: &str, action: TextAction) -> String {
     match action {
         TextAction::SuppressSpacePrev => {
             let mut new_str = text.to_string();
-            let index = find_last_word(&text);
+            let index = find_last_word_space(&text);
             // find the last word and see if there is a space before it
             if index > 0 && text.get(index - 1..index) == Some(" ") {
                 // remove the space (this is safe because we checked the index above)
@@ -211,24 +237,20 @@ fn perform_text_action(text: &str, action: TextAction) -> String {
             new_str
         }
         TextAction::CapitalizePrev => {
-            // find the last non-alphanumeric (nor hyphen) character
-            let index = if let Some(i) =
-                text.rfind(|c| !(char::is_alphanumeric(c) || WORD_CHARS.contains(&c)))
-            {
-                // size of whatever char was before the word
-                // unwrap is safe because we found the index `i` with rfind
-                let char_size = text[i..].chars().next().unwrap().to_string().len();
-                // add to get to the next char (the actual word)
-                i + char_size
-            } else {
-                // no whitespace, so everything must be a word
-                0
-            };
-
-            // capitalize the last word
+            let index = find_last_word(&text);
             let word = text[index..].to_string();
             let capitalized = word_change_first_letter(word);
             text[..index].to_string() + &capitalized
+        }
+        TextAction::SameCasePrev(b) => {
+            let index = find_last_word(&text);
+            let word = text[index..].to_string();
+            let changed_case = if b {
+                word.to_uppercase()
+            } else {
+                word.to_lowercase()
+            };
+            text[..index].to_string() + &changed_case
         }
     }
 }
@@ -401,12 +423,21 @@ mod tests {
     }
 
     #[test]
+    fn test_find_last_word_space() {
+        assert_eq!(find_last_word_space("hello world"), 6);
+        assert_eq!(find_last_word_space(" world"), 1);
+        assert_eq!(find_last_word_space("test "), 5);
+        assert_eq!(find_last_word_space("nospace"), 0);
+        assert_eq!(find_last_word_space(" there are many words"), 16);
+    }
+
+    #[test]
     fn test_find_last_word() {
         assert_eq!(find_last_word("hello world"), 6);
         assert_eq!(find_last_word(" world"), 1);
         assert_eq!(find_last_word("test "), 5);
-        assert_eq!(find_last_word("nospace"), 0);
-        assert_eq!(find_last_word(" there are many words"), 16);
+        assert_eq!(find_last_word("not:this-that"), 4);
+        assert_eq!(find_last_word("THE Under_score"), 4);
     }
 
     #[test]
@@ -550,5 +581,36 @@ mod tests {
         );
 
         assert_eq!(translated, " ©modeled");
+    }
+
+    #[test]
+    fn test_force_same_case() {
+        let translated = parse_translation(
+            vec![
+                Text::StateAction(StateAction::SameCase(true)),
+                Text::StateAction(StateAction::ForceCapitalize),
+                Text::Lit("hello".to_string()),
+                // force same case should override force capitalize
+                Text::StateAction(StateAction::ForceCapitalize),
+                Text::StateAction(StateAction::SameCase(false)),
+                Text::Attached {
+                    text: "(".to_string(),
+                    joined_next: true,
+                    do_orthography: None,
+                    carry_capitalization: true,
+                },
+                Text::Lit("NASA".to_string()),
+                Text::Lit("hi".to_string()),
+                Text::TextAction(TextAction::CapitalizePrev),
+                Text::TextAction(TextAction::SameCasePrev(true)),
+                Text::Lit("aLL_cAPs".to_string()),
+                // force same case prev should override force capitalize prev
+                Text::TextAction(TextAction::CapitalizePrev),
+                Text::TextAction(TextAction::SameCasePrev(false)),
+            ],
+            false,
+        );
+
+        assert_eq!(translated, " HELLO (nasa HI all_caps");
     }
 }

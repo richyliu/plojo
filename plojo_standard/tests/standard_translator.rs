@@ -664,7 +664,7 @@ fn prefix_and_suffix() {
             "OUS": "{^ous}"
         "#,
     );
-    b_expect!(b, "TPAUR/OUS", " forrous");
+    b_expect!(b, "TPAUR/OUS", " forous");
 }
 
 #[test]
