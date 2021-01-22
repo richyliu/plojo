@@ -356,17 +356,7 @@ fn text_action_after_command() {
             "H-L": "hello",
             "TKOUPB": {
                 "cmds": [{ "Keys": [{"Special": "DownArrow"}, []] }],
-                "text_after": [
-                    {
-                        "Attached": {
-                            "text": "",
-                            "joined_next": true,
-                            "do_orthography": false,
-                            "carry_capitalization": false
-                        }
-                    },
-                    { "StateAction": "ForceCapitalize" }
-                ]
+                "text_after": "{^}{-|}"
             },
             "TPAO": "foo"
         "#,
@@ -520,17 +510,7 @@ fn space_after_suppress_space_before_command() {
         r#"
             "R-R": {
                 "cmds": [{ "Keys": [{"Special": "Return"}, []] }],
-                "text_after": [
-                    {
-                        "Attached": {
-                            "text": "",
-                            "joined_next": true,
-                            "do_orthography": false,
-                            "carry_capitalization": false
-                        }
-                    },
-                    { "StateAction": "ForceCapitalize" }
-                ],
+                "text_after": "{^}{-|}",
                 "suppress_space_before": true
             },
             "H-L": "hello",
@@ -623,17 +603,7 @@ fn clear_prev_strokes_orthography() {
                     { "Keys": [{"Special": "Return"}, []] },
                     { "TranslatorCommand": "clear_prev_strokes" }
                 ],
-                "text_after": [
-                  {
-                    "Attached": {
-                      "text": "",
-                      "joined_next": true,
-                      "do_orthography": false,
-                      "carry_capitalization": false
-                    }
-                  },
-                  { "StateAction": "ForceCapitalize" }
-                ],
+                "text_after": "{^}{-|}",
                 "suppress_space_before": true
             },
             "SKEL": "cancel",

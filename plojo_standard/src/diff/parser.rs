@@ -1,4 +1,4 @@
-use crate::{StateAction, Text, TextAction};
+use crate::{AttachedType, StateAction, Text, TextAction};
 use orthography::apply_orthography;
 use regex::Regex;
 use std::char;
@@ -65,7 +65,7 @@ pub(super) fn parse_translation(translations: Vec<Text>, space_after: bool) -> S
             Text::Attached {
                 text,
                 joined_next,
-                do_orthography,
+                joined_prev,
                 carry_capitalization,
             } => {
                 next_word = text.clone();
@@ -83,12 +83,15 @@ pub(super) fn parse_translation(translations: Vec<Text>, space_after: bool) -> S
                 // don't apply orthography if previous stroke suppressed the next space
                 // this is so suppress space can output a suffix literally (without ortho rule)
                 if !state.suppress_space {
-                    // Some means to join stroke to previous word
-                    if let Some(do_ortho) = do_orthography {
-                        state.suppress_space = true;
-
-                        // do orthography rule
-                        if do_ortho {
+                    match joined_prev {
+                        AttachedType::DoNotAttach => {
+                            // do nothing
+                        }
+                        AttachedType::AttachOnly => {
+                            state.suppress_space = true;
+                        }
+                        AttachedType::ApplyOrthography => {
+                            state.suppress_space = true;
                             // find last none alpha character
                             let index = str.rfind(|c: char| !c.is_alphabetic()).map_or(0, |i| {
                                 // we want the index of the next char
@@ -116,7 +119,7 @@ pub(super) fn parse_translation(translations: Vec<Text>, space_after: bool) -> S
                             state = next_state;
                             continue;
                         }
-                    }
+                    };
                 }
             }
             Text::Glued(text) => {
@@ -288,7 +291,7 @@ mod tests {
             Text::Attached {
                 text: "".to_string(),
                 joined_next: true,
-                do_orthography: Some(false),
+                joined_prev: AttachedType::AttachOnly,
                 carry_capitalization: false,
             },
             Text::StateAction(StateAction::ForceCapitalize),
@@ -301,14 +304,14 @@ mod tests {
             Text::Attached {
                 text: "".to_string(),
                 joined_next: true,
-                do_orthography: Some(false),
+                joined_prev: AttachedType::AttachOnly,
                 carry_capitalization: false,
             },
             Text::Lit("NICE".to_string()),
             Text::Attached {
                 text: "".to_string(),
                 joined_next: true,
-                do_orthography: Some(false),
+                joined_prev: AttachedType::AttachOnly,
                 carry_capitalization: false,
             },
             Text::Lit("".to_string()),
@@ -339,7 +342,7 @@ mod tests {
             Text::Attached {
                 text: "".to_string(),
                 joined_next: true,
-                do_orthography: Some(false),
+                joined_prev: AttachedType::AttachOnly,
                 carry_capitalization: false,
             },
             Text::Lit("another".to_string()),
@@ -354,7 +357,7 @@ mod tests {
             Text::Attached {
                 text: "".to_string(),
                 joined_next: true,
-                do_orthography: Some(false),
+                joined_prev: AttachedType::AttachOnly,
                 carry_capitalization: false,
             },
             Text::StateAction(StateAction::ForceCapitalize),
@@ -408,13 +411,13 @@ mod tests {
             Text::Attached {
                 text: " ".to_string(),
                 joined_next: true,
-                do_orthography: Some(true),
+                joined_prev: AttachedType::ApplyOrthography,
                 carry_capitalization: false,
             },
             Text::Attached {
                 text: " ".to_string(),
                 joined_next: true,
-                do_orthography: Some(true),
+                joined_prev: AttachedType::ApplyOrthography,
                 carry_capitalization: false,
             },
         ]);
@@ -485,13 +488,13 @@ mod tests {
             Text::Attached {
                 text: "s".to_string(),
                 joined_next: false,
-                do_orthography: Some(true),
+                joined_prev: AttachedType::ApplyOrthography,
                 carry_capitalization: true,
             },
             Text::Attached {
                 text: "b".to_string(),
                 joined_next: true,
-                do_orthography: None,
+                joined_prev: AttachedType::DoNotAttach,
                 carry_capitalization: true,
             },
             Text::Lit("hi".to_string()),
@@ -509,7 +512,7 @@ mod tests {
                 Text::Attached {
                     text: "a".to_string(),
                     joined_next: false,
-                    do_orthography: Some(false),
+                    joined_prev: AttachedType::AttachOnly,
                     carry_capitalization: false,
                 },
             ],
@@ -528,7 +531,7 @@ mod tests {
                 Text::Attached {
                     text: "".to_string(),
                     joined_next: true,
-                    do_orthography: None,
+                    joined_prev: AttachedType::DoNotAttach,
                     carry_capitalization: false,
                 },
             ],
@@ -566,14 +569,14 @@ mod tests {
                 Text::Attached {
                     text: "©".to_string(),
                     joined_next: true,
-                    do_orthography: None,
+                    joined_prev: AttachedType::DoNotAttach,
                     carry_capitalization: false,
                 },
                 Text::Lit("model".to_string()),
                 Text::Attached {
                     text: "ed".to_string(),
                     joined_next: false,
-                    do_orthography: Some(true),
+                    joined_prev: AttachedType::ApplyOrthography,
                     carry_capitalization: false,
                 },
             ],
@@ -596,7 +599,7 @@ mod tests {
                 Text::Attached {
                     text: "(".to_string(),
                     joined_next: true,
-                    do_orthography: None,
+                    joined_prev: AttachedType::DoNotAttach,
                     carry_capitalization: true,
                 },
                 Text::Lit("NASA".to_string()),

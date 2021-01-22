@@ -14,6 +14,7 @@ users may need to install libxdo-dev.
 
 #### Other
 - handle number strokes for keyboard input
+- drop-in compatibility (dictionary format changer)
 - for stroke lookup, search also with first letter capitalized/lowercased
 - BUG?: "okay, okay" has 2 spaces
 - BUG?: capitalize last word for: (`|` indicates cursor)

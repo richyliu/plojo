@@ -20,7 +20,10 @@ pub fn main() {
         return;
     }
 
-    let config_base = Path::new(&dirs::home_dir().unwrap()).join(".plojo");
+    let config_base = matches.value_of("config").map_or_else(
+        || Path::new(&dirs::home_dir().unwrap()).join(".plojo"),
+        |p: &str| Path::new(p).to_path_buf(),
+    );
     let raw_config = fs::read_to_string(config_base.join("config.toml"))
         .expect("unable to read config.toml file");
     let config = config::load(&raw_config).expect("Invalid config format");
@@ -107,6 +110,14 @@ fn get_arg_matches() -> ArgMatches<'static> {
             Arg::with_name("print-ports")
                 .long("ports")
                 .help("Only print the serial ports that are available"),
+        )
+        .arg(
+            Arg::with_name("config")
+                .short("c")
+                .long("config")
+                .takes_value(true)
+                .value_name("DIR")
+                .help("Override location of config files"),
         )
         .arg(
             Arg::with_name("stdin")

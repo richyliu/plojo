@@ -36,10 +36,7 @@ enum Text {
         // if it should be attached to the next word
         joined_next: bool,
         /// Whether or not to apply orthography rules and whether to attach to the next word
-        /// Some(true) => apply orthography rules and attach
-        /// Some(false) => attach only
-        /// None => do not attach to the previous word
-        do_orthography: Option<bool>,
+        joined_prev: AttachedType,
         /// whether or not to carry the capitalization state to the word following this
         carry_capitalization: bool,
     },
@@ -49,6 +46,13 @@ enum Text {
     StateAction(StateAction),
     // text actions can only affect the text before it
     TextAction(TextAction),
+}
+
+#[derive(Debug, PartialEq, Clone, Hash, Eq, Deserialize)]
+enum AttachedType {
+    ApplyOrthography,
+    AttachOnly,
+    DoNotAttach,
 }
 
 impl Translation {

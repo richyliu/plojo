@@ -1,4 +1,4 @@
-use crate::{StateAction, Text, TextAction, Translation};
+use crate::{AttachedType, StateAction, Text, TextAction, Translation};
 use plojo_core::{Command, Stroke};
 use regex::Regex;
 use serde_json::{self, Error as JsonError, Value};
@@ -85,6 +85,7 @@ pub(super) fn load_dicts(contents: &str) -> Result<Entries, ParseError> {
         match translation {
             Value::String(translation_str) => {
                 let parsed = parse_translation(translation_str)?;
+                let parsed = parsed.into_iter().map(Translation::Text).collect();
                 result_entries.push((stroke, parsed));
             }
             Value::Object(obj) => {
@@ -93,8 +94,9 @@ pub(super) fn load_dicts(contents: &str) -> Result<Entries, ParseError> {
                 })?;
                 let parsed: Vec<Command> = serde_json::from_value(commands.clone())?;
                 let mut texts: Option<Vec<Text>> = None;
-                if let Some(raw_texts) = obj.get("text_after") {
-                    texts = Some(serde_json::from_value(raw_texts.clone())?);
+                if let Some(raw) = obj.get("text_after") {
+                    let raw_str: String = serde_json::from_value(raw.clone())?;
+                    texts = Some(parse_translation(&raw_str)?);
                 }
                 let suppress_space_before = if let Some(s) = obj.get("suppress_space_before") {
                     serde_json::from_value(s.clone())?
@@ -158,7 +160,7 @@ fn parse_stroke(s: &str) -> Result<Stroke, ParseError> {
     }
 }
 
-fn parse_translation(t: &str) -> Result<Vec<Translation>, ParseError> {
+fn parse_translation(t: &str) -> Result<Vec<Text>, ParseError> {
     if t.is_empty() {
         return Err(ParseError::EmptyTranslation);
     }
@@ -219,60 +221,44 @@ lazy_static! {
 }
 
 /// Parses "special actions" which are in the translation surrounded by brackets
-fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
+fn parse_special(t: &str) -> Result<Vec<Text>, ParseError> {
     match t {
         // empty action clears state actions
-        "" => Ok(vec![Translation::Text(Text::StateAction(
-            StateAction::Clear,
-        ))]),
+        "" => Ok(vec![Text::StateAction(StateAction::Clear)]),
         // sentence end-ers
         p if p == "." || p == "!" || p == "?" => Ok(vec![
-            Translation::Text(Text::Attached {
+            Text::Attached {
                 text: p.to_string(),
                 joined_next: false,
-                do_orthography: Some(false),
+                joined_prev: AttachedType::AttachOnly,
                 carry_capitalization: false,
-            }),
-            Translation::Text(Text::StateAction(StateAction::ForceCapitalize)),
+            },
+            Text::StateAction(StateAction::ForceCapitalize),
         ]),
         // other puncuation
-        p if p == "," || p == ":" || p == ";" => Ok(vec![Translation::Text(Text::Attached {
+        p if p == "," || p == ":" || p == ";" => Ok(vec![Text::Attached {
             text: p.to_string(),
             joined_next: false,
-            do_orthography: Some(false),
+            joined_prev: AttachedType::AttachOnly,
             carry_capitalization: false,
-        })]),
+        }]),
         // capitalize next word
-        "-|" => Ok(vec![Translation::Text(Text::StateAction(
-            StateAction::ForceCapitalize,
-        ))]),
+        "-|" => Ok(vec![Text::StateAction(StateAction::ForceCapitalize)]),
         // capitalize previous word
-        "*-|" => Ok(vec![Translation::Text(Text::TextAction(
-            TextAction::CapitalizePrev,
-        ))]),
+        "*-|" => Ok(vec![Text::TextAction(TextAction::CapitalizePrev)]),
         // remove space from prev word
-        "*!" => Ok(vec![Translation::Text(Text::TextAction(
-            TextAction::SuppressSpacePrev,
-        ))]),
+        "*!" => Ok(vec![Text::TextAction(TextAction::SuppressSpacePrev)]),
         // all caps next word
-        "<" => Ok(vec![Translation::Text(Text::StateAction(
-            StateAction::SameCase(true),
-        ))]),
+        "<" => Ok(vec![Text::StateAction(StateAction::SameCase(true))]),
         // all caps previous word
-        "*<" => Ok(vec![Translation::Text(Text::TextAction(
-            TextAction::SameCasePrev(true),
-        ))]),
+        "*<" => Ok(vec![Text::TextAction(TextAction::SameCasePrev(true))]),
         // all lowercase next word
-        ">" => Ok(vec![Translation::Text(Text::StateAction(
-            StateAction::SameCase(false),
-        ))]),
+        ">" => Ok(vec![Text::StateAction(StateAction::SameCase(false))]),
         // all lowercase previous word
-        "*>" => Ok(vec![Translation::Text(Text::TextAction(
-            TextAction::SameCasePrev(false),
-        ))]),
+        "*>" => Ok(vec![Text::TextAction(TextAction::SameCasePrev(false))]),
         // insert literal bracket
-        "bracketleft" => Ok(vec![Translation::Text(Text::Lit("{".to_string()))]),
-        "bracketright" => Ok(vec![Translation::Text(Text::Lit("}".to_string()))]),
+        "bracketleft" => Ok(vec![Text::Lit("{".to_string())]),
+        "bracketright" => Ok(vec![Text::Lit("}".to_string())]),
         _t => {
             // check for prefix/suffix action (attach operator)
             let matched = ATTACHED_REGEX.captures(_t);
@@ -282,12 +268,12 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                 if &groups[1] == "^" {
                     // nothing in the text section, just a simple suppress space stroke
                     if groups[2].is_empty() {
-                        return Ok(vec![Translation::Text(Text::Attached {
+                        return Ok(vec![Text::Attached {
                             text: "".to_string(),
                             joined_next: true,
-                            do_orthography: Some(true),
+                            joined_prev: AttachedType::ApplyOrthography,
                             carry_capitalization: false,
-                        })]);
+                        }]);
                     }
 
                     // set carrying capitalization flag
@@ -301,12 +287,12 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                     // suppress next space if needed
                     let joined_to_next_word = &groups[3] == "^";
                     // apply orthography with an attached action
-                    return Ok(vec![Translation::Text(Text::Attached {
+                    return Ok(vec![Text::Attached {
                         text: content,
                         joined_next: joined_to_next_word,
-                        do_orthography: Some(true),
+                        joined_prev: AttachedType::ApplyOrthography,
                         carry_capitalization,
-                    })]);
+                    }]);
                 } else if &groups[3] == "^" {
                     // set carrying capitalization flag
                     let mut content = groups[2].to_string();
@@ -317,12 +303,12 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                     }
 
                     // caret at end is a prefix stroke
-                    return Ok(vec![Translation::Text(Text::Attached {
+                    return Ok(vec![Text::Attached {
                         text: content,
                         joined_next: true,
-                        do_orthography: None,
+                        joined_prev: AttachedType::DoNotAttach,
                         carry_capitalization,
-                    })]);
+                    }]);
                 }
                 // no caret, ignore it
 
@@ -331,29 +317,25 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
                 if let Some(carrying_cap) = CARRYING_CAP.captures(&content) {
                     let content = carrying_cap[1].to_string();
 
-                    return Ok(vec![Translation::Text(Text::Attached {
+                    return Ok(vec![Text::Attached {
                         text: content,
                         joined_next: false,
-                        do_orthography: None,
+                        joined_prev: AttachedType::DoNotAttach,
                         carry_capitalization: true,
-                    })]);
+                    }]);
                 }
             }
 
             // check for glued operator
             if _t.len() >= 2 && _t.get(0..1) == Some(&"&") {
                 if let Some(text) = _t.get(1..) {
-                    return Ok(vec![Translation::Text(Text::Glued(text.to_string()))]);
+                    return Ok(vec![Text::Glued(text.to_string())]);
                 }
             }
 
             // allow `{#}` to do nothing for plover compatibility
             if _t == "#" {
-                return Ok(vec![Translation::Command {
-                    cmds: vec![Command::NoOp],
-                    text_after: None,
-                    suppress_space_before: false,
-                }]);
+                return Ok(vec![]);
             }
 
             Err(ParseError::InvalidSpecialAction(_t.to_string()))
@@ -362,8 +344,8 @@ fn parse_special(t: &str) -> Result<Vec<Translation>, ParseError> {
 }
 
 // Parses directly as a text literal
-fn parse_as_text(t: &str) -> Translation {
-    Translation::Text(Text::Lit(t.to_string()))
+fn parse_as_text(t: &str) -> Text {
+    Text::Lit(t.to_string())
 }
 
 #[cfg(test)]
@@ -414,65 +396,65 @@ mod tests {
         // `{^}` should suppress space
         assert_eq!(
             parse_translation("{^}").unwrap(),
-            vec![Translation::Text(Text::Attached {
+            vec![Text::Attached {
                 text: "".to_string(),
                 joined_next: true,
-                do_orthography: Some(true),
+                joined_prev: AttachedType::ApplyOrthography,
                 carry_capitalization: false,
-            })]
+            }]
         );
         // `{^^}` should also suppress space
         assert_eq!(
             parse_translation("{^^}").unwrap(),
-            vec![Translation::Text(Text::Attached {
+            vec![Text::Attached {
                 text: "".to_string(),
                 joined_next: true,
-                do_orthography: Some(true),
+                joined_prev: AttachedType::ApplyOrthography,
                 carry_capitalization: false,
-            })]
+            }]
         );
         // `{^}sh` should simply join "sh" to the previous word
         assert_eq!(
             parse_translation("{^}sh").unwrap(),
             vec![
-                Translation::Text(Text::Attached {
+                Text::Attached {
                     text: "".to_string(),
                     joined_next: true,
-                    do_orthography: Some(true),
+                    joined_prev: AttachedType::ApplyOrthography,
                     carry_capitalization: false,
-                }),
-                Translation::Text(Text::Lit("sh".to_string()))
+                },
+                Text::Lit("sh".to_string())
             ]
         );
         // `{^ish}` should be an attached (apply orthography) ish
         assert_eq!(
             parse_translation("{^ish}").unwrap(),
-            vec![Translation::Text(Text::Attached {
+            vec![Text::Attached {
                 text: "ish".to_string(),
                 joined_next: false,
-                do_orthography: Some(true),
+                joined_prev: AttachedType::ApplyOrthography,
                 carry_capitalization: false,
-            })]
+            }]
         );
         // `{^-to-^}` should be "-to-" attached with orthography with space suppressed following it
         assert_eq!(
             parse_translation("{^-to-^}").unwrap(),
-            vec![Translation::Text(Text::Attached {
+            vec![Text::Attached {
                 text: "-to-".to_string(),
                 joined_next: true,
-                do_orthography: Some(true),
+                joined_prev: AttachedType::ApplyOrthography,
                 carry_capitalization: false,
-            })]
+            }]
         );
         // `{in^}` should be an "in" followed by a suppressed space
         assert_eq!(
             parse_translation("{in^}").unwrap(),
-            vec![Translation::Text(Text::Attached {
+            vec![Text::Attached {
                 text: "in".to_string(),
                 joined_next: true,
-                do_orthography: None,
+                joined_prev: AttachedType::DoNotAttach,
                 carry_capitalization: false,
-            })]
+            }]
         );
     }
 
@@ -481,65 +463,63 @@ mod tests {
         // uppercase next word
         assert_eq!(
             parse_translation("{-|}").unwrap(),
-            vec![Translation::Text(Text::StateAction(
-                StateAction::ForceCapitalize,
-            ))],
+            vec![Text::StateAction(StateAction::ForceCapitalize,)],
         );
         // uppercase next word and suppress space
         assert_eq!(
             parse_translation("{^}{-|}").unwrap(),
             vec![
-                Translation::Text(Text::Attached {
+                Text::Attached {
                     text: "".to_string(),
                     joined_next: true,
-                    do_orthography: Some(true),
+                    joined_prev: AttachedType::ApplyOrthography,
                     carry_capitalization: false,
-                }),
-                Translation::Text(Text::StateAction(StateAction::ForceCapitalize))
+                },
+                Text::StateAction(StateAction::ForceCapitalize)
             ],
         );
         // literal bracket
         assert_eq!(
             parse_translation("{bracketleft}").unwrap(),
-            vec![Translation::Text(Text::Lit("{".to_string())),]
+            vec![Text::Lit("{".to_string()),]
         );
         // quote attached to next word
         assert_eq!(
             parse_translation(r#"{~|"^}"#).unwrap(),
-            vec![Translation::Text(Text::Attached {
+            vec![Text::Attached {
                 text: "\"".to_string(),
                 joined_next: true,
-                do_orthography: None,
+                joined_prev: AttachedType::DoNotAttach,
                 carry_capitalization: true,
-            })]
+            }]
         );
         // quote followed by word
         assert_eq!(
             parse_translation(r#"{~|'^}cause"#).unwrap(),
             vec![
-                Translation::Text(Text::Attached {
+                Text::Attached {
                     text: "'".to_string(),
                     joined_next: true,
-                    do_orthography: None,
+                    joined_prev: AttachedType::DoNotAttach,
                     carry_capitalization: true,
-                }),
-                Translation::Text(Text::Lit("cause".to_string())),
+                },
+                Text::Lit("cause".to_string()),
             ]
         );
         // standalone carrying cap
         assert_eq!(
             parse_translation(r#"{~|hello}"#).unwrap(),
-            vec![Translation::Text(Text::Attached {
+            vec![Text::Attached {
                 text: "hello".to_string(),
                 joined_next: false,
-                do_orthography: None,
+                joined_prev: AttachedType::DoNotAttach,
                 carry_capitalization: true,
-            })]
+            }]
         );
         // clear state translation
         assert_eq!(
             parse_translation(r#"{}"#).unwrap(),
-            vec![Translation::Text(Text::StateAction(StateAction::Clear))]
+            vec![Text::StateAction(StateAction::Clear)]
         );
     }
 
@@ -547,7 +527,7 @@ mod tests {
     fn test_translation_unicode() {
         assert_eq!(
             parse_translation("©").unwrap(),
-            vec![Translation::Text(Text::Lit("©".to_string()))]
+            vec![Text::Lit("©".to_string())]
         );
     }
 
