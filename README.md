@@ -11,9 +11,9 @@ users may need to install libxdo-dev.
 - add support for plover modes (caps, camel, snake, etc.)?
 - add orthography (`-Z`) for numbers? (to add "00" to a number)
 - suffix strokes on multistroke words
+- BUG?: cannot undo state action (like `KA*PD`)
 
 #### Other
-- handle number strokes for keyboard input
 - drop-in compatibility (dictionary format changer)
 - for stroke lookup, search also with first letter capitalized/lowercased
 - BUG?: "okay, okay" has 2 spaces
@@ -25,6 +25,7 @@ users may need to install libxdo-dev.
 
 ### Features
 
+- a stroke that can add something after the next stroke
 - call function (like for date)
 - calculate translation frequency
   - also calculate stroke speed and strokes per day

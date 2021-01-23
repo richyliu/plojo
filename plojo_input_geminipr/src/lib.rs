@@ -6,7 +6,6 @@ mod machine;
 mod raw_stroke;
 
 use machine::SerialMachine;
-use raw_stroke::{RawStroke, RawStrokeGeminipr};
 
 pub struct GeminiprMachine {
     machine: SerialMachine,
@@ -21,9 +20,7 @@ impl GeminiprMachine {
 
 impl Machine for GeminiprMachine {
     fn read(&mut self) -> Result<Stroke, Box<dyn Error>> {
-        self.machine
-            .read()
-            .map(|raw| RawStrokeGeminipr::parse_raw(&raw).to_stroke())
+        self.machine.read().map(|raw| raw_stroke::parse_raw(&raw))
     }
 }
 

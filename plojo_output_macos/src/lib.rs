@@ -193,6 +193,7 @@ fn build_char_to_keycode_map() -> HashMap<char, CGKeyCode> {
 
 fn keycode_to_char(code: CGKeyCode) -> Option<char> {
     use cocoa::appkit::{NSEvent, NSEventType};
+    use cocoa::base::nil;
     use cocoa::foundation::NSString;
     use foreign_types::ForeignType;
     use std::{slice, str};
@@ -202,10 +203,7 @@ fn keycode_to_char(code: CGKeyCode) -> Option<char> {
 
     unsafe {
         // the eventWithCGEvent_ call causes a memory leak, but I can't fix it
-        let ns_event = NSEvent::eventWithCGEvent_(
-            cocoa::appkit::NSGeneralPboard, // this can be anything; it isn't actually used
-            event.as_ptr() as *mut core::ffi::c_void,
-        );
+        let ns_event = NSEvent::eventWithCGEvent_(nil, event.as_ptr() as *mut core::ffi::c_void);
 
         if ns_event.eventType() == NSEventType::NSKeyDown {
             let chars = ns_event.characters();

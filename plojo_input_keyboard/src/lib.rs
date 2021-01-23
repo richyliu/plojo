@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
 
-use plojo_core::{Machine, Stroke};
+use plojo_core::{Machine, RawStroke, Stroke};
 use rdev::{Event, EventType};
 use std::{
     collections::HashSet,
@@ -78,12 +78,12 @@ impl KeyboardMachine {
 
 /// A mapping from hardware keys to chars to build a stroke
 struct Layout {
-    // left hand keys
     pub left_keys: Vec<(Key, char)>,
-    // if no center key is present and there are right_keys, a dash (`-`) is inserted
-    pub center_keys: Vec<(Key, char)>,
-    // right hand keys
+    pub center_left_keys: Vec<(Key, char)>,
+    pub star_keys: Vec<Key>,
+    pub center_right_keys: Vec<(Key, char)>,
     pub right_keys: Vec<(Key, char)>,
+    pub num_keys: Vec<Key>,
 }
 
 impl Layout {
@@ -99,13 +99,17 @@ impl Layout {
                 (Key::new(rdev::Key::KeyR), 'H'),
                 (Key::new(rdev::Key::KeyF), 'R'),
             ],
-            center_keys: vec![
+            center_left_keys: vec![
                 (Key::new(rdev::Key::KeyC), 'A'),
                 (Key::new(rdev::Key::KeyV), 'O'),
-                (Key::new(rdev::Key::KeyT), '*'),
-                (Key::new(rdev::Key::KeyG), '*'),
-                (Key::new(rdev::Key::KeyY), '*'),
-                (Key::new(rdev::Key::KeyH), '*'),
+            ],
+            star_keys: vec![
+                Key::new(rdev::Key::KeyT),
+                Key::new(rdev::Key::KeyG),
+                Key::new(rdev::Key::KeyY),
+                Key::new(rdev::Key::KeyH),
+            ],
+            center_right_keys: vec![
                 (Key::new(rdev::Key::KeyN), 'E'),
                 (Key::new(rdev::Key::KeyM), 'U'),
             ],
@@ -121,6 +125,21 @@ impl Layout {
                 (Key::new(rdev::Key::LeftBracket), 'D'),
                 (Key::new(rdev::Key::Quote), 'Z'),
             ],
+            num_keys: vec![
+                Key::new(rdev::Key::Num1),
+                Key::new(rdev::Key::Num2),
+                Key::new(rdev::Key::Num3),
+                Key::new(rdev::Key::Num4),
+                Key::new(rdev::Key::Num5),
+                Key::new(rdev::Key::Num6),
+                Key::new(rdev::Key::Num7),
+                Key::new(rdev::Key::Num8),
+                Key::new(rdev::Key::Num9),
+                Key::new(rdev::Key::Num0),
+                Key::new(rdev::Key::Minus),
+                Key::new(rdev::Key::KeyX),
+                Key::new(rdev::Key::Comma),
+            ],
         }
     }
 }
@@ -128,41 +147,44 @@ impl Layout {
 /// Converts pressed keys to a stroke based on the layout. Returns None if none of the keys
 /// pressed could be mapped to a stroke key
 fn convert_stroke(layout: &Layout, keys: &HashSet<Key>) -> Option<Stroke> {
-    let mut left = String::new();
-    // check each key in the layout to see it exists
+    let mut raw_stroke: RawStroke = Default::default();
+
+    // check each key in the layout to see if it is pressed
     for (k, c) in &layout.left_keys {
-        // add it to the string, but don't add it twice
-        if keys.contains(k) && !left.contains(*c) {
-            left.push(*c);
+        if keys.contains(k) && !raw_stroke.left_hand.contains(*c) {
+            raw_stroke.left_hand.push(*c);
         }
     }
-
-    // same thing for center
-    let mut center = String::new();
-    for (k, c) in &layout.center_keys {
-        if keys.contains(k) && !center.contains(*c) {
-            center.push(*c);
+    for (k, c) in &layout.center_left_keys {
+        if keys.contains(k) && !raw_stroke.center_left.contains(*c) {
+            raw_stroke.center_left.push(*c);
         }
     }
-
-    // same thing for right
-    let mut right = String::new();
+    for k in &layout.star_keys {
+        if keys.contains(k) {
+            raw_stroke.star_key = true;
+        }
+    }
+    for (k, c) in &layout.center_right_keys {
+        if keys.contains(k) && !raw_stroke.center_right.contains(*c) {
+            raw_stroke.center_right.push(*c);
+        }
+    }
     for (k, c) in &layout.right_keys {
-        if keys.contains(k) && !right.contains(*c) {
-            right.push(*c);
+        if keys.contains(k) && !raw_stroke.right_hand.contains(*c) {
+            raw_stroke.right_hand.push(*c);
+        }
+    }
+    for k in &layout.num_keys {
+        if keys.contains(k) {
+            raw_stroke.num_key = true;
         }
     }
 
-    // put a dash if there is no center and there are right keys
-    if center.is_empty() && !right.is_empty() {
-        center = "-".to_string();
-    }
-
-    let result = left + &center + &right;
-    if result.is_empty() {
+    if raw_stroke == Default::default() {
         None
     } else {
-        Some(Stroke::new(&result))
+        Some(raw_stroke.into())
     }
 }
 
@@ -333,5 +355,19 @@ mod tests {
         m.handle_key(Key::new(rdev::Key::KeyI), false);
         m.handle_key(Key::new(rdev::Key::KeyU), false);
         assert_eq!(m.get_stroke().unwrap(), Stroke::new("-FP"));
+    }
+
+    #[test]
+    fn handle_key_num_keys() {
+        let mut m = KeyboardMachine::new();
+        m.handle_key(Key::new(rdev::Key::Num2), true);
+        m.handle_key(Key::new(rdev::Key::KeyW), true);
+        m.handle_key(Key::new(rdev::Key::KeyJ), true);
+        m.handle_key(Key::new(rdev::Key::KeyP), true);
+        m.handle_key(Key::new(rdev::Key::Num2), false);
+        m.handle_key(Key::new(rdev::Key::KeyW), false);
+        m.handle_key(Key::new(rdev::Key::KeyJ), false);
+        m.handle_key(Key::new(rdev::Key::KeyP), false);
+        assert_eq!(m.get_stroke().unwrap(), Stroke::new("2-R9"));
     }
 }
