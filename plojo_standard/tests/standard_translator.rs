@@ -501,6 +501,7 @@ fn space_after_suppress_space() {
     b_expect!(b, "TK-LS", "hello");
     b_expect!(b, "H-L", "hellohello ");
     b_expect!(b, "*", "hello");
+    b_expect!(b, "*", "hello ");
     b_expect!(b, "*", "");
 }
 
@@ -661,4 +662,17 @@ fn capitalize_next_word_orthography() {
         "#,
     );
     b_expect!(b, "TPHRO*UR/KPA*/OUS", " flowerOus");
+}
+
+#[test]
+fn undo_retrospective_capitalize() {
+    // capitalize next word should not apply orthography, and work on a suffix
+    let mut b = Blackbox::new(
+        r#"
+            "H-L": "hello",
+            "KA*PD":"{*-|}"
+        "#,
+    );
+    b_expect!(b, "H-L/KA*PD", " Hello");
+    b_expect!(b, "*", " hello");
 }

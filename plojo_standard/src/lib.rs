@@ -99,15 +99,15 @@ const MAX_STROKE_BUFFER: usize = 50;
 // only pass a certain number of strokes to be translated
 const MAX_TRANSLATION_STROKE_LEN: usize = 10;
 
-/// Commands, text actions, and text of length 0 cannot be undone
-/// This means many of them can be removed during undo
-fn can_be_undone(translation: Translation) -> bool {
+/// Check whether the translation is non empty text
+/// Used to determine where to add retrospective space
+fn is_text(translation: Translation) -> bool {
     match translation {
         Translation::Command { text_after, .. } => {
             if let Some(text_after) = text_after {
                 // check all the text that comes after the command
                 for text in text_after {
-                    if can_be_undone(Translation::Text(text)) {
+                    if is_text(Translation::Text(text)) {
                         return true;
                     }
                 }
@@ -123,21 +123,6 @@ fn can_be_undone(translation: Translation) -> bool {
 }
 
 impl StandardTranslator {
-    /// Remove all strokes that cannot be undone (currently Commands and text actions)
-    fn remove_non_undoable_strokes(&mut self) {
-        // keep on removing more strokes
-        while let Some(stroke) = self.prev_strokes.pop() {
-            // check the translation of just that stroke to see if it contained text
-            let translated = self.dict.translate(&[stroke]);
-            for t in translated {
-                // keep on removing strokes that cannot be undone
-                if can_be_undone(t) {
-                    return;
-                }
-            }
-        }
-    }
-
     /// Creates a translator that takes the raw dictionary string from one or more dictionaries. The
     /// dictionaries further down in the list can override the earlier dictionaries.
     ///
@@ -192,7 +177,7 @@ impl Translator for StandardTranslator {
             for s in self.prev_strokes.iter().rev() {
                 index -= 1;
                 let translated = self.dict.translate(&[s.clone()]);
-                if translated.into_iter().any(can_be_undone) {
+                if translated.into_iter().any(is_text) {
                     break;
                 }
             }
@@ -212,10 +197,18 @@ impl Translator for StandardTranslator {
 
     fn undo(&mut self) -> Vec<Command> {
         let old_translations = self.dict.translate(&self.prev_strokes);
-        self.remove_non_undoable_strokes();
-        let new_translations = self.dict.translate(&self.prev_strokes);
 
-        translation_diff(&old_translations, &new_translations, self.space_after)
+        // keep on removing strokes as long as they are the same (when diffed)
+        while !self.prev_strokes.is_empty() {
+            self.prev_strokes.pop();
+            let new_translations = self.dict.translate(&self.prev_strokes);
+            let diff = translation_diff(&old_translations, &new_translations, self.space_after);
+            if diff != vec![Command::NoOp] {
+                return diff;
+            }
+        }
+
+        return vec![Command::NoOp];
     }
 
     /// Handle a command for the translator.
@@ -239,5 +232,58 @@ impl Translator for StandardTranslator {
             }
             _c => eprintln!("[WARN]: the standard translator cannot handle {:?}", _c),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_text() {
+        assert_eq!(
+            is_text(Translation::Text(Text::Lit("hello".to_owned()))),
+            true
+        );
+        assert_eq!(
+            is_text(Translation::Text(Text::Glued("s".to_owned()))),
+            true
+        );
+        assert_eq!(
+            is_text(Translation::Text(Text::StateAction(
+                StateAction::ForceCapitalize
+            ))),
+            false
+        );
+        assert_eq!(
+            is_text(Translation::Text(Text::TextAction(
+                TextAction::CapitalizePrev
+            ))),
+            false
+        );
+        assert_eq!(
+            is_text(Translation::Command {
+                cmds: vec![],
+                text_after: None,
+                suppress_space_before: false,
+            }),
+            false
+        );
+        assert_eq!(
+            is_text(Translation::Command {
+                cmds: vec![Command::NoOp],
+                text_after: Some(vec![Text::StateAction(StateAction::ForceCapitalize)]),
+                suppress_space_before: false,
+            }),
+            false
+        );
+        assert_eq!(
+            is_text(Translation::Command {
+                cmds: vec![Command::NoOp],
+                text_after: Some(vec![]),
+                suppress_space_before: false,
+            }),
+            false
+        );
     }
 }

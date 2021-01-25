@@ -50,7 +50,6 @@ pub fn main() {
     let mut controller = config.get_output_controller(matches.is_present("stdout"));
 
     println!("[INFO] Ready.");
-    println!();
 
     loop {
         // wait for the next stroke

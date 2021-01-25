@@ -46,6 +46,7 @@ users may need to install libxdo-dev.
 - `STREUP/-D` be "stripped" or "striped"
 - `UPB/TPA*EUGS` be "unification" or "uniification"
 - `TPAUR/OUS` be "forous" or "forrous"
+- (space after): `H-L/TK-LS/*` be "hello " or ""
 
 ## Later todos
 
