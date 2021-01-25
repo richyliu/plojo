@@ -1,5 +1,4 @@
 use clap::{App, Arg, ArgMatches};
-use dirs;
 use plojo_core::{Command, Translator};
 use plojo_input_geminipr as geminipr;
 use plojo_standard::StandardTranslator;

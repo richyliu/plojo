@@ -61,7 +61,7 @@ pub(super) fn translate_strokes(dict: &Dictionary, strokes: &[Stroke]) -> Vec<Tr
 }
 
 // suffixes for suffix folding (currently must all be right hand suffixes)
-const SUFFIXES: [&'static str; 4] = ["-Z", "-D", "-S", "-G"];
+const SUFFIXES: [&str; 4] = ["-Z", "-D", "-S", "-G"];
 // keys used to distinguish right hand keys (for suffix)
 const CENTER_KEYS: [char; 6] = ['*', '-', 'A', 'O', 'E', 'U'];
 
@@ -91,7 +91,7 @@ fn try_suffix_folding(dict: &Dictionary, stroke: &Stroke) -> Option<Vec<Translat
                 // remove at most 1 suffix starting from the end
                 let removed_suffix = reversed.replacen(suffix_char, "", 1);
                 // remove extraneous dash if there is any
-                let removed_suffix = if removed_suffix.chars().next().unwrap() == '-' {
+                let removed_suffix = if removed_suffix.starts_with('-') {
                     removed_suffix[1..].to_owned()
                 } else {
                     removed_suffix

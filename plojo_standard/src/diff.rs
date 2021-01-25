@@ -31,7 +31,7 @@ pub(super) fn translation_diff(
         {
             let mut cmds = cmds.clone();
             // if space after and suppress space, check if there's a space...
-            if space_after && *suppress_space_before && old_parsed.chars().last() == Some(SPACE) {
+            if space_after && *suppress_space_before && old_parsed.ends_with(SPACE) {
                 // ...and it hasn't been deleted before (to prevent duplicate space deletion)
                 if let Some(t) = old.last() {
                     if let Translation::Command { .. } = t {
@@ -66,8 +66,8 @@ fn text_diff(old: String, new: String) -> Command {
         return Command::replace_text(old.len(), "");
     }
 
-    let old_chars_len = old.clone().chars().count();
-    let new_chars_len = new.clone().chars().count();
+    let old_chars_len = old.chars().count();
+    let new_chars_len = new.chars().count();
     let mut old_chars = old.chars();
     let mut new_chars = new.chars();
 

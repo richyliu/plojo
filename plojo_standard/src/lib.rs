@@ -72,6 +72,7 @@ enum StateAction {
     Clear,
 }
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Deserialize)]
 enum TextAction {
     CapitalizePrev,

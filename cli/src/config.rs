@@ -1,6 +1,5 @@
 use serde::Deserialize;
 use std::path::Path;
-use toml;
 
 use plojo_core::{Command, Controller, Machine, Stroke};
 use plojo_input_geminipr::GeminiprMachine;
