@@ -1,7 +1,7 @@
 /// What action should be taken
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize, Serialize)]
 pub enum Command {
     /// Press backspace a certain number of times and type the string
     Replace(usize, String),
@@ -17,13 +17,13 @@ pub enum Command {
     TranslatorCommand(String),
 }
 
-#[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize, Serialize)]
 pub enum Key {
     Special(SpecialKey),
     Layout(char), // literal key (ex: "a", "b", etc.)
 }
 
-#[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize, Serialize)]
 pub enum SpecialKey {
     Backspace,
     CapsLock,
@@ -54,7 +54,7 @@ pub enum SpecialKey {
     UpArrow,
 }
 
-#[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize, Copy)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq, Deserialize, Serialize, Copy)]
 pub enum Modifier {
     Alt,
     Control,

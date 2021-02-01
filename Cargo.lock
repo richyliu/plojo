@@ -667,6 +667,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "plover_convert"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "lazy_static",
+ "plojo_core",
+ "regex",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"

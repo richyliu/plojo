@@ -11,6 +11,7 @@ members = [
     "cli",
     "telemetry",
     "lookup",
+    "plover_convert",
 ]
 
 default-members = ["cli"]

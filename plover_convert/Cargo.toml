@@ -1,0 +1,15 @@
+[package]
+name = "plover_convert"
+version = "0.1.0"
+authors = ["Richard Liu <richy.liu.2002@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde_json = "1.0"
+serde = "1.0"
+plojo_core = { path = "../plojo_core" }
+regex = "1"
+lazy_static = "1.4.0"
+clap = "2.33.3"

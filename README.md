@@ -5,6 +5,9 @@ users may need to install libxdo-dev.
 
 ## Immediate todos
 
+- BUG!: orthography on a command stroke doesn't work
+  - ex: `SHR-BGS` does not do screen lock (`SHR-BG`) followed by "s"
+
 ### Plover compatible
 
 #### Text
@@ -15,6 +18,7 @@ users may need to install libxdo-dev.
 
 #### Other
 - drop-in compatibility (dictionary format changer)
+- support for escaping characters (`\\{`, `\\}`)
 - for stroke lookup, search also with first letter capitalized/lowercased
 - BUG?: "okay, okay" has 2 spaces
 - BUG?: capitalize last word for: (`|` indicates cursor)
