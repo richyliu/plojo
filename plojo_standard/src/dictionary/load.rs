@@ -85,8 +85,7 @@ pub(super) fn load_dicts(contents: &str) -> Result<Entries, ParseError> {
         match translation {
             Value::String(translation_str) => {
                 let parsed = parse_translation(translation_str)?;
-                let parsed = parsed.into_iter().map(Translation::Text).collect();
-                result_entries.push((stroke, parsed));
+                result_entries.push((stroke, Translation::Text(parsed)));
             }
             Value::Object(obj) => {
                 let commands = obj.get("cmds").ok_or_else(|| {
@@ -106,11 +105,11 @@ pub(super) fn load_dicts(contents: &str) -> Result<Entries, ParseError> {
 
                 result_entries.push((
                     stroke,
-                    vec![Translation::Command {
+                    Translation::Command {
                         cmds: parsed,
                         text_after: texts,
                         suppress_space_before,
-                    }],
+                    },
                 ));
             }
             _ => {
@@ -149,7 +148,7 @@ impl From<JsonError> for ParseError {
     }
 }
 
-type Entries = Vec<(Stroke, Vec<Translation>)>;
+type Entries = Vec<(Stroke, Translation)>;
 
 fn parse_stroke(s: &str) -> Result<Stroke, ParseError> {
     let stroke = Stroke::new(s);
@@ -355,7 +354,7 @@ mod tests {
     use std::collections::HashSet;
     use std::iter::FromIterator;
 
-    type Entry = (Stroke, Vec<Translation>);
+    type Entry = (Stroke, Translation);
 
     #[test]
     fn test_basic_parse_dictionary() {
@@ -372,18 +371,18 @@ mod tests {
         let expect = vec![
             (
                 Stroke::new("TP"),
-                vec![Translation::Text(Text::Lit("if".to_string()))],
+                Translation::Text(vec![Text::Lit("if".to_string())]),
             ),
             (
                 Stroke::new("KPA"),
-                vec![
-                    Translation::Text(Text::StateAction(StateAction::Clear)),
-                    Translation::Text(Text::StateAction(StateAction::ForceCapitalize)),
-                ],
+                Translation::Text(vec![
+                    Text::StateAction(StateAction::Clear),
+                    Text::StateAction(StateAction::ForceCapitalize),
+                ]),
             ),
             (
                 Stroke::new("-T/WUPB"),
-                vec![Translation::Text(Text::Lit("The One".to_string()))],
+                Translation::Text(vec![Text::Lit("The One".to_string())]),
             ),
         ];
         let expect: HashSet<Entry> = HashSet::from_iter(expect.iter().cloned());
@@ -553,19 +552,19 @@ mod tests {
         let expect = vec![
             (
                 Stroke::new("UP"),
-                vec![Translation::Command {
+                Translation::Command {
                     cmds: vec![Command::Keys(Key::Special(SpecialKey::UpArrow), vec![])],
                     text_after: None,
                     suppress_space_before: false,
-                }],
+                },
             ),
             (
                 Stroke::new("TEGT"),
-                vec![Translation::Command {
+                Translation::Command {
                     cmds: vec![Command::Keys(Key::Layout('a'), vec![Modifier::Meta])],
                     text_after: None,
                     suppress_space_before: false,
-                }],
+                },
             ),
         ];
         let expect: HashSet<Entry> = HashSet::from_iter(expect.iter().cloned());

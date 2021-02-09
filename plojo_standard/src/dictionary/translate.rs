@@ -39,8 +39,8 @@ pub(super) fn translate_strokes(dict: &Dictionary, strokes: &[Stroke]) -> Vec<Tr
             }
 
             // if the strokes give a translation, add it and advance start
-            if let Some(mut translations) = dict.lookup(&strokes[start..=end]) {
-                all_translations.append(&mut translations);
+            if let Some(translation) = dict.lookup(&strokes[start..=end]) {
+                all_translations.push(translation);
                 start = end + 1;
                 found_translation = true;
                 break;
@@ -50,9 +50,9 @@ pub(super) fn translate_strokes(dict: &Dictionary, strokes: &[Stroke]) -> Vec<Tr
         // if no translation found for any stroke from [start..=start] to [start..=start + max]
         if !found_translation {
             // translation for this stroke
-            all_translations.push(Translation::Text(Text::UnknownStroke(
+            all_translations.push(Translation::Text(vec![Text::UnknownStroke(
                 strokes[start].clone(),
-            )));
+            )]));
             start += 1;
         }
     }
@@ -68,12 +68,12 @@ const CENTER_KEYS: [char; 6] = ['*', '-', 'A', 'O', 'E', 'U'];
 /// Try to extract a suffix from a stroke (handles "suffix folding")
 /// It will check if the resulting stroke and suffix have translations and return that
 ///
-/// For example, "KARS" will return the iook up of "KAR" and "-S" in the dictionary
+/// For example, "KARS" will return the look up of "KAR" and "-S" in the dictionary
 /// "WORLD" will return None because there is no suffix to remove
 fn try_suffix_folding(dict: &Dictionary, stroke: &Stroke) -> Option<Vec<Translation>> {
     // if the original stroke has a translation, don't extract suffixes
     if let Some(t) = dict.lookup(slice::from_ref(stroke)) {
-        return Some(t);
+        return Some(vec![t]);
     }
 
     let raw_stroke = stroke.clone().to_raw();
@@ -97,11 +97,11 @@ fn try_suffix_folding(dict: &Dictionary, stroke: &Stroke) -> Option<Vec<Translat
                     removed_suffix
                 };
                 let removed_suffix: String = removed_suffix.chars().rev().collect();
+
+                // return base translation and suffix translation
                 if let Some(base) = dict.lookup(&[Stroke::new(&removed_suffix)]) {
-                    if let Some(mut suffix_translation) = dict.lookup(&[Stroke::new(s)]) {
-                        let mut t = base;
-                        t.append(&mut suffix_translation);
-                        return Some(t);
+                    if let Some(suffix_translation) = dict.lookup(&[Stroke::new(s)]) {
+                        return Some(vec![base, suffix_translation]);
                     }
                 }
             }
@@ -118,10 +118,10 @@ mod tests {
 
     fn testing_dict() -> Dictionary {
         // handy helper function for making dictionary entries
-        fn row(stroke: &str, translation: &str) -> (Stroke, Vec<Translation>) {
+        fn row(stroke: &str, translation: &str) -> (Stroke, Translation) {
             (
                 Stroke::new(stroke),
-                vec![Translation::Text(Text::Lit(translation.to_string()))],
+                Translation::Text(vec![Text::Lit(translation.to_string())]),
             )
         }
 
@@ -142,20 +142,15 @@ mod tests {
             (row("PH*PB", "mountain")),
             (
                 Stroke::new("KPA"),
-                vec![Translation::Text(Text::StateAction(
-                    StateAction::ForceCapitalize,
-                ))],
+                Translation::Text(vec![Text::StateAction(StateAction::ForceCapitalize)]),
             ),
             (
                 Stroke::new("TKAO*ER"),
-                vec![
-                    Translation::Text(Text::Lit("deer and printing hello".to_string())),
-                    Translation::Command {
-                        cmds: vec![Command::PrintHello],
-                        text_after: None,
-                        suppress_space_before: false,
-                    },
-                ],
+                Translation::Command {
+                    cmds: vec![Command::PrintHello],
+                    text_after: None,
+                    suppress_space_before: false,
+                },
             ),
         ]
         .into_iter()
@@ -170,7 +165,7 @@ mod tests {
 
         assert_eq!(
             translations,
-            vec![Translation::Text(Text::Lit("Hello".to_string()))]
+            vec![Translation::Text(vec![Text::Lit("Hello".to_string())])]
         );
     }
 
@@ -183,8 +178,8 @@ mod tests {
         assert_eq!(
             translations,
             vec![
-                Translation::Text(Text::Lit("Wrong thing".to_string())),
-                Translation::Text(Text::Lit("Hello".to_string()))
+                Translation::Text(vec![Text::Lit("Wrong thing".to_string())]),
+                Translation::Text(vec![Text::Lit("Hello".to_string())])
             ]
         );
     }
@@ -197,7 +192,7 @@ mod tests {
 
         assert_eq!(
             translations,
-            vec![Translation::Text(Text::Lit("He..llo".to_string()))]
+            vec![Translation::Text(vec![Text::Lit("He..llo".to_string())])]
         );
     }
 
@@ -210,8 +205,8 @@ mod tests {
         assert_eq!(
             translations,
             vec![
-                Translation::Text(Text::Lit("World".to_string())),
-                Translation::Text(Text::Lit("He..llo".to_string()))
+                Translation::Text(vec![Text::Lit("World".to_string())]),
+                Translation::Text(vec![Text::Lit("He..llo".to_string())])
             ]
         );
     }
@@ -224,7 +219,9 @@ mod tests {
 
         assert_eq!(
             translations,
-            vec![Translation::Text(Text::UnknownStroke(Stroke::new("SKWR")))]
+            vec![Translation::Text(vec![Text::UnknownStroke(Stroke::new(
+                "SKWR"
+            ))])]
         );
     }
 
@@ -242,9 +239,9 @@ mod tests {
         assert_eq!(
             translations,
             vec![
-                Translation::Text(Text::UnknownStroke(Stroke::new("TPHO"))),
-                Translation::Text(Text::UnknownStroke(Stroke::new("TPHOU"))),
-                Translation::Text(Text::UnknownStroke(Stroke::new("TPHOUT")))
+                Translation::Text(vec![Text::UnknownStroke(Stroke::new("TPHO"))]),
+                Translation::Text(vec![Text::UnknownStroke(Stroke::new("TPHOU"))]),
+                Translation::Text(vec![Text::UnknownStroke(Stroke::new("TPHOUT"))])
             ]
         );
     }
@@ -264,9 +261,9 @@ mod tests {
         assert_eq!(
             translations,
             vec![
-                Translation::Text(Text::UnknownStroke(Stroke::new("TPHO"))),
-                Translation::Text(Text::UnknownStroke(Stroke::new("TPHOU"))),
-                Translation::Text(Text::Lit("no one".to_string()))
+                Translation::Text(vec![Text::UnknownStroke(Stroke::new("TPHO"))]),
+                Translation::Text(vec![Text::UnknownStroke(Stroke::new("TPHOU"))]),
+                Translation::Text(vec![Text::Lit("no one".to_string())])
             ]
         );
     }
@@ -280,7 +277,9 @@ mod tests {
 
         assert_eq!(
             translations,
-            vec![Translation::Text(Text::Lit("hello a world".to_string()))]
+            vec![Translation::Text(vec![Text::Lit(
+                "hello a world".to_string()
+            )])]
         );
     }
 
@@ -293,7 +292,9 @@ mod tests {
 
         assert_eq!(
             translations,
-            vec![Translation::Text(Text::Lit("request an if".to_string()))]
+            vec![Translation::Text(vec![Text::Lit(
+                "request an if".to_string()
+            )])]
         );
     }
 
@@ -306,9 +307,9 @@ mod tests {
 
         assert_eq!(
             translations,
-            vec![Translation::Text(Text::Lit(
+            vec![Translation::Text(vec![Text::Lit(
                 "request a hello world".to_string()
-            ))]
+            )])]
         );
     }
 
@@ -322,8 +323,7 @@ mod tests {
         assert_eq!(
             translations,
             vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::Lit("deer and printing hello".to_string())),
+                Translation::Text(vec![Text::Lit("Hello".to_string())]),
                 Translation::Command {
                     cmds: vec![Command::PrintHello],
                     text_after: None,
@@ -343,8 +343,8 @@ mod tests {
         assert_eq!(
             translations,
             vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::StateAction(StateAction::ForceCapitalize))
+                Translation::Text(vec![Text::Lit("Hello".to_string())]),
+                Translation::Text(vec![Text::StateAction(StateAction::ForceCapitalize)])
             ]
         );
     }
@@ -354,7 +354,7 @@ mod tests {
         fn all_text_helper(text: &[&str]) -> Vec<Translation> {
             let mut translations = Vec::with_capacity(text.len());
             for t in text {
-                translations.push(Translation::Text(Text::Lit(t.to_string())));
+                translations.push(Translation::Text(vec![Text::Lit(t.to_string())]));
             }
             translations
         }

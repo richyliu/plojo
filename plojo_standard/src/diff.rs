@@ -110,13 +110,13 @@ mod tests {
     fn test_diff_same() {
         let command = translation_diff_space_after(
             &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::Lit("Hi".to_string())),
+                Translation::Text(vec![Text::Lit("Hello".to_string())]),
+                Translation::Text(vec![Text::Lit("Hi".to_string())]),
             ],
-            &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::Lit("Hi".to_string())),
-            ],
+            &vec![Translation::Text(vec![
+                Text::Lit("Hello".to_string()),
+                Text::Lit("Hi".to_string()),
+            ])],
         );
 
         assert_eq!(command, vec![Command::NoOp]);
@@ -133,7 +133,7 @@ mod tests {
     fn test_diff_one_empty() {
         let command = translation_diff_space_after(
             &vec![],
-            &vec![Translation::Text(Text::Lit("Hello".to_string()))],
+            &vec![Translation::Text(vec![Text::Lit("Hello".to_string())])],
         );
 
         assert_eq!(command, vec![Command::add_text(" Hello")]);
@@ -150,10 +150,10 @@ mod tests {
     #[test]
     fn test_diff_simple_add() {
         let command = translation_diff_space_after(
-            &vec![Translation::Text(Text::Lit("Hello".to_string()))],
+            &vec![Translation::Text(vec![Text::Lit("Hello".to_string())])],
             &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::Lit("Hi".to_string())),
+                Translation::Text(vec![Text::Lit("Hello".to_string())]),
+                Translation::Text(vec![Text::Lit("Hi".to_string())]),
             ],
         );
 
@@ -163,8 +163,8 @@ mod tests {
     #[test]
     fn test_diff_correction() {
         let command = translation_diff_space_after(
-            &vec![Translation::Text(Text::Lit("Hello".to_string()))],
-            &vec![Translation::Text(Text::Lit("He..llo".to_string()))],
+            &vec![Translation::Text(vec![Text::Lit("Hello".to_string())])],
+            &vec![Translation::Text(vec![Text::Lit("He..llo".to_string())])],
         );
 
         assert_eq!(command, vec![Command::replace_text(3, "..llo")]);
@@ -173,7 +173,7 @@ mod tests {
     #[test]
     fn test_diff_deletion() {
         let command = translation_diff_space_after(
-            &vec![Translation::Text(Text::Lit("Hello".to_string()))],
+            &vec![Translation::Text(vec![Text::Lit("Hello".to_string())])],
             &vec![],
         );
 
@@ -184,12 +184,12 @@ mod tests {
     fn test_diff_unknown_correction() {
         let command = translation_diff_space_after(
             &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::UnknownStroke(Stroke::new("WUPB"))),
+                Translation::Text(vec![Text::Lit("Hello".to_string())]),
+                Translation::Text(vec![Text::UnknownStroke(Stroke::new("WUPB"))]),
             ],
             &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::Lit("Won".to_string())),
+                Translation::Text(vec![Text::Lit("Hello".to_string())]),
+                Translation::Text(vec![Text::Lit("Won".to_string())]),
             ],
         );
 
@@ -200,13 +200,13 @@ mod tests {
     fn test_diff_text_actions() {
         let command = translation_diff_space_after(
             &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::Lit("world".to_string())),
+                Translation::Text(vec![Text::Lit("Hello".to_string())]),
+                Translation::Text(vec![Text::Lit("world".to_string())]),
             ],
             &vec![
-                Translation::Text(Text::Lit("Hi".to_string())),
-                Translation::Text(Text::StateAction(StateAction::ForceCapitalize)),
-                Translation::Text(Text::Lit("world".to_string())),
+                Translation::Text(vec![Text::Lit("Hi".to_string())]),
+                Translation::Text(vec![Text::StateAction(StateAction::ForceCapitalize)]),
+                Translation::Text(vec![Text::Lit("world".to_string())]),
             ],
         );
 
@@ -217,13 +217,13 @@ mod tests {
     fn test_diff_prev_word_text_actions() {
         let command = translation_diff_space_after(
             &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::Lit("world".to_string())),
+                Translation::Text(vec![Text::Lit("Hello".to_string())]),
+                Translation::Text(vec![Text::Lit("world".to_string())]),
             ],
             &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::Lit("world".to_string())),
-                Translation::Text(Text::TextAction(TextAction::CapitalizePrev)),
+                Translation::Text(vec![Text::Lit("Hello".to_string())]),
+                Translation::Text(vec![Text::Lit("world".to_string())]),
+                Translation::Text(vec![Text::TextAction(TextAction::CapitalizePrev)]),
             ],
         );
 
@@ -234,12 +234,12 @@ mod tests {
     fn test_diff_same_command() {
         let command = translation_diff_space_after(
             &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
+                Translation::Text(vec![Text::Lit("Hello".to_string())]),
                 basic_command(vec![Command::PrintHello]),
                 basic_command(vec![Command::PrintHello]),
             ],
             &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
+                Translation::Text(vec![Text::Lit("Hello".to_string())]),
                 basic_command(vec![Command::PrintHello]),
                 basic_command(vec![Command::PrintHello]),
             ],
@@ -269,12 +269,12 @@ mod tests {
     fn test_diff_external_command() {
         let command = translation_diff_space_after(
             &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::Lit("world".to_string())),
+                Translation::Text(vec![Text::Lit("Hello".to_string())]),
+                Translation::Text(vec![Text::Lit("world".to_string())]),
             ],
             &vec![
-                Translation::Text(Text::Lit("Hello".to_string())),
-                Translation::Text(Text::Lit("world".to_string())),
+                Translation::Text(vec![Text::Lit("Hello".to_string())]),
+                Translation::Text(vec![Text::Lit("world".to_string())]),
                 basic_command(vec![Command::PrintHello]),
             ],
         );

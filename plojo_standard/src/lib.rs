@@ -14,7 +14,7 @@ mod diff;
 /// dispatcher. Otherwise it is something that pertains to text, which is parsed here in translator
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
 enum Translation {
-    Text(Text),
+    Text(Vec<Text>),
     Command {
         cmds: Vec<Command>,
         text_after: Option<Vec<Text>>,
@@ -59,7 +59,7 @@ impl Translation {
     /// Convert translation into text, ignoring commands
     fn as_text(&self) -> Vec<Text> {
         match self {
-            Translation::Text(ref text) => vec![text.clone()],
+            Translation::Text(ref text) => text.clone(),
             Translation::Command { text_after, .. } => text_after.clone().unwrap_or_default(),
         }
     }
@@ -106,20 +106,26 @@ fn is_text(translation: Translation) -> bool {
     match translation {
         Translation::Command { text_after, .. } => {
             if let Some(text_after) = text_after {
-                // check all the text that comes after the command
-                for text in text_after {
-                    if is_text(Translation::Text(text)) {
-                        return true;
+                is_text(Translation::Text(text_after))
+            } else {
+                false
+            }
+        }
+        Translation::Text(texts) => {
+            // check if at least one is non empty text
+            for text in texts {
+                match text {
+                    Text::UnknownStroke(_) => return true,
+                    Text::Attached { text, .. } | Text::Glued(text) | Text::Lit(text) => {
+                        if !text.is_empty() {
+                            return true;
+                        }
                     }
+                    Text::TextAction(_) | Text::StateAction(_) => continue,
                 }
             }
             false
         }
-        Translation::Text(text) => match text {
-            Text::TextAction(_) | Text::StateAction(_) => false,
-            Text::UnknownStroke(_) => true,
-            Text::Attached { text, .. } | Text::Glued(text) | Text::Lit(text) => !text.is_empty(),
-        },
     }
 }
 
@@ -243,23 +249,23 @@ mod tests {
     #[test]
     fn test_is_text() {
         assert_eq!(
-            is_text(Translation::Text(Text::Lit("hello".to_owned()))),
+            is_text(Translation::Text(vec![Text::Lit("hello".to_owned())])),
             true
         );
         assert_eq!(
-            is_text(Translation::Text(Text::Glued("s".to_owned()))),
+            is_text(Translation::Text(vec![Text::Glued("s".to_owned())])),
             true
         );
         assert_eq!(
-            is_text(Translation::Text(Text::StateAction(
+            is_text(Translation::Text(vec![Text::StateAction(
                 StateAction::ForceCapitalize
-            ))),
+            )])),
             false
         );
         assert_eq!(
-            is_text(Translation::Text(Text::TextAction(
+            is_text(Translation::Text(vec![Text::TextAction(
                 TextAction::CapitalizePrev
-            ))),
+            )])),
             false
         );
         assert_eq!(

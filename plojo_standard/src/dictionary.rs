@@ -7,11 +7,11 @@ use std::iter::FromIterator;
 mod load;
 mod translate;
 
-type DictEntry = (Stroke, Vec<Translation>);
+type DictEntry = (Stroke, Translation);
 
 #[derive(Debug, PartialEq)]
 pub struct Dictionary {
-    strokes: HashMap<Stroke, Vec<Translation>>,
+    strokes: HashMap<Stroke, Translation>,
 }
 
 impl Dictionary {
@@ -26,7 +26,7 @@ impl Dictionary {
         Ok(entries.into_iter().collect())
     }
 
-    fn lookup(&self, strokes: &[Stroke]) -> Option<Vec<Translation>> {
+    fn lookup(&self, strokes: &[Stroke]) -> Option<Translation> {
         // combine strokes with a `/` between them
         let combined = strokes
             .iter()
@@ -44,7 +44,7 @@ impl Dictionary {
 
 impl FromIterator<DictEntry> for Dictionary {
     fn from_iter<T: IntoIterator<Item = DictEntry>>(iter: T) -> Self {
-        let mut hashmap: HashMap<Stroke, Vec<Translation>> = HashMap::new();
+        let mut hashmap: HashMap<Stroke, Translation> = HashMap::new();
         for (stroke, translations) in iter {
             hashmap.insert(stroke, translations);
         }
@@ -77,7 +77,7 @@ mod tests {
         let dict = Dictionary::new(vec![raw_dict1, raw_dict2]).unwrap();
         assert_eq!(
             dict.lookup(&[Stroke::new("WORLD")]).unwrap(),
-            vec![Translation::Text(Text::Lit("something else".to_string()))]
+            Translation::Text(vec![Text::Lit("something else".to_string())])
         );
     }
 }
