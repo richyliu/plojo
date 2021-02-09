@@ -39,26 +39,32 @@ dictionary to stdout.",
     println!("{}", serialize(&value));
 }
 
-/// Serialize a JSON object with one entry on each line
+/// Serialize a JSON object with one entry on each line.
+///
+/// Object keys are serialized in alphabetical order
 fn serialize(dict: &Value) -> String {
     if let Value::Object(map) = dict {
-        let mut result = "{\n".to_string();
+        if map.is_empty() {
+            return "{}".to_string();
+        }
 
-        let mut sorted = map.iter().collect::<Vec<_>>();
-        // sorted.sort_unstable_by(|(a, _), (b, _)| a.partial_cmp(b).unwrap());
+        let mut result = "{".to_string();
 
-        for (stroke, translation) in sorted {
-            result += "\"";
+        for (stroke, translation) in map.iter() {
+            result += "\n\"";
             result += stroke;
             result += "\": ";
             result += &translation.to_string();
-            result += ",\n";
+            result += ",";
         }
-        result += "}";
+
+        // remove trailing comma from the last entry
+        result.pop();
+        result += "\n}";
 
         result
     } else {
-        panic!("top level should be an object");
+        panic!("top level serialize value should be an object");
     }
 }
 
@@ -422,5 +428,42 @@ mod tests {
             convert_keyboard_shortcut("{#shift_l(alt_l(b)}").unwrap_err(),
             ConversionError::UnbalancedParens
         );
+    }
+
+    #[test]
+    fn test_serialize() {
+        assert_eq!(
+            serialize(&json!({
+                "T-R": "interest",
+                "PAT": "pat",
+                "H-L": "hello",
+                "WORLD": "world",
+                "R-R": {
+                    "cmds": [{ "Keys": [{ "Special": "Tab" }, []] }],
+                },
+            })),
+            r#"{
+"H-L": "hello",
+"PAT": "pat",
+"R-R": {"cmds":[{"Keys":[{"Special":"Tab"},[]]}]},
+"T-R": "interest",
+"WORLD": "world"
+}"#
+            .to_string()
+        );
+        assert_eq!(
+            serialize(&json!({
+                "R-R": {
+                    "cmds": [{ "Keys": [{ "Special": "Tab" }, []] }],
+                    "suppress_space_before": true,
+                    "text_after": "{^}{-|}",
+                },
+            })),
+            r#"{
+"R-R": {"cmds":[{"Keys":[{"Special":"Tab"},[]]}],"suppress_space_before":true,"text_after":"{^}{-|}"}
+}"#
+            .to_string()
+        );
+        assert_eq!(serialize(&json!({})), "{}".to_string());
     }
 }

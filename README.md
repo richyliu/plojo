@@ -8,16 +8,23 @@ users may need to install libxdo-dev.
 - BUG!: orthography on a command stroke doesn't work
   - ex: `SHR-BGS` does not do screen lock (`SHR-BG`) followed by "s"
 
+## Will implement soon
+
+- BUG?: cannot undo state action (like `KA*PD`)
+- check drop-in compatibility (dictionary format changer)
+- call function (like for date)
+- for corrections (browser URL bar), add space and then delete
+- mouse control
+- write documentation
+
 ### Plover compatible
 
 #### Text
 - add support for plover modes (caps, camel, snake, etc.)?
 - add orthography (`-Z`) for numbers? (to add "00" to a number)
 - suffix strokes on multistroke words
-- BUG?: cannot undo state action (like `KA*PD`)
 
 #### Other
-- drop-in compatibility (dictionary format changer)
 - support for escaping characters (`\\{`, `\\}`)
 - for stroke lookup, search also with first letter capitalized/lowercased
 - BUG?: "okay, okay" has 2 spaces
@@ -29,20 +36,20 @@ users may need to install libxdo-dev.
 
 ### Features
 
+- record and replay macros
 - a stroke that can add something after the next stroke
-- call function (like for date)
-- calculate translation frequency
-  - also calculate stroke speed and strokes per day
-  - calculate strokes per word
-  - calculate frequency of certain individual keys and two keys
-- for corrections (browser URL bar), add space and then delete
-- mouse control
-- add support for multiple dictionaries that can have their order changed
 - allow comments to be added to the dictionary
+
+- add support for multiple dictionaries that can have their order changed
 - something that can suggest briefs based on usage
   - calculate stroke speed and average strokes per word
   - find which strokes happen quickly one after the other (for brief suggestion)
 - translation mode for verbatim strokes for brief creation
+- all lowercase text filter for texting
+- calculate translation frequency
+  - also calculate stroke speed and strokes per day
+  - calculate strokes per word
+  - calculate frequency of certain individual keys and two keys
 
 ## Test on Plover
 - `SEUFRPL` + `ER/ROR`
@@ -51,6 +58,7 @@ users may need to install libxdo-dev.
 - `UPB/TPA*EUGS` be "unification" or "uniification"
 - `TPAUR/OUS` be "forous" or "forrous"
 - (space after): `H-L/TK-LS/*` be "hello " or ""
+- `R-RS`: be "<return>s" or just "s" (suffix folding for commands?)
 
 ## Later todos
 
@@ -78,13 +86,8 @@ users may need to install libxdo-dev.
 - consolidate `Lit` and `Attached` (and maybe even `Glued`)
 
 ### Plover compatible
-- write a script to convert plover shortcut keys to plojo keys
 - ignore dictionary unknown special actions
-- escape sequences (especially for brackets) in dictionary
 - add orthography rules aliases
-- potential bug: uppercase the next word (without specifying space) and then
-- consider changing commands format back to one that is plover compatible
-- make text_after actions more convenient to type
 - add config to customize undo strokes
 - some strokes (like `O-RBGS`) have a dash when it doesn't need a dash
 - should be usable as a drop-in replacement for Plover
