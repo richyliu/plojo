@@ -70,6 +70,8 @@ const CENTER_KEYS: [char; 6] = ['*', '-', 'A', 'O', 'E', 'U'];
 ///
 /// For example, "KARS" will return the look up of "KAR" and "-S" in the dictionary
 /// "WORLD" will return None because there is no suffix to remove
+///
+/// Suffixes will not be folded on to a stroke that produces a command
 fn try_suffix_folding(dict: &Dictionary, stroke: &Stroke) -> Option<Vec<Translation>> {
     // if the original stroke has a translation, don't extract suffixes
     if let Some(t) = dict.lookup(slice::from_ref(stroke)) {
@@ -100,8 +102,13 @@ fn try_suffix_folding(dict: &Dictionary, stroke: &Stroke) -> Option<Vec<Translat
 
                 // return base translation and suffix translation
                 if let Some(base) = dict.lookup(&[Stroke::new(&removed_suffix)]) {
-                    if let Some(suffix_translation) = dict.lookup(&[Stroke::new(s)]) {
-                        return Some(vec![base, suffix_translation]);
+                    if let Translation::Command { .. } = base {
+                        // don't add suffix to commands
+                        continue;
+                    } else {
+                        if let Some(suffix_translation) = dict.lookup(&[Stroke::new(s)]) {
+                            return Some(vec![base, suffix_translation]);
+                        }
                     }
                 }
             }
@@ -377,5 +384,8 @@ mod tests {
         assert!(try_suffix_folding(&dict, &Stroke::new("H")).is_none());
         assert!(try_suffix_folding(&dict, &Stroke::new("H-LZ")).is_none());
         assert!(try_suffix_folding(&dict, &Stroke::new("STPAODS")).is_none());
+
+        // adding suffix to command stroke does nothing
+        assert!(try_suffix_folding(&dict, &Stroke::new("TKAO*ERS")).is_none());
     }
 }

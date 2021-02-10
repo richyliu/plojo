@@ -676,3 +676,19 @@ fn undo_retrospective_capitalize() {
     b_expect!(b, "H-L/KA*PD", " Hello");
     b_expect!(b, "*", " hello");
 }
+
+#[test]
+fn command_stroke_suffix_folding() {
+    // adding suffix stroke to a command stroke should not work
+    let mut b = Blackbox::new(
+        r#"
+            "H-L": "hello",
+            "R-R": { "cmds": [{ "Keys": [{"Special": "Return"}, []] }] },
+            "-S": "{^s}"
+        "#,
+    );
+    b_expect!(b, "H-L", " hello");
+    b_expect_keys!(b, "R-RS", vec![]);
+    b_expect!(b, "H-L", " hello R-RS hello");
+    b_expect!(b, "*/*", " hello");
+}

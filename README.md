@@ -5,17 +5,12 @@ users may need to install libxdo-dev.
 
 ## Immediate todos
 
-- BUG!: orthography on a command stroke doesn't work
-  - ex: `SHR-BGS` does not do screen lock (`SHR-BG`) followed by "s"
-
-## Will implement soon
-
 - BUG?: cannot undo state action (like `KA*PD`)
 - check drop-in compatibility (dictionary format changer)
-- call function (like for date)
-- for corrections (browser URL bar), add space and then delete
-- mouse control
 - write documentation
+- for corrections (browser URL bar), add space and then delete
+- call function (like for date)
+- mouse control
 
 ### Plover compatible
 
