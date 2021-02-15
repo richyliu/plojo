@@ -1,7 +1,7 @@
 use clap::{App, Arg, ArgMatches};
 use plojo_core::{Command, Translator};
 use plojo_input_geminipr as geminipr;
-use plojo_standard::StandardTranslator;
+use plojo_translator::StandardTranslator;
 use std::{fs, io, path::Path};
 
 mod config;

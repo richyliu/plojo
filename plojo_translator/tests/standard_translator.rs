@@ -1,5 +1,5 @@
 use plojo_core::{Command, Key, Modifier, SpecialKey, Stroke, Translator};
-use plojo_standard::StandardTranslator;
+use plojo_translator::StandardTranslator;
 
 /// Blackbox assert macro for better line number tracing
 /// Expect that pressing stroke(s) causes a certain output

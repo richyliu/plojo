@@ -1,5 +1,5 @@
 [package]
-name = "plojo_standard"
+name = "plojo_translator"
 version = "0.1.0"
 authors = ["Richard Liu <richy.liu.2002@gmail.com>"]
 edition = "2018"

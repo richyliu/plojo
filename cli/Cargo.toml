@@ -11,7 +11,7 @@ plojo_input_geminipr = { path = "../plojo_input_geminipr" }
 plojo_input_stdin = { path = "../plojo_input_stdin" }
 plojo_input_keyboard = { path = "../plojo_input_keyboard" }
 plojo_core = { path = "../plojo_core" }
-plojo_standard = { path = "../plojo_standard" }
+plojo_translator = { path = "../plojo_translator" }
 plojo_output_macos = { path = "../plojo_output_macos" }
 plojo_output_enigo = { path = "../plojo_output_enigo" }
 chrono = "0.4.19"

@@ -5,7 +5,7 @@ members = [
     "plojo_input_stdin",
     "plojo_input_keyboard",
     "plojo_core",
-    "plojo_standard",
+    "plojo_translator",
     "plojo_output_enigo",
     "plojo_output_macos",
     "cli",

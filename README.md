@@ -5,7 +5,6 @@ users may need to install libxdo-dev.
 
 ## Immediate todos
 
-- BUG?: cannot undo state action (like `KA*PD`)
 - check drop-in compatibility (dictionary format changer)
 - write documentation
 - for corrections (browser URL bar), add space and then delete
