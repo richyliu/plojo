@@ -8,6 +8,7 @@ users may need to install libxdo-dev.
 - check drop-in compatibility (dictionary format changer)
 - write documentation
 - for corrections (browser URL bar), add space and then delete
+- add orthography (`-Z`) for numbers? (to add "00" to a number)
 - call function (like for date)
 - mouse control
 
