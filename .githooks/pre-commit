@@ -6,11 +6,11 @@ RESULT=$?
 [ $RESULT -ne 0 ] && exit 1
 
 # Checks for dbg! macros still left in the code
-ag --ignore-dir cli/runtime_files --ignore pre-commit.sh "dbg!" &&
-  echo 'COMMIT REJECTED Found TODOs. Please remove them before committing.' &&
+grep --exclude-dir cli/runtime_files 'dbg!' --exclude-dir .githooks --exclude-dir target -R . &&
+  echo 'COMMIT REJECTED Found dbg statements. Please remove them before committing.' &&
   exit 1
 # Checks for TODOs still left in the code
-ag --ignore-dir cli/runtime_files --ignore pre-commit.sh "TODO:" &&
+grep --exclude-dir cli/runtime_files 'TODO:' --exclude-dir .githooks --exclude-dir target -R . &&
   echo 'COMMIT REJECTED Found TODOs. Please remove them before committing.' &&
   exit 1
 
