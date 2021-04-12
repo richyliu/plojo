@@ -28,4 +28,8 @@ impl Machine for StdinMachine {
 
         Ok(stroke)
     }
+
+    fn disable(&self) {
+        // no point in disabling stdin machine
+    }
 }

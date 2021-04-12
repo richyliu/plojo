@@ -112,3 +112,4 @@ users may need to install libxdo-dev.
 - prefix + suffix doesn't apply orthography (this may differ from Plover)
   - ex: `TPAUR/OUS` makes `forous`, not `forrous`
 - force same case overrides force capitalize (when it applies to the next word)
+- disable with stroke and re-enable keyboard shortcut (uses rdev keycode format)

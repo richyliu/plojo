@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::path::Path;
+use std::{collections::HashSet, path::Path};
 
 use plojo_core::{Command, Controller, Machine, Stroke};
 use plojo_input_geminipr::GeminiprMachine;
@@ -24,6 +24,10 @@ pub struct Config {
     pub space_after: bool,
     #[serde(default)]
     pub delay_output: bool,
+    #[serde(default)]
+    disable_input_strokes: Vec<String>,
+    #[serde(default)]
+    enable_input_shortcuts: Vec<Vec<String>>,
 }
 
 impl Config {
@@ -43,7 +47,9 @@ impl Config {
                 Box::new(GeminiprMachine::new(port).expect("unable to connect to geminipr machine"))
                     as Box<dyn Machine>
             }
-            InputMachineType::Keyboard => Box::new(KeyboardMachine::new()) as Box<dyn Machine>,
+            InputMachineType::Keyboard => Box::new(
+                KeyboardMachine::new().with_reenable_shortcuts(self.enable_input_shortcuts.clone()),
+            ) as Box<dyn Machine>,
         }
     }
 
@@ -90,6 +96,14 @@ impl Config {
     /// Get the stroke for space that is added when retrospectively adding space
     pub fn get_space_stroke(&self) -> Option<Stroke> {
         self.space_stroke.as_ref().map(|s| Stroke::new(s))
+    }
+
+    /// Get the strokes for disabling input (mainly for keyboard input)
+    pub fn get_disable_input_strokes(&self) -> HashSet<Stroke> {
+        self.disable_input_strokes
+            .iter()
+            .map(|s| Stroke::new(s))
+            .collect::<HashSet<_>>()
     }
 }
 

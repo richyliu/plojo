@@ -22,6 +22,10 @@ impl Machine for GeminiprMachine {
     fn read(&mut self) -> Result<Stroke, Box<dyn Error>> {
         self.machine.read().map(|raw| raw_stroke::parse_raw(&raw))
     }
+
+    fn disable(&self) {
+        // no point in disabling serial machine
+    }
 }
 
 pub fn print_available_ports() {

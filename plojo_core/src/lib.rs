@@ -29,4 +29,6 @@ pub trait Controller {
 pub trait Machine {
     /// Waits until a new stroke is read
     fn read(&mut self) -> Result<Stroke, Box<dyn Error>>;
+    /// Temporarily disable input
+    fn disable(&self);
 }

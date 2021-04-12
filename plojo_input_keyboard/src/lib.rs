@@ -7,6 +7,7 @@ use std::{
     collections::HashSet,
     error::Error,
     hash::Hash,
+    iter::FromIterator,
     sync::{
         mpsc,
         mpsc::{Receiver, Sender},
@@ -16,6 +17,10 @@ use std::{
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 struct Key(String);
+
+lazy_static! {
+    static ref IS_DISABLED: Mutex<bool> = Mutex::new(false);
+}
 
 impl Key {
     fn new(key: rdev::Key) -> Self {
@@ -30,7 +35,10 @@ pub struct KeyboardMachine {
     down_keys: HashSet<Key>,
     up_keys: HashSet<Key>,
     stroke: Option<Stroke>,
+    reenable_shortcuts: Vec<Shortcut>,
 }
+
+type Shortcut = HashSet<String>;
 
 impl Default for KeyboardMachine {
     fn default() -> Self {
@@ -38,6 +46,7 @@ impl Default for KeyboardMachine {
             down_keys: HashSet::new(),
             up_keys: HashSet::new(),
             stroke: None,
+            reenable_shortcuts: Vec::new(),
         }
     }
 }
@@ -45,6 +54,14 @@ impl Default for KeyboardMachine {
 impl KeyboardMachine {
     pub fn new() -> Self {
         Default::default()
+    }
+
+    pub fn with_reenable_shortcuts(mut self, reenable_shortcuts: Vec<Vec<String>>) -> Self {
+        self.reenable_shortcuts = reenable_shortcuts
+            .into_iter()
+            .map(|s| HashSet::from_iter(s))
+            .collect();
+        self
     }
 
     /// Handles a key pressed down or up
@@ -62,8 +79,29 @@ impl KeyboardMachine {
                 if self.stroke.is_some() {
                     panic!("received new stroke but old stroke has not been processed");
                 }
-                let stroke = convert_stroke(&Layout::steno_querty(), &self.up_keys);
-                self.stroke = stroke;
+
+                // check if this stroke reenables shortcuts
+                let mut is_disabled = IS_DISABLED.lock().unwrap();
+                if *is_disabled {
+                    let keys = self
+                        .up_keys
+                        .iter()
+                        .map(|key| key.0.clone())
+                        .collect::<HashSet<_>>();
+                    for shortcut in &self.reenable_shortcuts {
+                        if shortcut == &keys {
+                            *is_disabled = false;
+                            break;
+                        }
+                    }
+                    drop(is_disabled);
+                } else {
+                    drop(is_disabled);
+                    // only send stroke if not currently disabled
+                    let stroke = convert_stroke(&Layout::steno_querty(), &self.up_keys);
+                    self.stroke = stroke;
+                }
+
                 self.up_keys.clear();
             }
         }
@@ -221,6 +259,10 @@ impl Machine for KeyboardMachine {
             }
         }
     }
+
+    fn disable(&self) {
+        *IS_DISABLED.lock().unwrap() = true;
+    }
 }
 
 /// Handle a native event
@@ -243,6 +285,13 @@ fn handle_event(event: Event) -> Option<Event> {
     let sender = PASSER.0.lock().unwrap();
     sender.send((Key::new(key), is_down)).unwrap();
 
+    if *IS_DISABLED.lock().unwrap() {
+        // Don't suppress the event if keyboard is disabled
+        // This allows key press to "pass through" so the keyboard input seems disabled
+        // However, we still need to pass keys to sender to detect when to re-enable the keyboard
+        return Some(event);
+    }
+
     // suppress the event
     None
 }
@@ -250,8 +299,10 @@ fn handle_event(event: Event) -> Option<Event> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     #[test]
+    #[serial]
     fn convert_stroke_basic() {
         fn convert(keys: Vec<rdev::Key>) -> Option<Stroke> {
             convert_stroke(
@@ -288,6 +339,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn handle_key_basic() {
         let mut m = KeyboardMachine::new();
         m.handle_key(Key::new(rdev::Key::KeyQ), true);
@@ -302,6 +354,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn handle_key_mixed_order() {
         let mut m = KeyboardMachine::new();
         m.handle_key(Key::new(rdev::Key::KeyQ), true);
@@ -315,6 +368,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn handle_key_multiple_presses() {
         let mut m = KeyboardMachine::new();
         m.handle_key(Key::new(rdev::Key::KeyQ), true);
@@ -329,6 +383,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn handle_key_ignore_other_keys() {
         let mut m = KeyboardMachine::new();
         m.handle_key(Key::new(rdev::Key::KeyQ), true);
@@ -342,6 +397,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn handle_key_multiple_strokes() {
         let mut m = KeyboardMachine::new();
         m.handle_key(Key::new(rdev::Key::KeyQ), true);
@@ -358,6 +414,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn handle_key_num_keys() {
         let mut m = KeyboardMachine::new();
         m.handle_key(Key::new(rdev::Key::Num2), true);
@@ -369,5 +426,38 @@ mod tests {
         m.handle_key(Key::new(rdev::Key::KeyJ), false);
         m.handle_key(Key::new(rdev::Key::KeyP), false);
         assert_eq!(m.get_stroke().unwrap(), Stroke::new("2-R9"));
+    }
+
+    #[test]
+    #[serial]
+    fn reenable_input() {
+        *IS_DISABLED.lock().unwrap() = true;
+
+        let mut m = KeyboardMachine::new().with_reenable_shortcuts(vec![vec![
+            "MetaLeft".to_string(),
+            "ShiftLeft".to_string(),
+            "Alt".to_string(),
+            "KeyP".to_string(),
+        ]]);
+        m.handle_key(Key::new(rdev::Key::MetaLeft), true);
+        m.handle_key(Key::new(rdev::Key::KeyW), true);
+        m.handle_key(Key::new(rdev::Key::MetaLeft), false);
+        m.handle_key(Key::new(rdev::Key::KeyW), false);
+        assert!(*IS_DISABLED.lock().unwrap());
+        assert!(m.get_stroke().is_none());
+
+        m.handle_key(Key::new(rdev::Key::MetaLeft), true);
+        m.handle_key(Key::new(rdev::Key::Alt), true);
+        m.handle_key(Key::new(rdev::Key::ShiftLeft), true);
+        m.handle_key(Key::new(rdev::Key::KeyP), true);
+        m.handle_key(Key::new(rdev::Key::MetaLeft), false);
+        m.handle_key(Key::new(rdev::Key::Alt), false);
+        m.handle_key(Key::new(rdev::Key::ShiftLeft), false);
+        m.handle_key(Key::new(rdev::Key::KeyP), false);
+        assert!(!*IS_DISABLED.lock().unwrap());
+        assert!(m.get_stroke().is_none());
+
+        // reset value after test
+        *IS_DISABLED.lock().unwrap() = false;
     }
 }

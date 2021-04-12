@@ -48,6 +48,8 @@ pub fn main() {
     /* Load controller */
     let mut controller = config.get_output_controller(matches.is_present("stdout"));
 
+    let disable_input_strokes = config.get_disable_input_strokes();
+
     println!("[INFO] Ready.");
 
     loop {
@@ -71,7 +73,10 @@ pub fn main() {
         log.push_str(&format!("{:?} => ", stroke));
 
         // translating the stroke
-        let commands = if stroke.is_undo() {
+        let commands = if disable_input_strokes.contains(&stroke) {
+            machine.disable();
+            Vec::new()
+        } else if stroke.is_undo() {
             translator.undo()
         } else {
             translator.translate(stroke)

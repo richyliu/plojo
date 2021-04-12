@@ -10,3 +10,6 @@ edition = "2018"
 plojo_core = { path = "../plojo_core" }
 lazy_static = "1.4.0"
 rdev = { version = "0.4.5", features = [ "unstable_grab" ] }
+
+[dev-dependencies]
+serial_test = "0.5.1"
