@@ -19,7 +19,7 @@ pub trait Translator {
 
 /// Controller that can perform a command
 pub trait Controller {
-    fn new() -> Self
+    fn new(disable_scan_keymap: bool) -> Self
     where
         Self: Sized;
     fn dispatch(&mut self, command: Command);

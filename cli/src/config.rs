@@ -28,6 +28,8 @@ pub struct Config {
     disable_input_strokes: Vec<String>,
     #[serde(default)]
     enable_input_shortcuts: Vec<Vec<String>>,
+    #[serde(default)]
+    disable_scan_keymap: bool,
 }
 
 impl Config {
@@ -64,9 +66,15 @@ impl Config {
         };
         println!("[INFO] Output to: {:?}", output);
         match output {
-            OutputDispatchType::Enigo => Box::new(EnigoController::new()) as Box<dyn Controller>,
-            OutputDispatchType::MacNative => Box::new(MacController::new()) as Box<dyn Controller>,
-            OutputDispatchType::Stdout => Box::new(StdoutController::new()) as Box<dyn Controller>,
+            OutputDispatchType::Enigo => {
+                Box::new(EnigoController::new(self.disable_scan_keymap)) as Box<dyn Controller>
+            }
+            OutputDispatchType::MacNative => {
+                Box::new(MacController::new(self.disable_scan_keymap)) as Box<dyn Controller>
+            }
+            OutputDispatchType::Stdout => {
+                Box::new(StdoutController::new(self.disable_scan_keymap)) as Box<dyn Controller>
+            }
         }
     }
 
@@ -139,7 +147,7 @@ impl Default for OutputDispatchType {
 
 struct StdoutController {}
 impl Controller for StdoutController {
-    fn new() -> Self {
+    fn new(_disable_scan_keymap: bool) -> Self {
         Self {}
     }
     fn dispatch(&mut self, command: Command) {

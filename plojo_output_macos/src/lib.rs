@@ -14,11 +14,23 @@ const TYPE_DELAY: u64 = 5;
 // Delay for holding down each modifier key
 const MODIFIER_DELAY: u64 = 2;
 
-pub struct MacController {}
+pub struct MacController {
+    // Stores the keymap if keymap scanning is disabled (keymap is only scanned at the beginning)
+    // If it's not disabled, then the keymap is scanned for every keyboard shortcut (to see if it
+    // changed). This field will be Non
+    char_to_keycode_map: Option<HashMap<char, CGKeyCode>>,
+}
 
 impl Controller for MacController {
-    fn new() -> Self {
-        Self {}
+    fn new(disable_scan_keymap: bool) -> Self {
+        Self {
+            char_to_keycode_map: if disable_scan_keymap {
+                // to disable keymap scanning, scan it only once at the beginning
+                Some(build_char_to_keycode_map())
+            } else {
+                None
+            },
+        }
     }
 
     fn dispatch(&mut self, command: Command) {
@@ -51,7 +63,13 @@ impl Controller for MacController {
                     Key::Layout(c) => {
                         // build a new map on each dispatch in case the keyboard layout changed
                         // this map converts chars to keycodes in a keyboard shortcut
-                        let keycode_map = build_char_to_keycode_map();
+                        let local_keymap;
+                        let keycode_map = if let Some(ref m) = self.char_to_keycode_map {
+                            m
+                        } else {
+                            local_keymap = build_char_to_keycode_map();
+                            &local_keymap
+                        };
 
                         // try to convert the char to a physical key
                         if let Some(code) = keycode_map.get(&c) {

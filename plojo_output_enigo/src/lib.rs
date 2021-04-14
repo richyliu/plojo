@@ -44,7 +44,8 @@ impl EnigoController {
 }
 
 impl Controller for EnigoController {
-    fn new() -> Self {
+    fn new(_disable_scan_keymap: bool) -> Self {
+        // enigo does not scan keymap, so ignore the option
         Self {
             enigo: Enigo::new(),
         }
