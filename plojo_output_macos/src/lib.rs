@@ -150,6 +150,7 @@ fn modifiers_to_flags(modifiers: &[Modifier]) -> CGEventFlags {
             Modifier::Meta => CGEventFlags::CGEventFlagCommand,
             Modifier::Option => CGEventFlags::CGEventFlagAlternate,
             Modifier::Shift => CGEventFlags::CGEventFlagShift,
+            Modifier::Fn => CGEventFlags::CGEventFlagSecondaryFn,
         }
     }
     flags
@@ -162,6 +163,7 @@ fn modifier_to_key(modifier: Modifier) -> CGKeyCode {
         Modifier::Meta => KeyCode::COMMAND,
         Modifier::Option => KeyCode::OPTION,
         Modifier::Shift => KeyCode::SHIFT,
+        Modifier::Fn => KeyCode::FUNCTION,
     }
 }
 

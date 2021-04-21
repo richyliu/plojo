@@ -125,6 +125,7 @@ fn from_modifier(modifier: Modifier) -> Key {
         Modifier::Meta => Key::Meta,
         Modifier::Option => Key::Option,
         Modifier::Shift => Key::Shift,
+        Modifier::Fn => Key::Raw(0), // not implemented by enigo
     }
 }
 

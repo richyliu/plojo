@@ -61,6 +61,7 @@ pub enum Modifier {
     Meta,
     Option, // for MacOS
     Shift,
+    Fn,
 }
 
 impl Command {
