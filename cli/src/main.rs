@@ -60,8 +60,10 @@ pub fn main() {
                 // exit if it is a broken pipe (likely the machine disconnected)
                 if let Some(e) = e.downcast_ref::<io::Error>() {
                     if e.kind() == io::ErrorKind::BrokenPipe {
-                        println!("Machine disconnected. Exiting.");
-                        return;
+                        println!("[WARN] Machine disconnected");
+                        machine = config.get_input_machine(matches.is_present("stdin"));
+                        println!("[INFO] Machine reconnected");
+                        continue;
                     }
                 }
                 panic!("unable to read stroke: {}", e);

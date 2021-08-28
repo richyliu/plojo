@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::{collections::HashSet, path::Path};
+use std::{collections::HashSet, path::Path, thread, time};
 
 use plojo_core::{Command, Controller, Machine, Stroke};
 use plojo_input_geminipr::GeminiprMachine;
@@ -46,8 +46,21 @@ impl Config {
         match input {
             InputMachineType::Stdin => Box::new(StdinMachine::new()) as Box<dyn Machine>,
             InputMachineType::Geminipr { ref port } => {
-                Box::new(GeminiprMachine::new(port).expect("unable to connect to geminipr machine"))
-                    as Box<dyn Machine>
+                let mut issued_warning = false;
+                loop {
+                    if let Ok(machine) = GeminiprMachine::new(port) {
+                        return Box::new(machine) as Box<dyn Machine>;
+                    } else {
+                        if !issued_warning {
+                            println!(
+                                "[WARN] Machine not found on serial port. Will try again every 5 seconds"
+                            );
+                            issued_warning = true;
+                        }
+                        // try to connect to machine again after a delay
+                        thread::sleep(time::Duration::from_secs(5));
+                    }
+                }
             }
             InputMachineType::Keyboard => Box::new(
                 KeyboardMachine::new().with_reenable_shortcuts(self.enable_input_shortcuts.clone()),
