@@ -692,3 +692,22 @@ fn command_stroke_suffix_folding() {
     b_expect!(b, "H-L", " hello R-RS hello");
     b_expect!(b, "*/*", " hello");
 }
+
+#[test]
+fn toggle_space_after() {
+    // adding suffix stroke to a command stroke should not work
+    let mut b = Blackbox::new(
+        r#"
+            "H-L": "hello",
+            "SPA*EUS": { "cmds": [{ "TranslatorCommand": "toggle_space_after" }] },
+            "-S": "{^s}"
+        "#,
+    );
+    b_expect!(b, "H-L", " hello");
+    b_expect!(b, "SPA*EUS", " hello");
+    b_expect!(b, "H-L", " hellohello ");
+    b_expect!(b, "-S", " hellohellos ");
+    b_expect!(b, "*", " hellohello ");
+    b_expect!(b, "*", " hello");
+    b_expect!(b, "*", "");
+}
