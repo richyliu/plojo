@@ -70,7 +70,10 @@ fn analyze_frequency(file: &str) {
         .collect();
     freq.process(&parsed);
 
+    let grams = freq.grams_1(1);
+    println!("{} one-grams used at least once", &grams.len());
     let grams_1 = freq.grams_1(2);
+    println!("{} one-grams used at least twice", &grams_1.len());
     println!("one-grams (frequency)");
     println!("{:?}", &grams_1[..20]);
     println!("");
