@@ -23,8 +23,6 @@ pub struct Config {
     #[serde(default)]
     pub space_after: bool,
     #[serde(default)]
-    pub delay_output: bool,
-    #[serde(default)]
     disable_input_strokes: Vec<String>,
     #[serde(default)]
     enable_input_shortcuts: Vec<Vec<String>>,

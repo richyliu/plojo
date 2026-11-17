@@ -91,7 +91,6 @@ pub(super) fn parse_translation(translations: Vec<Text>, space_after: bool) -> S
                             state.suppress_space = true;
                         }
                         AttachedType::ApplyOrthography => {
-                            state.suppress_space = true;
                             // find last none alpha character
                             let index = str.rfind(|c: char| !c.is_alphabetic()).map_or(0, |i| {
                                 // we want the index of the next char
